@@ -142,6 +142,10 @@ app.use(express.json());
 // Mount API router
 app.use('/api', apiRoutes);
 
+// Mount MCP Server
+const { setupMcp } = require('./mcpServer');
+setupMcp(app, articleStore);
+
 // Serve Flutter Web App on root
 app.use(express.static(path.join(__dirname, '..', 'public', 'web')));
 
