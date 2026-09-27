@@ -1170,7 +1170,9 @@ class NewsProvider extends ChangeNotifier {
       if (_cachedFullList.length > startIndex) {
         final nextBatch = _cachedFullList.skip(startIndex).take(_pageSize).toList();
         _currentPage++;
-        if (nextBatch.isNotEmpty) _articles.addAll(nextBatch);
+        if (nextBatch.isNotEmpty) {
+          _articles.addAll(nextBatch);
+        }
         _hasMore = _cachedFullList.length > _currentPage * _pageSize;
         _isLoadingMore = false;
         notifyListeners();
@@ -1204,11 +1206,25 @@ class NewsProvider extends ChangeNotifier {
         await _cacheService.cacheArticles(cleanMore);
       }
       _hasMore = moreNews.length == _pageSize;
-      _isLoadingMore = false;
     } catch (e) {
       _noInternetOnScroll = true;
+      debugPrint("[NewsProvider] Error fetching more news: " + e.toString());
+    } finally {
       _isLoadingMore = false;
+      notifyListeners();
     }
+  }
+
+  Future<void> triggerFullRefresh() async {
+    _isRefreshing = true;
+    notifyListeners();
+    await _apiService.refreshBackend();
+    await fetchMetadata();
+    await fetchNews(isRefresh: true);
+  }
+
+  Future<void> loadBookmarks() async {
+    _bookmarks = await _bookmarkService.getBookmarks();
     notifyListeners();
   }
 
