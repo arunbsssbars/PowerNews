@@ -1055,13 +1055,7 @@ class NewsProvider extends ChangeNotifier {
       // Filter out low-grade or non-AI stubs so feed contains 100% verified AI summaries
       final cleanNews = news.where((a) {
         final s = a.summary.trim();
-        return s.length >= 75 &&
-            !s.startsWith('• ') &&
-            !s.startsWith('- ') &&
-            !s.startsWith('* ') &&
-            s.toLowerCase() != a.title.trim().toLowerCase() &&
-            !s.contains('prohibited content policy') &&
-            !s.startsWith('• A global renewable energy power plant step');
+        return s.length >= 50 && s.toLowerCase() != a.title.trim().toLowerCase();
       }).toList();
 
       final sorted = _sortArticles(cleanNews);
@@ -1171,33 +1165,17 @@ class NewsProvider extends ChangeNotifier {
     _noInternetOnScroll = false;
     notifyListeners();
 
-    // 1. Instant Local Pagination: Ensure local cache only emits strictly verified AI summaries
-    final startIndex = _currentPage * _pageSize;
-    if (_cachedFullList.length > startIndex) {
-      final nextBatch = _cachedFullList
-          .skip(startIndex)
-          .take(_pageSize)
-          .where((a) {
-            final s = a.summary.trim();
-            return s.length >= 75 &&
-                !s.startsWith('• ') &&
-                !s.startsWith('- ') &&
-                !s.startsWith('* ');
-          })
-          .toList();
-          
-      _currentPage++;
-      if (nextBatch.isNotEmpty) {
-        _articles.addAll(nextBatch);
-      }
-      _hasMore = _cachedFullList.length > _currentPage * _pageSize;
-      _isLoadingMore = false;
-      notifyListeners();
-      return;
-    }
-
-    // 2. Offline: If cache is exhausted, mark hasMore false
     if (_isOffline) {
+      final startIndex = _currentPage * _pageSize;
+      if (_cachedFullList.length > startIndex) {
+        final nextBatch = _cachedFullList.skip(startIndex).take(_pageSize).toList();
+        _currentPage++;
+        if (nextBatch.isNotEmpty) _articles.addAll(nextBatch);
+        _hasMore = _cachedFullList.length > _currentPage * _pageSize;
+        _isLoadingMore = false;
+        notifyListeners();
+        return;
+      }
       _hasMore = false;
       _isLoadingMore = false;
       _noInternetOnScroll = true;
@@ -1205,61 +1183,32 @@ class NewsProvider extends ChangeNotifier {
       return;
     }
 
-    // 3. Online: Fetch next page from backend
     try {
       final nextPage = _currentPage + 1;
       final moreNews = await _apiService.getNews(
-        category: _selectedCategory == 'All' ? null : _selectedCategory,
-        player: (_selectedPlayer == 'All' || _selectedPlayer == 'All Players') ? null : _selectedPlayer,
-        state: _selectedState == 'All States' ? null : _selectedState,
-        city: _selectedCity == 'All Cities' ? null : _selectedCity,
-        discom: _selectedDiscom == 'All DISCOMs' ? null : _selectedDiscom,
+        category: _selectedCategory == "All" ? null : _selectedCategory,
+        player: (_selectedPlayer == "All" || _selectedPlayer == "All Players") ? null : _selectedPlayer,
+        state: _selectedState == "All States" ? null : _selectedState,
+        city: _selectedCity == "All Cities" ? null : _selectedCity,
+        discom: _selectedDiscom == "All DISCOMs" ? null : _selectedDiscom,
         search: _searchQuery.isEmpty ? null : _searchQuery,
         page: nextPage,
         limit: _pageSize,
       );
 
       _currentPage = nextPage;
-
-      final cleanMore = moreNews.where((a) {
-        final s = a.summary.trim();
-        return s.length >= 75 &&
-            !s.startsWith('• ') &&
-            !s.startsWith('- ') &&
-            !s.startsWith('* ') &&
-            s.toLowerCase() != a.title.trim().toLowerCase() &&
-            !s.contains('prohibited content policy') &&
-            !s.startsWith('• A global renewable energy power plant step');
-      }).toList();
+      final cleanMore = moreNews.where((a) => a.summary.trim().length >= 50).toList();
 
       if (cleanMore.isNotEmpty) {
         _articles.addAll(cleanMore);
         await _cacheService.cacheArticles(cleanMore);
       }
       _hasMore = moreNews.length == _pageSize;
-      
-      // If we filtered out the entire page but there is more, we could recursively fetch, 
-      // but for safety we just rely on the next scroll event or a "load more" trigger.
-      
+      _isLoadingMore = false;
     } catch (e) {
       _noInternetOnScroll = true;
-      debugPrint('[NewsProvider] Error fetching more news: $e');
-    } finally {
       _isLoadingMore = false;
-      notifyListeners();
     }
-  }
-
-  Future<void> triggerFullRefresh() async {
-    _isRefreshing = true;
-    notifyListeners();
-    await _apiService.refreshBackend();
-    await fetchMetadata();
-    await fetchNews(isRefresh: true);
-  }
-
-  Future<void> loadBookmarks() async {
-    _bookmarks = await _bookmarkService.getBookmarks();
     notifyListeners();
   }
 
