@@ -155,54 +155,8 @@ function getReadableRefreshTime(isoDateString) {
 function getActiveArticles() {
   const cachedArticles = articleStore.getArticles();
   const retained = filterArticlesRetention7Days(cachedArticles);
-  return retained
-    .filter(a => {
-      const s = a.id && aiSummaryCache[a.id];
-      return Boolean(
-        s &&
-        s.length >= 75 &&
-        !s.startsWith('• ') &&
-        !s.startsWith('- ') &&
-        !s.startsWith('* ') &&
-        s.toLowerCase() !== a.title.trim().toLowerCase()
-      );
-    })
-    .map(a => ({
-      ...a,
-      title: cleanHeadline(a.title),
-      summary: aiSummaryCache[a.id],
-      isAiSummary: true,
-      isAiGenerated: true,
-    }));
+  return retained.filter(a => Boolean(a.id && aiSummaryCache[a.id] && aiSummaryCache[a.id].length >= 50));
 }
-
-// ----------------------------------------------------------------------------
-// Core Health & Ingestion
-// ----------------------------------------------------------------------------
-router.get('/health', (req, res) => {
-  const rawArticles = articleStore.getArticles();
-  const activeSummaries = getActiveArticles();
-  const rawDate = articleStore.getLastRefreshedAt();
-  const lifecycle = getSystemLifecycle();
-
-  res.json({
-    app: 'PowerNews',
-    status: 'healthy',
-    uptimeSeconds: lifecycle.uptimeSeconds,
-    uptimeFormatted: lifecycle.uptimeFormatted,
-    serverStartedAt: lifecycle.serverStartedAt,
-    serverStartedAtIso: lifecycle.serverStartedAtIso,
-    lastRestartReason: lifecycle.lastRestartReason,
-    restartCount: lifecycle.restartCount,
-    previousExitTime: lifecycle.previousExitTime,
-    databaseMode: lifecycle.databaseMode,
-    totalArticles: activeSummaries.length,
-    rawScrapedArticles: rawArticles.length,
-    totalAiSummaries: Object.keys(aiSummaryCache).length,
-    lastRefreshedAt: getReadableRefreshTime(rawDate),
-    lastRefreshedAtIso: rawDate || null,
-  });
-});
 
 router.get('/memory', (req, res) => {
   const mem = process.memoryUsage();
