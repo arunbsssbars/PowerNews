@@ -21,22 +21,8 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateMixin {
   final Set<int> _visitedTabs = {0};
-  late AnimationController _refreshAnimController;
+  
 
-  @override
-  void initState() {
-    super.initState();
-    _refreshAnimController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 900),
-    );
-  }
-
-  @override
-  void dispose() {
-    _refreshAnimController.dispose();
-    super.dispose();
-  }
 
   void _onNavigateTab(int index, {bool resetFilters = false}) {
     setState(() => _visitedTabs.add(index));
@@ -202,10 +188,6 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
           ),
 
           const SizedBox(width: 6),
-
-          
-            ),
-          ),
 
           const SizedBox(width: 6),
 
@@ -489,6 +471,6 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
           ),
         ],
       ),
-    )
+    );
   }
 }

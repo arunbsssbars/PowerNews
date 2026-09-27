@@ -131,11 +131,7 @@ class BookmarksView extends StatelessWidget {
           delegate: SliverChildBuilderDelegate(
             (context, index) {
               final article = provider.bookmarks[index];
-              return ExecutiveCardView(
-                article: article,
-                allArticles: provider.bookmarks,
-                itemIndex: index,
-              );
+              return ExecutiveCardView(article: article, currentIndex: index, totalCount: provider.bookmarks.length);
             },
             childCount: provider.bookmarks.length,
           ),
