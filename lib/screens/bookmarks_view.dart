@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/news_provider.dart';
-import '../widgets/news_card.dart';
+import '../widgets/executive_card_view.dart';
 
 class BookmarksView extends StatelessWidget {
   const BookmarksView({super.key});
@@ -131,7 +131,7 @@ class BookmarksView extends StatelessWidget {
           delegate: SliverChildBuilderDelegate(
             (context, index) {
               final article = provider.bookmarks[index];
-              return NewsCard(
+              return ExecutiveCardView(
                 article: article,
                 allArticles: provider.bookmarks,
                 itemIndex: index,

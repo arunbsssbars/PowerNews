@@ -1208,7 +1208,7 @@ class NewsProvider extends ChangeNotifier {
       _hasMore = moreNews.length == _pageSize;
     } catch (e) {
       _noInternetOnScroll = true;
-      debugPrint("[NewsProvider] Error fetching more news: " + e.toString());
+      debugPrint("[NewsProvider] Error fetching more news: ");
     } finally {
       _isLoadingMore = false;
       notifyListeners();

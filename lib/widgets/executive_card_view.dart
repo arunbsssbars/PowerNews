@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:share_plus/share_plus.dart';
@@ -159,29 +160,16 @@ class ExecutiveCardView extends StatelessWidget {
         fit: StackFit.expand,
         children: [
           if (hasValidImage)
-            Image.network(
-              imgUrl,
-              fit: BoxFit.cover,
-              filterQuality: FilterQuality.high,
-              loadingBuilder: (context, child, loadingProgress) {
-                if (loadingProgress == null) return child;
-                return Center(
-                  child: SizedBox(
-                    width: 24,
-                    height: 24,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                      value: loadingProgress.expectedTotalBytes != null
-                          ? loadingProgress.cumulativeBytesLoaded /
-                              loadingProgress.expectedTotalBytes!
-                          : null,
-                      valueColor: AlwaysStoppedAnimation<Color>(catColor),
-                    ),
-                  ),
-                );
-              },
-              errorBuilder: (_, __, ___) => _buildFallbackBanner(isDark, catColor),
-            )
+            CachedNetworkImage(
+  imageUrl: imgUrl,
+  fit: BoxFit.cover,
+  filterQuality: FilterQuality.high,
+  memCacheWidth: 600,
+  memCacheHeight: 400,
+  fadeInDuration: const Duration(milliseconds: 300),
+  placeholder: (context, url) => Container(color: isDark ? const Color(0xFF1E293B) : const Color(0xFFE2E8F0)),
+  errorWidget: (context, url, error) => _buildFallbackBanner(isDark, catColor),
+)
           else
             _buildFallbackBanner(isDark, catColor),
 

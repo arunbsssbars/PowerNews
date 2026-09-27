@@ -203,45 +203,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
 
           const SizedBox(width: 6),
 
-          // 2. Refresh Button (Comfortable 36x36 touch target)
-          Tooltip(
-            message: 'Refresh Feeds',
-            child: InkWell(
-              borderRadius: BorderRadius.circular(10),
-              onTap: () async {
-                _refreshAnimController.repeat();
-                try {
-                  await provider.triggerFullRefresh();
-                } finally {
-                  if (mounted) {
-                    _refreshAnimController.animateTo(1.0, curve: Curves.easeOut).then((_) {
-                      if (mounted) _refreshAnimController.reset();
-                    });
-                  }
-                }
-              },
-              child: Container(
-                width: 36,
-                height: 36,
-                decoration: BoxDecoration(
-                  color: isDark ? const Color(0xFF1E293B).withOpacity(0.7) : const Color(0xFFF1F5F9),
-                  borderRadius: BorderRadius.circular(10),
-                  border: Border.all(
-                    color: isDark ? const Color(0xFF334155).withOpacity(0.7) : const Color(0xFFE2E8F0),
-                    width: 1,
-                  ),
-                ),
-                child: Center(
-                  child: RotationTransition(
-                    turns: _refreshAnimController,
-                    child: Icon(
-                      Icons.sync_rounded,
-                      size: 18,
-                      color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF475569),
-                    ),
-                  ),
-                ),
-              ),
+          
             ),
           ),
 
@@ -527,6 +489,6 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
           ),
         ],
       ),
-    );
+    )
   }
 }

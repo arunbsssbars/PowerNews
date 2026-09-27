@@ -142,7 +142,7 @@ class AppTheme {
         ),
       ),
       navigationBarTheme: NavigationBarThemeData(
-        backgroundColor: const Color(0xFF10151E),
+        backgroundColor: const Color(0xFF121212),
         elevation: 0,
         height: 65,
         indicatorColor: darkPrimary.withOpacity(0.22),
