@@ -2,7 +2,7 @@ const express = require('express');
 const path = require('path');
 const fs = require('fs');
 const articleStore = require('../services/articleStore');
-const { getArticleContentById } = require('../services/firestoreService');
+const { getArticleContentById, saveFeedback, getFeedbacks } = require('../services/firestoreService');
 const {
   UTILITY_PLAYER_RULES,
   STATE_DISCOM_DIRECTORY,
@@ -688,4 +688,29 @@ router.get('/summarize-all', async (req, res) => {
   });
 });
 
+
+// --- FEEDBACK ROUTES ---
+router.post('/feedbacks', async (req, res) => {
+  try {
+    const { email, message, type } = req.body;
+    if (!message) return res.status(400).json({ error: 'Message is required' });
+    const result = await saveFeedback({ email, message, type: type || 'suggestion' });
+    res.json(result);
+  } catch (error) {
+    console.error('[API] Error saving feedback:', error.message);
+    res.status(500).json({ error: 'Failed to save feedback' });
+  }
+});
+
+router.get('/feedbacks', async (req, res) => {
+  try {
+    const feedbacks = await getFeedbacks();
+    res.json(feedbacks);
+  } catch (error) {
+    console.error('[API] Error fetching feedbacks:', error.message);
+    res.status(500).json({ error: 'Failed to fetch feedbacks' });
+  }
+});
+
 module.exports = router;
+

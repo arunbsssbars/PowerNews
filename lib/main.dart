@@ -7,6 +7,7 @@ import 'screens/home_screen.dart';
 import 'screens/onboarding_screen.dart';
 import 'screens/login_signup_screen.dart';
 import 'theme/app_theme.dart';
+import 'screens/email_verification_screen.dart';
 import 'services/auth_service.dart';
 
 void main() async {
@@ -48,14 +49,7 @@ class PowerNewsApp extends StatelessWidget {
     final newsProvider = context.watch<NewsProvider>();
     final auth = context.watch<AuthService>();
 
-    Widget initialScreen;
-    if (showOnboarding) {
-      initialScreen = const OnboardingScreen();
-    } else if (!auth.isAuthenticated ) {
-      initialScreen = const LoginSignUpScreen();
-    } else {
-      initialScreen = const HomeScreen();
-    }
+    
 
     return MaterialApp(
       title: 'PowerNews',
@@ -74,7 +68,22 @@ class PowerNewsApp extends StatelessWidget {
           child: child!,
         );
       },
-      home: initialScreen,
+      home: showOnboarding ? const OnboardingScreen() : const AuthWrapper(),
     );
+  }
+}
+
+class AuthWrapper extends StatelessWidget {
+  const AuthWrapper({super.key});
+  @override
+  Widget build(BuildContext context) {
+    final auth = context.watch<AuthService>();
+    if (!auth.isAuthenticated) {
+      return const LoginSignUpScreen();
+    }
+    if (!auth.currentUser!.isEmailVerified) {
+      return const EmailVerificationScreen();
+    }
+    return const HomeScreen();
   }
 }

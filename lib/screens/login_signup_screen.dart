@@ -211,12 +211,17 @@ class _LoginSignUpScreenState extends State<LoginSignUpScreen> with SingleTicker
     return Scaffold(
       backgroundColor: isDark ? const Color(0xFF0B1120) : const Color(0xFFF8FAFC),
       body: SafeArea(
-        child: Center(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 440),
-              child: Column(
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            return SingleChildScrollView(
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+              child: ConstrainedBox(
+                constraints: BoxConstraints(
+                  maxWidth: 440,
+                  minHeight: constraints.maxHeight - 40,
+                ),
+                child: Center(
+                  child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   // App Brand Logo & Title
@@ -528,7 +533,8 @@ class _LoginSignUpScreenState extends State<LoginSignUpScreen> with SingleTicker
               ),
             ),
           ),
-        ),
+        );
+        },
       ),
     );
   }

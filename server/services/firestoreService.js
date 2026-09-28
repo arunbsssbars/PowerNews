@@ -569,7 +569,28 @@ async function getStorageStatus() {
   }
 }
 
+
+async function saveFeedback(feedbackData) {
+  const database = initFirestore();
+  if (!database) return { success: true, offline: true };
+  const docRef = await database.collection('feedbacks').add({
+    ...feedbackData,
+    timestamp: new Date().toISOString()
+  });
+  return { success: true, id: docRef.id };
+}
+
+async function getFeedbacks() {
+  const database = initFirestore();
+  if (!database) return [];
+  const snapshot = await database.collection('feedbacks').orderBy('timestamp', 'desc').get();
+  return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+}
+
 module.exports = {
+  saveFeedback,
+  getFeedbacks,
+
   initFirestore,
   loadAllSummariesFromFirestore,
   saveSummaryToFirestore,

@@ -21,6 +21,28 @@ class AdminDashboardScreen extends StatefulWidget {
 }
 
 class _AdminDashboardScreenState extends State<AdminDashboardScreen> with SingleTickerProviderStateMixin {
+
+  Widget _buildFeedbackTab(bool isDark) {
+    if (_isLoadingFeedbacks) return const Center(child: CircularProgressIndicator());
+    if (_feedbacks.isEmpty) return const Center(child: Text('No feedbacks yet.'));
+    return ListView.builder(
+      padding: const EdgeInsets.all(16),
+      itemCount: _feedbacks.length,
+      itemBuilder: (ctx, i) {
+        final f = _feedbacks[i];
+        return Card(
+          margin: const EdgeInsets.only(bottom: 12),
+          child: ListTile(
+            leading: Icon(f['type'] == 'bug' ? Icons.bug_report : Icons.lightbulb, color: Colors.blue),
+            title: Text(f['message'] ?? '', style: const TextStyle(fontWeight: FontWeight.bold)),
+            subtitle: Text('From: ${f['email'] ?? 'Anonymous'}\n${f['timestamp'] ?? ''}'),
+            isThreeLine: true,
+          ),
+        );
+      }
+    );
+  }
+
   late TabController _tabController;
   final AuthService _auth = AuthService();
 
@@ -28,6 +50,21 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> with Single
   List<dynamic> _flutterFeed = [];
   bool _isLoadingFeed = false;
   String _feedFilterQuery = '';
+
+
+  List<dynamic> _feedbacks = [];
+  bool _isLoadingFeedbacks = false;
+
+  Future<void> _fetchFeedbacks() async {
+    setState(() => _isLoadingFeedbacks = true);
+    try {
+      final res = await http.get(Uri.parse('${AppConfig.apiBaseUrl}/feedbacks'));
+      if (res.statusCode == 200) {
+        setState(() => _feedbacks = json.decode(res.body));
+      }
+    } catch (_) {}
+    if (mounted) setState(() => _isLoadingFeedbacks = false);
+  }
 
   // Tab 2: Keywords State
   List<String> _baseKeywords = [];
@@ -54,7 +91,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> with Single
   void initState() {
     super.initState();
     _tabController = TabController(
-      length: 5,
+      length: 6,
       vsync: this,
       initialIndex: widget.initialTabIndex.clamp(0, 4),
     );
@@ -87,6 +124,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> with Single
     _fetchKeywords();
     _fetchMlData();
     _fetchHealth();
+    _fetchFeedbacks();
     _fetchStorageStatus();
   }
 
@@ -475,7 +513,10 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> with Single
           _buildKeywordsTab(isDark),
           _buildMlQueueTab(isDark),
           _buildHealthTab(isDark),
+          
           _buildDataPlaybookTab(isDark),
+          _buildFeedbackTab(isDark),
+
         ],
       ),
     );
