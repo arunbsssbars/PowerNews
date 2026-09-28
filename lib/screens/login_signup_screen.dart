@@ -524,9 +524,6 @@ class _LoginSignUpScreenState extends State<LoginSignUpScreen> with SingleTicker
                   ),
 
                   const SizedBox(height: 20),
-
-                  
-                  ),
                 ],
               ),
             ),
