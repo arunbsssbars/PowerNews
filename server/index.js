@@ -329,9 +329,9 @@ app.get('/editorial', (req, res) => {
 });
 
 // Periodic sync cron (every 20 mins: at :00, :20, :40 of each hour)
-cron.schedule('0 * * * *', async () => {
+cron.schedule('*/20 * * * *', async () => {
   console.log(`[Cron] ========================================================`);
-  console.log(`[Cron] 🔄 Hourly periodic feed refresh started at ${new Date().toISOString()}`);
+  console.log(`[Cron] 🔄 Periodic feed refresh started at ${new Date().toISOString()}`);
   console.log(`[Cron] ========================================================`);
   try {
     const updated = await syncFeeds(articleStore.getArticles(), articleStore);
