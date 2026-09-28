@@ -12,7 +12,7 @@ const keywordService = require('../services/keywordService');
 const {
   cleanHeadline,
   cleanText,
-  filterArticlesRetention7Days,
+  filterArticlesRetention30Days,
 } = require('../services/classifierService');
 const {
   ai,
@@ -154,7 +154,7 @@ function getReadableRefreshTime(isoDateString) {
 // ----------------------------------------------------------------------------
 function getActiveArticles() {
   const cachedArticles = articleStore.getArticles();
-  const retained = filterArticlesRetention7Days(cachedArticles);
+  const retained = filterArticlesRetention30Days(cachedArticles);
   return retained.filter(a => Boolean(a.id && aiSummaryCache[a.id] && aiSummaryCache[a.id].length >= 50));
 }
 

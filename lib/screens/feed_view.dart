@@ -77,7 +77,7 @@ class _FeedViewState extends State<FeedView> {
         PageView.builder(
           controller: _pageController,
           scrollDirection: Axis.vertical,
-          physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
+          physics: const PageScrollPhysics(),
           itemCount: articles.length,
           onPageChanged: (index) {
             HapticFeedback.selectionClick();

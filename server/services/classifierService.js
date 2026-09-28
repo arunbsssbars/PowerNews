@@ -92,7 +92,7 @@ function parsePublisherDate(rawDate, fallbackDate) {
   return new Date().toISOString();
 }
 
-function filterArticlesRetention7Days(articles) {
+function filterArticlesRetention30Days(articles) {
   if (!articles || articles.length === 0) return [];
   const cutoff = Date.now() - RETENTION_MS;
   return articles.filter(a => {
@@ -242,7 +242,7 @@ module.exports = {
   cleanHeadline,
   cleanText,
   parsePublisherDate,
-  filterArticlesRetention7Days,
+  filterArticlesRetention30Days,
   cleanSummaryOutput,
   extractCleanSnippet,
   matchesKeyword,

@@ -10,7 +10,7 @@ const {
   extractPlayer,
   extractCityStateAndDiscom,
   generateArticleId,
-  filterArticlesRetention7Days,
+  filterArticlesRetention30Days,
 } = require('./classifierService');
 const { clusterArticles } = require('./clusterService');
 const {
@@ -321,17 +321,17 @@ async function syncFeeds(currentCachedArticles = [], articleStore = null) {
     }
 
     const uniqueRawArticles = Array.from(seenMap.values());
-    const sevenDayArticles = filterArticlesRetention7Days(uniqueRawArticles);
+    const thirtyDayArticles = filterArticlesRetention30Days(uniqueRawArticles);
 
-    console.log(`[PowerNews Phase 1] Clustering ${sevenDayArticles.length} active 7-day articles across multiple publishers...`);
-    const clusteredArticles = clusterArticles(sevenDayArticles, aiSummaryCache);
+    console.log(`[PowerNews Phase 1] Clustering ${thirtyDayArticles.length} active 30-day articles across multiple publishers...`);
+    const clusteredArticles = clusterArticles(thirtyDayArticles, aiSummaryCache);
 
     if (clusteredArticles.length > 0) {
       clusteredArticles.sort((a, b) => new Date(b.publishedAt) - new Date(a.publishedAt));
 
       pruneAiSummaryCache(clusteredArticles);
 
-      console.log(`[PowerNews] Indexed ${clusteredArticles.length} clean power sector articles (strictly within 7-day retention, newest first). AI Cache: ${Object.keys(aiSummaryCache).length} active summaries.`);
+      console.log(`[PowerNews] Indexed ${clusteredArticles.length} clean power sector articles (strictly within 30-day retention, newest first). AI Cache: ${Object.keys(aiSummaryCache).length} active summaries.`);
 
 
       if (ai) {

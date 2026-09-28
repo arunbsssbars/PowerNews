@@ -3,8 +3,8 @@ const path = require('path');
 // Server Port (Dynamic in production, e.g. Render sets PORT=10000)
 const PORT = process.env.PORT || 3000;
 
-// Article Retention Window: 7 days in milliseconds
-const RETENTION_MS = 7 * 24 * 60 * 60 * 1000;
+// Article Retention Window: 30 days in milliseconds
+const RETENTION_MS = 30 * 24 * 60 * 60 * 1000;
 
 // Default articles per page (matches Flutter mobile client default of 15)
 const DEFAULT_PAGE_SIZE = 15;
