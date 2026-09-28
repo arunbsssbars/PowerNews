@@ -525,21 +525,7 @@ class _LoginSignUpScreenState extends State<LoginSignUpScreen> with SingleTicker
 
                   const SizedBox(height: 20),
 
-                  // Guest Bypass Option
-                  TextButton.icon(
-                    onPressed: () {
-                      context.read<AuthService>().continueAsGuest();
-                      _proceedToApp();
-                    },
-                    icon: Icon(Icons.arrow_forward_rounded, size: 16, color: textSecondary),
-                    label: Text(
-                      'Explore as Guest without Signing In',
-                      style: TextStyle(
-                        fontSize: 12.5,
-                        fontWeight: FontWeight.w600,
-                        color: textSecondary,
-                      ),
-                    ),
+                  
                   ),
                 ],
               ),

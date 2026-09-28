@@ -51,7 +51,7 @@ class PowerNewsApp extends StatelessWidget {
     Widget initialScreen;
     if (showOnboarding) {
       initialScreen = const OnboardingScreen();
-    } else if (!auth.isAuthenticated && !auth.isGuest) {
+    } else if (!auth.isAuthenticated ) {
       initialScreen = const LoginSignUpScreen();
     } else {
       initialScreen = const HomeScreen();

@@ -12,6 +12,55 @@ class FeedView extends StatefulWidget {
   State<FeedView> createState() => _FeedViewState();
 }
 
+
+class SnappyPageScrollPhysics extends PageScrollPhysics {
+  const SnappyPageScrollPhysics({super.parent});
+
+  @override
+  SnappyPageScrollPhysics applyTo(ScrollPhysics? ancestor) {
+    return SnappyPageScrollPhysics(parent: buildParent(ancestor));
+  }
+
+  double _getPage(ScrollMetrics position) {
+    return position.pixels / position.viewportDimension;
+  }
+
+  double _getPixels(ScrollMetrics position, double page) {
+    return page * position.viewportDimension;
+  }
+
+  @override
+  Simulation? createBallisticSimulation(ScrollMetrics position, double velocity) {
+    if ((velocity <= 0.0 && position.pixels <= position.minScrollExtent) ||
+        (velocity >= 0.0 && position.pixels >= position.maxScrollExtent)) {
+      return super.createBallisticSimulation(position, velocity);
+    }
+    
+    final Tolerance tolerance = toleranceFor(position);
+    final double page = _getPage(position);
+    
+    double targetPage;
+    if (velocity.abs() > 300.0) {
+      targetPage = velocity > 0 ? page.ceilToDouble() : page.floorToDouble();
+    } else {
+      if (page - page.floor() > 0.2) {
+        targetPage = page.ceilToDouble();
+      } else if (page.ceil() - page > 0.2) {
+        targetPage = page.floorToDouble();
+      } else {
+        targetPage = page.roundToDouble();
+      }
+    }
+    
+    final double targetPixels = _getPixels(position, targetPage);
+    
+    if (targetPixels != position.pixels) {
+      return ScrollSpringSimulation(spring, position.pixels, targetPixels, velocity, tolerance: tolerance);
+    }
+    return null;
+  }
+}
+
 class _FeedViewState extends State<FeedView> {
   late final PageController _pageController;
   NewsProvider? _newsProvider;
@@ -77,7 +126,7 @@ class _FeedViewState extends State<FeedView> {
         PageView.builder(
           controller: _pageController,
           scrollDirection: Axis.vertical,
-          physics: const PageScrollPhysics(),
+          physics: const SnappyPageScrollPhysics(),
           itemCount: articles.length,
           onPageChanged: (index) {
             HapticFeedback.selectionClick();

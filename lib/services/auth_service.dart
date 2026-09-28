@@ -87,14 +87,14 @@ class AuthService extends ChangeNotifier {
   AppUser? _currentUser;
   bool _isLoading = false;
   String? _errorMessage;
-  bool _isGuest = false;
+  
 
   AppUser? get currentUser => _currentUser;
   bool get isAuthenticated => _currentUser != null;
   bool get isAdmin => _currentUser != null && _currentUser!.isAdmin;
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
-  bool get isGuest => _isGuest;
+  
 
   String get _fbApiKey => AppConfig.firebaseApiKey;
 
@@ -109,7 +109,7 @@ class AuthService extends ChangeNotifier {
       final verified = prefs.getBool('auth_user_verified') ?? false;
       final created = prefs.getString('auth_user_created');
       final provider = prefs.getString('auth_user_provider') ?? 'google';
-      _isGuest = prefs.getBool('auth_is_guest') ?? false;
+      
 
       if (email != null && id != null) {
         _currentUser = AppUser(
@@ -182,7 +182,7 @@ class AuthService extends ChangeNotifier {
         authProvider: 'google',
       );
 
-      _isGuest = false;
+      
       await _saveUserToPrefs(_currentUser!);
       _isLoading = false;
       notifyListeners();
@@ -268,7 +268,7 @@ class AuthService extends ChangeNotifier {
         authProvider: 'password',
       );
 
-      _isGuest = false;
+      
       await _saveUserToPrefs(_currentUser!);
       _isLoading = false;
       notifyListeners();
@@ -325,7 +325,7 @@ class AuthService extends ChangeNotifier {
         authProvider: 'password',
       );
 
-      _isGuest = false;
+      
       await _saveUserToPrefs(_currentUser!);
       
       // Lookup actual verification status in background
@@ -457,13 +457,7 @@ class AuthService extends ChangeNotifier {
     return true;
   }
 
-  // --- 8. Guest Mode Bypass ---
-  void continueAsGuest() async {
-    _isGuest = true;
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setBool('auth_is_guest', true);
-    notifyListeners();
-  }
+  
 
   // --- 9. Sign Out ---
   Future<void> signOut() async {
@@ -473,7 +467,7 @@ class AuthService extends ChangeNotifier {
 
     _currentUser = null;
     _errorMessage = null;
-    _isGuest = false;
+    
 
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove('auth_user_email');
@@ -484,7 +478,7 @@ class AuthService extends ChangeNotifier {
     await prefs.remove('auth_user_verified');
     await prefs.remove('auth_user_created');
     await prefs.remove('auth_user_provider');
-    await prefs.remove('auth_is_guest');
+    
 
     notifyListeners();
   }
@@ -499,7 +493,7 @@ class AuthService extends ChangeNotifier {
     await prefs.setBool('auth_user_verified', user.isEmailVerified);
     if (user.createdAt != null) await prefs.setString('auth_user_created', user.createdAt!);
     await prefs.setString('auth_user_provider', user.authProvider);
-    await prefs.setBool('auth_is_guest', false);
+    
   }
 
   String _parseFirebaseAuthError(String raw) {
