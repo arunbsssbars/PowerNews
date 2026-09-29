@@ -40,16 +40,10 @@ class SnappyPageScrollPhysics extends PageScrollPhysics {
     final double page = _getPage(position);
     
     double targetPage;
-    if (velocity.abs() > 300.0) {
+    if (velocity.abs() > 50.0) {
       targetPage = velocity > 0 ? page.ceilToDouble() : page.floorToDouble();
     } else {
-      if (page - page.floor() > 0.2) {
-        targetPage = page.ceilToDouble();
-      } else if (page.ceil() - page > 0.2) {
-        targetPage = page.floorToDouble();
-      } else {
-        targetPage = page.roundToDouble();
-      }
+      targetPage = page.roundToDouble();
     }
     
     final double targetPixels = _getPixels(position, targetPage);

@@ -1093,8 +1093,8 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> with Single
     final uptime = _healthData?['uptime'] ?? 0;
     final articlesCount = _healthData?['articlesCount'] ?? _flutterFeed.length;
     final summariesCount = _healthData?['totalAiSummaries'] ?? 0;
-    final heapUsed = _memoryData?['heapUsed'] ?? 'N/A';
-    final rss = _memoryData?['rss'] ?? 'N/A';
+    final heapUsed = _memoryData?['heapUsedMb'] ?? 'N/A';
+    final rss = _memoryData?['rssMb'] ?? 'N/A';
 
     return _isLoadingHealth
         ? const Center(child: CircularProgressIndicator())

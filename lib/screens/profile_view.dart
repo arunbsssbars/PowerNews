@@ -376,7 +376,8 @@ class _ProfileViewState extends State<ProfileView> {
                   // --- E. Sign Out Action Button (if signed in) ---
                   if (user != null) ...[
                     const SizedBox(height: 12),
-                    ElevatedButton.icon(
+                    if (!isAdmin)
+                      ElevatedButton.icon(
                       onPressed: () {
                         // Open Feedback modal
                         _showFeedbackDialog(context, user);
@@ -403,8 +404,9 @@ class _ProfileViewState extends State<ProfileView> {
                       label: const Text('Sign Out of Session', style: TextStyle(fontWeight: FontWeight.w700)),
                     ),
                     const SizedBox(height: 12),
-                    TextButton.icon(
-                      onPressed: () => _confirmDeleteAccount(context, auth),
+                    if (!isAdmin)
+                      TextButton.icon(
+                        onPressed: () => _confirmDeleteAccount(context, auth),
                       style: TextButton.styleFrom(
                         foregroundColor: const Color(0xFFEF4444),
                         padding: const EdgeInsets.symmetric(vertical: 13),
