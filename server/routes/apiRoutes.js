@@ -155,13 +155,8 @@ function getReadableRefreshTime(isoDateString) {
 function getActiveArticles() {
   const cachedArticles = articleStore.getArticles();
   const retained = filterArticlesRetention30Days(cachedArticles);
-  return retained.map(a => {
-    if (a.id && aiSummaryCache[a.id] && aiSummaryCache[a.id].length >= 50) {
-      return a;
-    }
-    // Fallback to original snippet if AI summary failed or is still processing
-    return { ...a, isAiGenerated: false };
-  });
+  // Only serve articles that have successfully completed the 60-word Gemini pipeline
+  return retained.filter(a => Boolean(a.id && aiSummaryCache[a.id] && aiSummaryCache[a.id].length >= 50));
 }
 
 router.get('/memory', (req, res) => {

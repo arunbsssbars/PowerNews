@@ -93,7 +93,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> with Single
     _tabController = TabController(
       length: 6,
       vsync: this,
-      initialIndex: widget.initialTabIndex.clamp(0, 4),
+      initialIndex: widget.initialTabIndex.clamp(0, 5),
     );
     _loadAllTabs();
   }
@@ -1148,7 +1148,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> with Single
                     child: _buildTelemetryCard(
                       icon: Icons.memory_rounded,
                       label: 'Process Memory',
-                      value: heapUsed != 'N/A' ? '$heapUsed MB Heap' : '$rss MB RSS',
+                      value: heapUsed != 'N/A' ? '$heapUsed Heap' : '$rss RSS',
                       color: const Color(0xFFF59E0B),
                       isDark: isDark,
                       borderColor: borderColor,
