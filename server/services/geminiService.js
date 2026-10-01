@@ -84,6 +84,7 @@ function getLatestSummary(a) {
 }
 
 let geminiCoolingDownUntil = 0;
+const failedSummarizationAttempts = new Map();
 
 function findSimilarCachedSummary(targetTitle, targetPlayer, targetState, cachedArticles = []) {
   if (!targetTitle || !cachedArticles || cachedArticles.length === 0) return null;
@@ -174,9 +175,22 @@ async function generateGeminiPowerSummary(articleId, title, snippet, category, p
     }
   }
 
-  // Strict No-Body Guard: If no authentic article content >= 120 chars exists, DO NOT call Gemini.
-  // Hallucinating 60-80 words of metrics from an empty body or headline is strictly prohibited.
-  if (!articleContent || articleContent.length < 120) {
+  // Resilient grounding: If full article scrape returned < 120 chars, use authentic publisher snippet
+  let sourceTextForAi = articleContent;
+  let isSnippetGrounded = false;
+  if (!sourceTextForAi || sourceTextForAi.length < 120) {
+    const rawSnippet = (snippet && snippet.length >= 35) ? snippet : ((fullArticle && fullArticle.summary) || '');
+    if (rawSnippet && rawSnippet.length >= 35) {
+      sourceTextForAi = `${cleanTitle}. ${rawSnippet}`;
+      isSnippetGrounded = true;
+    }
+  }
+
+  // If both full article and snippet are completely missing or too short, record failed attempt
+  if (!sourceTextForAi || sourceTextForAi.length < 40) {
+    if (articleId) {
+      failedSummarizationAttempts.set(articleId, (failedSummarizationAttempts.get(articleId) || 0) + 1);
+    }
     return null;
   }
 
@@ -204,15 +218,15 @@ Headline: ${cleanTitle}
 Key Entity: ${player || 'Power Sector Stakeholder'}
 Geography: ${state || 'National / Pan-India'} ${discom ? `(${discom})` : ''}
 
-ACTUAL ARTICLE CONTENT:
+${isSnippetGrounded ? 'AUTHENTIC DISPATCH SNIPPET:' : 'ACTUAL ARTICLE CONTENT:'}
 """
-${articleContent.slice(0, 4000)}
+${sourceTextForAi.slice(0, 4000)}
 """`;
 
     const envModel = process.env.GEMINI_MODEL ? process.env.GEMINI_MODEL.trim() : null;
     const modelsToTry = envModel
-      ? [envModel, 'gemini-3.5-flash', 'gemini-3.8-flash', 'gemini-3.7-flash', 'gemini-3-flash-preview', 'gemini-flash-latest'].filter((v, i, a) => a.indexOf(v) === i)
-      : ['gemini-3.5-flash', 'gemini-3.8-flash', 'gemini-3.7-flash', 'gemini-3-flash-preview', 'gemini-flash-latest'];
+      ? [envModel, 'gemini-3.5-flash', 'gemini-3.1-flash-lite', 'gemini-2.5-flash', 'gemini-3.8-flash'].filter((v, i, a) => a.indexOf(v) === i)
+      : ['gemini-3.1-flash-lite', 'gemini-3.5-flash', 'gemini-2.5-flash', 'gemini-3.8-flash'];
 
     for (const model of modelsToTry) {
       try {
@@ -316,6 +330,9 @@ ${articleContent.slice(0, 4000)}
                 });
               });
             }
+            if (articleId) {
+              failedSummarizationAttempts.delete(articleId);
+            }
             const wordCount = aiText.split(/\s+/).filter(Boolean).length;
             console.log(`[Gemini AI] Synthesized narrative story (${wordCount} words) for "${cleanTitle.slice(0, 40)}" via ${model}`);
             return aiText;
@@ -331,6 +348,9 @@ ${articleContent.slice(0, 4000)}
       }
     }
     // If all models hit quota or failed, brief cooldown before next attempt
+    if (articleId) {
+      failedSummarizationAttempts.set(articleId, (failedSummarizationAttempts.get(articleId) || 0) + 1);
+    }
     geminiCoolingDownUntil = Date.now() + 20000;
   }
 
@@ -383,27 +403,19 @@ ${articleContent.slice(0, 4000)}
 async function runGeminiBatchSummarization(articles = []) {
   if (!ai || !articles || articles.length === 0) return;
 
-  const unsummarized = articles.filter(a => !aiSummaryCache[a.id]).slice(0, 30);
-  if (unsummarized.length === 0) {
-    console.log('[Gemini AI] All articles already summarized — nothing to do.');
+  // Filter unsummarized and exclude articles that have failed repeatedly (>= 2 times) to prevent head-of-line blocking
+  const candidates = articles.filter(a => a.id && !aiSummaryCache[a.id] && (failedSummarizationAttempts.get(a.id) || 0) < 2);
+  if (candidates.length === 0) {
+    console.log('[Gemini AI] All active articles already summarized or currently cooling down — nothing to do.');
     return;
   }
 
-  // Utmost Priority: Power Line is the power sector core entity.
-  // Sort queue: Power Line first, followed by PIB/core power authorities, then general feeds.
-  unsummarized.sort((a, b) => {
-    const isPowerLineA = (a.source && /power line/i.test(a.source)) || (a.url && a.url.includes('powerline.net.in')) ? 1 : 0;
-    const isPowerLineB = (b.source && /power line/i.test(b.source)) || (b.url && b.url.includes('powerline.net.in')) ? 1 : 0;
-    if (isPowerLineA !== isPowerLineB) return isPowerLineB - isPowerLineA;
+  // Sort candidates strictly NEWEST FIRST so fresh breaking news from today is prioritized and summarized immediately
+  candidates.sort((a, b) => new Date(b.publishedAt || 0) - new Date(a.publishedAt || 0));
 
-    const isCoreA = (a.source && /pib|mercom|economic times power|cea|cerc|ntpc|powergrid/i.test(a.source)) ? 1 : 0;
-    const isCoreB = (b.source && /pib|mercom|economic times power|cea|cerc|ntpc|powergrid/i.test(b.source)) ? 1 : 0;
-    if (isCoreA !== isCoreB) return isCoreB - isCoreA;
+  const unsummarized = candidates.slice(0, 30);
 
-    return new Date(b.publishedAt || 0) - new Date(a.publishedAt || 0);
-  });
-
-  console.log(`[Gemini AI] Starting prioritized batch summarization: ${unsummarized.length} articles (PowerLine & core power sector entities prioritized first)...`);
+  console.log(`[Gemini AI] Starting recency-first batch summarization: ${unsummarized.length} articles (newest: "${unsummarized[0]?.title?.slice(0, 40)}")...`);
   let processed = 0;
 
   for (let i = 0; i < unsummarized.length; i += GEMINI_BATCH_SIZE) {

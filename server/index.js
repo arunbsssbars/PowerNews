@@ -328,10 +328,10 @@ app.get('/editorial', (req, res) => {
   res.redirect('/privacy');
 });
 
-// Periodic sync cron (every 20 mins: at :00, :20, :40 of each hour)
-cron.schedule('*/20 * * * *', async () => {
+// Periodic sync cron (every 15 mins: at :00, :15, :30, :45 of each hour)
+cron.schedule('*/15 * * * *', async () => {
   console.log(`[Cron] ========================================================`);
-  console.log(`[Cron] 🔄 Periodic feed refresh started at ${new Date().toISOString()}`);
+  console.log(`[Cron] 🔄 Periodic 15-minute feed refresh started at ${new Date().toISOString()}`);
   console.log(`[Cron] ========================================================`);
   try {
     const updated = await syncFeeds(articleStore.getArticles(), articleStore);

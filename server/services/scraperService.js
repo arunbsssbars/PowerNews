@@ -229,52 +229,42 @@ function extractLeadImage(document, html, targetUrl) {
   return null;
 }
 
+let exaClient = null;
+function getExaClient() {
+  if (!exaClient && process.env.EXA_API_KEY) {
+    try {
+      const Exa = require('exa-js').default || require('exa-js');
+      exaClient = new Exa(process.env.EXA_API_KEY);
+    } catch (e) {
+      console.warn('[Exa Scraper] Could not load exa-js:', e.message);
+    }
+  }
+  return exaClient;
+}
+
 /**
- * Tier 1: Gemini AI HTML Parser
- * Feeds raw stripped text to Gemini to flawlessly extract the main article.
+ * Tier 4: Exa.ai Neural Web Crawler
+ * Extracts clean, pristine article body text bypassing anti-bot/WAF blocks.
  */
-async function extractWithGemini(html, targetUrl) {
+async function fetchWithExa(targetUrl) {
   try {
-    const { GoogleGenAI } = require('@google/genai');
-    const apiKey = process.env.GEMINI_API_KEY;
-    if (!apiKey) return null;
-
-    const { document } = parseHTML(html);
-    const leadImage = extractLeadImage(document, html, targetUrl);
-
-    // Strip out non-content tags to save tokens
-    const $ = cheerio.load(html);
-    $('script, style, svg, img, nav, footer, iframe, noscript, header, aside, .sidebar, .menu').remove();
-    const rawText = $('body').text().replace(/\s+/g, ' ').trim();
-
-    // If there's barely any text, it might be a block page
-    if (rawText.length < 200) return null;
-
-    const ai = new GoogleGenAI({ apiKey });
-    const prompt = `You are an expert news extractor. Given the raw text from a webpage below, extract ONLY the main news article content.
-Ignore all navigation menus, sidebars, related article links, advertisements, cookie notices, and footer text.
-Do not add any conversational filler, markdown formatting, or introductory text. Just the plain text paragraphs of the article.
-
-RAW WEBPAGE TEXT:
-${rawText.slice(0, 30000)}`;
-
-    const response = await ai.models.generateContent({
-      model: 'gemini-3.8-flash',
-      contents: prompt,
-    });
-
-    const articleText = (response.text || '').trim();
-    if (articleText.length >= 150) {
-      const sentences = articleText.split(/(?<=[.!?])\s+/);
-      const snippet = sentences.slice(0, 2).join(' ').trim();
-      return {
-        summary: snippet.length > 380 ? snippet.slice(0, 375) + '...' : snippet,
-        fullText: truncateArticleBody(articleText, 4500),
-        imageUrl: leadImage ? optimizeImageUrlTo16x9Webp(leadImage) : null,
-      };
+    const exa = getExaClient();
+    if (!exa) return null;
+    const res = await exa.getContents([targetUrl], { text: true });
+    if (res && res.results && res.results[0] && res.results[0].text) {
+      const text = res.results[0].text.trim();
+      if (text.length >= 150 && !isBoilerplate(text)) {
+        const sentences = text.split(/(?<=[.!?])\s+/);
+        const snippet = sentences.slice(0, 2).join(' ').trim();
+        return {
+          summary: snippet.length > 380 ? snippet.slice(0, 375) + '...' : snippet,
+          fullText: truncateArticleBody(text, 4500),
+          imageUrl: null,
+        };
+      }
     }
   } catch (err) {
-    console.warn('[Gemini Scraper] Extraction failed, falling back:', err.message);
+    // Non-fatal fallback
   }
   return null;
 }
@@ -471,15 +461,10 @@ async function scrapeFullArticle(url) {
       if (response.ok) {
         let html = await response.text();
         
-        // Tier 1: Gemini AI Extraction (Bulletproof)
-        extractedResult = await extractWithGemini(html, finalUrl);
+        // Tier 1: Mozilla Readability (Instant semantic content score)
+        extractedResult = extractWithReadability(html, finalUrl);
 
-        // Tier 2: Mozilla Readability (Fallback if Gemini fails or rate-limits)
-        if (!extractedResult) {
-          extractedResult = extractWithReadability(html, finalUrl);
-        }
-  
-        // Tier 3: Cheerio cascading selectors
+        // Tier 2: Cheerio cascading selectors
         if (!extractedResult) {
           extractedResult = extractWithCheerio(html, finalUrl);
         }
@@ -491,6 +476,11 @@ async function scrapeFullArticle(url) {
       extractedResult = await fetchWithJina(targetUrl);
     }
 
+    // Tier 4: Exa.ai Neural Crawler (handles difficult paywalled/WAF protected sites)
+    if (!extractedResult) {
+      extractedResult = await fetchWithExa(targetUrl);
+    }
+
     // Strict No-Body Guard: If authentic body < 150 chars, drop article body
     if (extractedResult && extractedResult.fullText && extractedResult.fullText.length >= 150) {
       articleBodyCache.set(url, extractedResult);
@@ -498,13 +488,16 @@ async function scrapeFullArticle(url) {
       return extractedResult;
     }
   } catch (_) {
-    // Network or abort error: Try Jina fallback once before failing
+    // Network or abort error: Try Jina and Exa fallbacks before failing
     try {
-      const jinaResult = await fetchWithJina(targetUrl);
-      if (jinaResult && jinaResult.fullText && jinaResult.fullText.length >= 150) {
-        articleBodyCache.set(url, jinaResult);
-        articleBodyCache.set(targetUrl, jinaResult);
-        return jinaResult;
+      let fallbackResult = await fetchWithJina(targetUrl);
+      if (!fallbackResult) {
+        fallbackResult = await fetchWithExa(targetUrl);
+      }
+      if (fallbackResult && fallbackResult.fullText && fallbackResult.fullText.length >= 150) {
+        articleBodyCache.set(url, fallbackResult);
+        articleBodyCache.set(targetUrl, fallbackResult);
+        return fallbackResult;
       }
     } catch (_) {}
   }

@@ -1,10 +1,6 @@
 const RSS_FEEDS = [
   // Premier Dedicated Power Sector Publications (Direct Category Feeds Only)
-  { source: 'Power Line Magazine', url: 'https://powerline.net.in/feed/', isStrictPowerFeed: true },
-  { source: 'Power Line Generation', url: 'https://powerline.net.in/category/generation/feed/', isStrictPowerFeed: true },
-  { source: 'Power Line Transmission', url: 'https://powerline.net.in/category/transmission/feed/', isStrictPowerFeed: true },
-  { source: 'Power Line Distribution', url: 'https://powerline.net.in/category/distribution/feed/', isStrictPowerFeed: true },
-  { source: 'Power Line Finance & Policy', url: 'https://powerline.net.in/category/finance/feed/', isStrictPowerFeed: true },
+  { source: 'Power Line Magazine', url: 'https://news.google.com/rss/search?q=site:powerline.net.in+when:30d&hl=en-IN&gl=IN&ceid=IN:en', isStrictPowerFeed: true },
   { source: 'Mercom India Clean Energy', url: 'https://mercomindia.com/feed/', isStrictPowerFeed: true },
   { source: 'ETEnergyWorld Power', url: 'https://energy.economictimes.indiatimes.com/rss/power', isStrictPowerFeed: true },
   { source: 'ETEnergyWorld Renewables', url: 'https://energy.economictimes.indiatimes.com/rss/renewable', isStrictPowerFeed: true },
