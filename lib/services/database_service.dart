@@ -396,21 +396,21 @@ class DatabaseService {
     }
 
     return NewsArticle(
-      id: row['id'] as String,
-      title: row['title'] as String,
-      summary: row['summary'] as String,
-      url: row['url'] as String,
-      source: row['source'] as String,
+      id: (row['id'] as String?) ?? 'article_${DateTime.now().millisecondsSinceEpoch}',
+      title: (row['title'] as String?)?.trim() ?? 'Power Sector Update',
+      summary: (row['summary'] as String?)?.trim() ?? '',
+      url: (row['url'] as String?)?.trim() ?? '',
+      source: (row['source'] as String?)?.trim() ?? 'PowerNews Intelligence',
       publishedAt: publishedAt,
       categories: cats,
       player: row['player'] as String?,
       city: row['city'] as String?,
-      state: row['state'] as String? ?? 'National / Pan-India',
+      state: (row['state'] as String?)?.trim() ?? 'National / Pan-India',
       discom: row['discom'] as String?,
       fullText: row['full_text'] as String?,
       sources: srcList,
       sourceLinks: srcLinks,
-      coverageCount: row['coverage_count'] as int? ?? 1,
+      coverageCount: (row['coverage_count'] as int?) ?? 1,
       imageUrl: row['image_url'] as String?,
       isAiGenerated: true,
     );
