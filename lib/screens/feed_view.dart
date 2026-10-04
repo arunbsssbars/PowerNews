@@ -163,72 +163,89 @@ class _FeedViewState extends State<FeedView> {
           },
         ),
 
-        // Floating Filter Indicator Pill (when category/player/state filter is active)
-        if (provider.isFiltered)
-          Positioned(
-            top: 14,
-            left: 0,
-            right: 0,
-            child: Center(
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                decoration: BoxDecoration(
-                  color: isDark ? const Color(0xFF1E293B) : Colors.white,
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(
-                    color: isDark ? const Color(0x2EFFFFFF) : const Color(0x1F000000),
-                    width: 1,
-                  ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.18),
-                      blurRadius: 10,
-                      offset: const Offset(0, 3),
-                    ),
-                  ],
+        // Top Topic Filter Quick Chips (AQIL responsive horizontal bar)
+        Positioned(
+          top: 8,
+          left: 0,
+          right: 0,
+          child: SizedBox(
+            height: 34,
+            child: ListView(
+              scrollDirection: Axis.horizontal,
+              padding: const EdgeInsets.symmetric(horizontal: 14),
+              physics: const BouncingScrollPhysics(),
+              children: [
+                _buildQuickFilterChip(
+                  label: 'All Feed',
+                  icon: Icons.all_inclusive_rounded,
+                  isSelected: provider.selectedCategory == 'All' &&
+                      provider.selectedPlayer == 'All' &&
+                      provider.selectedPlayer != 'All Players',
+                  isDark: isDark,
+                  onTap: () {
+                    HapticFeedback.selectionClick();
+                    provider.resetFiltersInMemory();
+                  },
                 ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(
-                      Icons.filter_alt_rounded,
-                      size: 13,
-                      color: isDark ? AppTheme.darkPrimary : AppTheme.lightPrimary,
-                    ),
-                    const SizedBox(width: 6),
-                    Text(
-                      _getActiveFilterLabel(provider),
-                      style: TextStyle(
-                        fontSize: 11.5,
-                        fontWeight: FontWeight.w700,
-                        color: isDark ? AppTheme.darkTextPrimary : AppTheme.lightTextPrimary,
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    InkWell(
-                      onTap: () {
-                        HapticFeedback.selectionClick();
-                        provider.resetFiltersInMemory();
-                      },
-                      borderRadius: BorderRadius.circular(10),
-                      child: Container(
-                        padding: const EdgeInsets.all(2),
-                        decoration: BoxDecoration(
-                          color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
-                          shape: BoxShape.circle,
-                        ),
-                        child: Icon(
-                          Icons.close_rounded,
-                          size: 13,
-                          color: isDark ? Colors.white : Colors.black87,
-                        ),
-                      ),
-                    ),
-                  ],
+                const SizedBox(width: 6),
+                _buildQuickFilterChip(
+                  label: 'Renewables',
+                  icon: Icons.solar_power_rounded,
+                  isSelected: provider.selectedCategory.toLowerCase() == 'renewables',
+                  isDark: isDark,
+                  onTap: () {
+                    HapticFeedback.selectionClick();
+                    provider.setCategory('renewables');
+                  },
                 ),
-              ),
+                const SizedBox(width: 6),
+                _buildQuickFilterChip(
+                  label: 'Grid & T&D',
+                  icon: Icons.electric_bolt_rounded,
+                  isSelected: provider.selectedCategory.toLowerCase() == 'transmission',
+                  isDark: isDark,
+                  onTap: () {
+                    HapticFeedback.selectionClick();
+                    provider.setCategory('transmission');
+                  },
+                ),
+                const SizedBox(width: 6),
+                _buildQuickFilterChip(
+                  label: 'DISCOMs',
+                  icon: Icons.bolt_rounded,
+                  isSelected: provider.selectedCategory.toLowerCase() == 'distribution',
+                  isDark: isDark,
+                  onTap: () {
+                    HapticFeedback.selectionClick();
+                    provider.setCategory('distribution');
+                  },
+                ),
+                const SizedBox(width: 6),
+                _buildQuickFilterChip(
+                  label: 'Generation',
+                  icon: Icons.factory_rounded,
+                  isSelected: provider.selectedCategory.toLowerCase() == 'generation',
+                  isDark: isDark,
+                  onTap: () {
+                    HapticFeedback.selectionClick();
+                    provider.setCategory('generation');
+                  },
+                ),
+                const SizedBox(width: 6),
+                _buildQuickFilterChip(
+                  label: 'Smart Meters',
+                  icon: Icons.speed_rounded,
+                  isSelected: provider.selectedCategory.toLowerCase() == 'smart_meters',
+                  isDark: isDark,
+                  onTap: () {
+                    HapticFeedback.selectionClick();
+                    provider.setCategory('smart_meters');
+                  },
+                ),
+              ],
             ),
           ),
+        ),
 
         // Floating Offline Mode Pill
         if (provider.isOffline)
@@ -262,14 +279,62 @@ class _FeedViewState extends State<FeedView> {
     );
   }
 
-  String _getActiveFilterLabel(NewsProvider p) {
-    if (p.selectedCategory != 'All') return p.selectedCategory;
-    if (p.selectedPlayer != 'All' && p.selectedPlayer != 'All Players') return p.selectedPlayer;
-    if (p.selectedState != 'All States') return p.selectedState;
-    if (p.selectedDiscom != 'All DISCOMs') return p.selectedDiscom;
-    if (p.searchQuery.isNotEmpty) return '"${p.searchQuery}"';
-    return 'Filtered';
+  Widget _buildQuickFilterChip({
+    required String label,
+    required IconData icon,
+    required bool isSelected,
+    required bool isDark,
+    required VoidCallback onTap,
+  }) {
+    final activeBg = isDark ? const Color(0xFF2563EB) : const Color(0xFF2563EB);
+    final idleBg = isDark ? const Color(0xFF1E293B).withValues(alpha: 0.85) : Colors.white.withValues(alpha: 0.92);
+    const activeText = Colors.white;
+    final idleText = isDark ? const Color(0xFF94A3B8) : const Color(0xFF475569);
+    final borderColor = isSelected
+        ? Colors.transparent
+        : (isDark ? const Color(0xFF334155).withValues(alpha: 0.8) : const Color(0xFFE2E8F0));
+
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(16),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+        decoration: BoxDecoration(
+          color: isSelected ? activeBg : idleBg,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: borderColor, width: 0.9),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.06),
+              blurRadius: 4,
+              offset: const Offset(0, 1),
+            ),
+          ],
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              icon,
+              size: 13,
+              color: isSelected ? Colors.white : (isDark ? const Color(0xFF38BDF8) : const Color(0xFF2563EB)),
+            ),
+            const SizedBox(width: 5),
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 11.5,
+                fontWeight: isSelected ? FontWeight.w700 : FontWeight.w600,
+                color: isSelected ? activeText : idleText,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
+
+
 
   Widget _buildSkeletonLoader(bool isDark) {
     final cardBg = isDark ? const Color(0xFF111827) : Colors.white;

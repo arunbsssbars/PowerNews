@@ -28,6 +28,8 @@ environment:
 # the latest version available on pub.dev. To see which dependencies have newer
 # versions available, run `flutter pub outdated`.
 dependencies:
+  aqil_core:
+    path: D:/Program/Antigravity/aqil_core_v10
   flutter:
     sdk: flutter
 
