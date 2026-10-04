@@ -11,6 +11,7 @@ import '../widgets/ask_gemini_sheet.dart';
 import 'admin_dashboard_screen.dart';
 import 'login_signup_screen.dart';
 import 'onboarding_screen.dart';
+import '../services/database_service.dart';
 
 class ProfileView extends StatefulWidget {
   const ProfileView({super.key});
@@ -1175,6 +1176,55 @@ class _ProfileViewState extends State<ProfileView> {
             ),
             trailing: const Icon(Icons.chevron_right_rounded, size: 20),
             onTap: () => AboutSheet.show(context),
+          ),
+          Divider(height: 1, color: borderColor),
+          ListTile(
+            leading: Container(
+              padding: const EdgeInsets.all(7),
+              decoration: BoxDecoration(
+                color: const Color(0xFF6366F1).withValues(alpha: 0.14),
+                borderRadius: BorderRadius.circular(9),
+              ),
+              child: const Icon(Icons.storage_rounded, color: Color(0xFF6366F1), size: 18),
+            ),
+            title: Text(
+              'Offline Briefing Storage',
+              style: TextStyle(fontSize: 13.5, fontWeight: FontWeight.w700, color: textPrimary),
+            ),
+            subtitle: FutureBuilder<int>(
+              future: DatabaseService().getArticleCount(),
+              builder: (context, snapshot) {
+                final count = snapshot.data ?? 0;
+                return Text(
+                  '$count offline articles stored (7-day rolling cache)',
+                  style: TextStyle(fontSize: 11.5, color: textSecondary),
+                );
+              },
+            ),
+            trailing: TextButton(
+              onPressed: () async {
+                final scaffold = ScaffoldMessenger.of(context);
+                try {
+                  final db = await DatabaseService().database;
+                  await db.delete('articles', where: 'is_bookmarked = 0');
+                  scaffold.showSnackBar(
+                    const SnackBar(
+                      content: Text('Offline cache cleared (bookmarked articles preserved).'),
+                      behavior: SnackBarBehavior.floating,
+                    ),
+                  );
+                  setState(() {});
+                } catch (e) {
+                  scaffold.showSnackBar(
+                    SnackBar(
+                      content: Text('Error clearing cache: $e'),
+                      behavior: SnackBarBehavior.floating,
+                    ),
+                  );
+                }
+              },
+              child: const Text('Clear', style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.bold, color: Color(0xFF6366F1))),
+            ),
           ),
         ],
       ),
