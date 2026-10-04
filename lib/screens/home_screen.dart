@@ -86,7 +86,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                 borderRadius: BorderRadius.circular(9),
                 boxShadow: [
                   BoxShadow(
-                    color: const Color(0xFF0284C7).withOpacity(0.25),
+                    color: const Color(0xFF0284C7).withValues(alpha: 0.25),
                     blurRadius: 6,
                     offset: const Offset(0, 2),
                   ),
@@ -169,10 +169,10 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                 width: 36,
                 height: 36,
                 decoration: BoxDecoration(
-                  color: isDark ? const Color(0xFF1E293B).withOpacity(0.7) : const Color(0xFFF1F5F9),
+                  color: isDark ? const Color(0xFF1E293B).withValues(alpha: 0.7) : const Color(0xFFF1F5F9),
                   borderRadius: BorderRadius.circular(10),
                   border: Border.all(
-                    color: isDark ? const Color(0xFF334155).withOpacity(0.7) : const Color(0xFFE2E8F0),
+                    color: isDark ? const Color(0xFF334155).withValues(alpha: 0.7) : const Color(0xFFE2E8F0),
                     width: 1,
                   ),
                 ),
@@ -205,12 +205,12 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                 width: 36,
                 height: 36,
                 decoration: BoxDecoration(
-                  color: isDark ? const Color(0xFF1E293B).withOpacity(0.7) : const Color(0xFFF1F5F9),
+                  color: isDark ? const Color(0xFF1E293B).withValues(alpha: 0.7) : const Color(0xFFF1F5F9),
                   borderRadius: BorderRadius.circular(10),
                   border: Border.all(
                     color: provider.newArticlesCount > 0
-                        ? const Color(0xFF10B981).withOpacity(0.7)
-                        : (isDark ? const Color(0xFF334155).withOpacity(0.7) : const Color(0xFFE2E8F0)),
+                        ? const Color(0xFF10B981).withValues(alpha: 0.7)
+                        : (isDark ? const Color(0xFF334155).withValues(alpha: 0.7) : const Color(0xFFE2E8F0)),
                     width: provider.newArticlesCount > 0 ? 1.4 : 1.0,
                   ),
                 ),
@@ -252,10 +252,10 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
             width: 36,
             height: 36,
             decoration: BoxDecoration(
-              color: isDark ? const Color(0xFF1E293B).withOpacity(0.7) : const Color(0xFFF1F5F9),
+              color: isDark ? const Color(0xFF1E293B).withValues(alpha: 0.7) : const Color(0xFFF1F5F9),
               borderRadius: BorderRadius.circular(10),
               border: Border.all(
-                color: isDark ? const Color(0xFF334155).withOpacity(0.7) : const Color(0xFFE2E8F0),
+                color: isDark ? const Color(0xFF334155).withValues(alpha: 0.7) : const Color(0xFFE2E8F0),
                 width: 1,
               ),
             ),

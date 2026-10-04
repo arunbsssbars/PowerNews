@@ -79,7 +79,7 @@ class AppTheme {
         backgroundColor: Colors.white,
         elevation: 3,
         height: 65,
-        indicatorColor: lightPrimary.withOpacity(0.12),
+        indicatorColor: lightPrimary.withValues(alpha: 0.12),
         labelTextStyle: WidgetStateProperty.resolveWith((states) {
           if (states.contains(WidgetState.selected)) {
             return const TextStyle(
@@ -145,7 +145,7 @@ class AppTheme {
         backgroundColor: const Color(0xFF121212),
         elevation: 0,
         height: 65,
-        indicatorColor: darkPrimary.withOpacity(0.22),
+        indicatorColor: darkPrimary.withValues(alpha: 0.22),
         labelTextStyle: WidgetStateProperty.resolveWith((states) {
           if (states.contains(WidgetState.selected)) {
             return const TextStyle(

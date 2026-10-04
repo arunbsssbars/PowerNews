@@ -47,7 +47,6 @@ class PowerNewsApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final newsProvider = context.watch<NewsProvider>();
-    final auth = context.watch<AuthService>();
 
     
 

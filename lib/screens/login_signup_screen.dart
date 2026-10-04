@@ -113,9 +113,9 @@ class _LoginSignUpScreenState extends State<LoginSignUpScreen> with SingleTicker
               Container(
                 padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF10B981).withOpacity(0.1),
+                  color: const Color(0xFF10B981).withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(10),
-                  border: Border.all(color: const Color(0xFF10B981).withOpacity(0.3)),
+                  border: Border.all(color: const Color(0xFF10B981).withValues(alpha: 0.3)),
                 ),
                 child: const Row(
                   children: [
@@ -237,7 +237,7 @@ class _LoginSignUpScreenState extends State<LoginSignUpScreen> with SingleTicker
                       borderRadius: BorderRadius.circular(16),
                       boxShadow: [
                         BoxShadow(
-                          color: const Color(0xFF2563EB).withOpacity(0.35),
+                          color: const Color(0xFF2563EB).withValues(alpha: 0.35),
                           blurRadius: 14,
                           offset: const Offset(0, 4),
                         ),
@@ -274,7 +274,7 @@ class _LoginSignUpScreenState extends State<LoginSignUpScreen> with SingleTicker
                       border: Border.all(color: borderColor),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withOpacity(isDark ? 0.3 : 0.05),
+                          color: Colors.black.withValues(alpha: isDark ? 0.3 : 0.05),
                           blurRadius: 16,
                           offset: const Offset(0, 4),
                         ),
@@ -374,9 +374,9 @@ class _LoginSignUpScreenState extends State<LoginSignUpScreen> with SingleTicker
                             padding: const EdgeInsets.all(10),
                             margin: const EdgeInsets.only(bottom: 14),
                             decoration: BoxDecoration(
-                              color: const Color(0xFFEF4444).withOpacity(0.1),
+                              color: const Color(0xFFEF4444).withValues(alpha: 0.1),
                               borderRadius: BorderRadius.circular(10),
-                              border: Border.all(color: const Color(0xFFEF4444).withOpacity(0.3)),
+                              border: Border.all(color: const Color(0xFFEF4444).withValues(alpha: 0.3)),
                             ),
                             child: Row(
                               children: [

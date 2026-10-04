@@ -319,10 +319,10 @@ class _RegionsViewState extends State<RegionsView> {
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                         decoration: BoxDecoration(
-                          color: const Color(0xFF10B981).withOpacity(isDark ? 0.2 : 0.12),
+                          color: const Color(0xFF10B981).withValues(alpha: isDark ? 0.2 : 0.12),
                           borderRadius: BorderRadius.circular(6),
                           border: Border.all(
-                            color: const Color(0xFF10B981).withOpacity(0.4),
+                            color: const Color(0xFF10B981).withValues(alpha: 0.4),
                           ),
                         ),
                         child: Row(
@@ -415,7 +415,7 @@ class _RegionsViewState extends State<RegionsView> {
                           ),
                           boxShadow: [
                             BoxShadow(
-                              color: Colors.black.withOpacity(isDark ? 0.2 : 0.03),
+                              color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.03),
                               blurRadius: 6,
                               offset: const Offset(0, 2),
                             ),
@@ -432,7 +432,7 @@ class _RegionsViewState extends State<RegionsView> {
                                   Container(
                                     padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2.5),
                                     decoration: BoxDecoration(
-                                      color: const Color(0xFF0284C7).withOpacity(isDark ? 0.25 : 0.12),
+                                      color: const Color(0xFF0284C7).withValues(alpha: isDark ? 0.25 : 0.12),
                                       borderRadius: BorderRadius.circular(6),
                                     ),
                                     child: Text(
@@ -506,7 +506,7 @@ class _RegionsViewState extends State<RegionsView> {
                                       padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 5),
                                       decoration: BoxDecoration(
                                         color: isThisDiscom
-                                            ? const Color(0xFF7C3AED).withOpacity(isDark ? 0.3 : 0.15)
+                                            ? const Color(0xFF7C3AED).withValues(alpha: isDark ? 0.3 : 0.15)
                                             : (isDark ? const Color(0xFF161E2E) : const Color(0xFFF8FAFC)),
                                         borderRadius: BorderRadius.circular(8),
                                         border: Border.all(
@@ -552,7 +552,7 @@ class _RegionsViewState extends State<RegionsView> {
                                             Container(
                                               padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
                                               decoration: BoxDecoration(
-                                                color: const Color(0xFF7C3AED).withOpacity(0.2),
+                                                color: const Color(0xFF7C3AED).withValues(alpha: 0.2),
                                                 borderRadius: BorderRadius.circular(4),
                                               ),
                                               child: Text(
@@ -601,7 +601,7 @@ class _RegionsViewState extends State<RegionsView> {
           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
           decoration: BoxDecoration(
             color: isSelected
-                ? activeColor.withOpacity(isDark ? 0.25 : 0.12)
+                ? activeColor.withValues(alpha: isDark ? 0.25 : 0.12)
                 : (isDark ? const Color(0xFF1E293B) : const Color(0xFFF1F5F9)),
             borderRadius: BorderRadius.circular(8),
             border: Border.all(

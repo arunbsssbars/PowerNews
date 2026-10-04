@@ -22,7 +22,7 @@ class EmailVerificationScreen extends StatelessWidget {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.mark_email_unread_rounded, size: 80, color: const Color(0xFF2563EB)),
+                  const Icon(Icons.mark_email_unread_rounded, size: 80, color: Color(0xFF2563EB)),
                   const SizedBox(height: 24),
                   const Text('Verify Your Email', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
                   const SizedBox(height: 16),

@@ -87,7 +87,7 @@ class _MorningDigestSheetState extends State<MorningDigestSheet> {
         borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.3),
+            color: Colors.black.withValues(alpha: 0.3),
             blurRadius: 20,
             offset: const Offset(0, -5),
           ),
@@ -117,7 +117,7 @@ class _MorningDigestSheetState extends State<MorningDigestSheet> {
                 Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: const Color(0xFF0284C7).withOpacity(0.12),
+                    color: const Color(0xFF0284C7).withValues(alpha: 0.12),
                     shape: BoxShape.circle,
                   ),
                   child: const Icon(
@@ -344,7 +344,7 @@ class _MorningDigestSheetState extends State<MorningDigestSheet> {
       child: Container(
         padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
-          color: isDark ? const Color(0xFF1E293B).withOpacity(0.6) : Colors.white,
+          color: isDark ? const Color(0xFF1E293B).withValues(alpha: 0.6) : Colors.white,
           borderRadius: BorderRadius.circular(14),
           border: Border.all(
             color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
@@ -360,7 +360,7 @@ class _MorningDigestSheetState extends State<MorningDigestSheet> {
                   child: Container(
                     padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2.5),
                     decoration: BoxDecoration(
-                      color: pillarColor.withOpacity(0.12),
+                      color: pillarColor.withValues(alpha: 0.12),
                       borderRadius: BorderRadius.circular(6),
                     ),
                     child: Text(

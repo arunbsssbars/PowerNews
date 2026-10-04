@@ -190,7 +190,7 @@ class _ReaderScreenState extends State<ReaderScreen> {
                       width: 40,
                       height: 4,
                       decoration: BoxDecoration(
-                        color: Colors.grey.withOpacity(0.35),
+                        color: Colors.grey.withValues(alpha: 0.35),
                         borderRadius: BorderRadius.circular(2),
                       ),
                     ),
@@ -306,7 +306,7 @@ class _ReaderScreenState extends State<ReaderScreen> {
             color: chipBg,
             borderRadius: BorderRadius.circular(10),
             border: Border.all(
-              color: isSelected ? const Color(0xFF2563EB) : Colors.grey.withOpacity(0.3),
+              color: isSelected ? const Color(0xFF2563EB) : Colors.grey.withValues(alpha: 0.3),
               width: isSelected ? 2 : 1,
             ),
           ),
@@ -336,10 +336,10 @@ class _ReaderScreenState extends State<ReaderScreen> {
         child: Container(
           padding: const EdgeInsets.symmetric(vertical: 9),
           decoration: BoxDecoration(
-            color: isSelected ? const Color(0xFF2563EB).withOpacity(0.15) : Colors.transparent,
+            color: isSelected ? const Color(0xFF2563EB).withValues(alpha: 0.15) : Colors.transparent,
             borderRadius: BorderRadius.circular(10),
             border: Border.all(
-              color: isSelected ? const Color(0xFF2563EB) : Colors.grey.withOpacity(0.3),
+              color: isSelected ? const Color(0xFF2563EB) : Colors.grey.withValues(alpha: 0.3),
               width: isSelected ? 1.8 : 1,
             ),
           ),
@@ -419,7 +419,7 @@ class _ReaderScreenState extends State<ReaderScreen> {
           child: Container(
             padding: const EdgeInsets.all(2.5),
             decoration: BoxDecoration(
-              color: (isSystemDark ? Colors.white : Colors.black).withOpacity(0.08),
+              color: (isSystemDark ? Colors.white : Colors.black).withValues(alpha: 0.08),
               borderRadius: BorderRadius.circular(20),
             ),
             child: Row(
@@ -619,7 +619,7 @@ class _ReaderScreenState extends State<ReaderScreen> {
               const SizedBox(height: 18),
               Text(
                 'Extracting clean story from publisher...',
-                style: TextStyle(fontSize: 13.5, fontWeight: FontWeight.w600, color: textColor.withOpacity(0.7)),
+                style: TextStyle(fontSize: 13.5, fontWeight: FontWeight.w600, color: textColor.withValues(alpha: 0.7)),
               ),
             ],
           ),
@@ -643,7 +643,7 @@ class _ReaderScreenState extends State<ReaderScreen> {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3.5),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF2563EB).withOpacity(0.12),
+                  color: const Color(0xFF2563EB).withValues(alpha: 0.12),
                   borderRadius: BorderRadius.circular(6),
                 ),
                 child: Text(
@@ -661,7 +661,7 @@ class _ReaderScreenState extends State<ReaderScreen> {
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3.5),
                   decoration: BoxDecoration(
-                    color: const Color(0xFFD97706).withOpacity(0.12),
+                    color: const Color(0xFFD97706).withValues(alpha: 0.12),
                     borderRadius: BorderRadius.circular(6),
                   ),
                   child: Text(
@@ -675,14 +675,14 @@ class _ReaderScreenState extends State<ReaderScreen> {
                 ),
               ],
               const Spacer(),
-              Icon(Icons.schedule_rounded, size: 12, color: textColor.withOpacity(0.55)),
+              Icon(Icons.schedule_rounded, size: 12, color: textColor.withValues(alpha: 0.55)),
               const SizedBox(width: 4),
               Text(
                 _calculateReadingTime(textContent),
                 style: TextStyle(
                   fontSize: 11,
                   fontWeight: FontWeight.w600,
-                  color: textColor.withOpacity(0.55),
+                  color: textColor.withValues(alpha: 0.55),
                 ),
               ),
             ],
@@ -706,7 +706,7 @@ class _ReaderScreenState extends State<ReaderScreen> {
           // Source & Published Date Row
           Row(
             children: [
-              Icon(Icons.newspaper_rounded, size: 13, color: textColor.withOpacity(0.6)),
+              Icon(Icons.newspaper_rounded, size: 13, color: textColor.withValues(alpha: 0.6)),
               const SizedBox(width: 5),
               Text(
                 article.source,
@@ -717,20 +717,20 @@ class _ReaderScreenState extends State<ReaderScreen> {
                 ),
               ),
               const SizedBox(width: 10),
-              Text('•', style: TextStyle(color: textColor.withOpacity(0.4))),
+              Text('•', style: TextStyle(color: textColor.withValues(alpha: 0.4))),
               const SizedBox(width: 10),
               Text(
                 article.formattedDateTime,
                 style: TextStyle(
                   fontSize: 11.5,
                   fontWeight: FontWeight.w600,
-                  color: textColor.withOpacity(0.6),
+                  color: textColor.withValues(alpha: 0.6),
                 ),
               ),
             ],
           ),
           const SizedBox(height: 16),
-          Divider(color: textColor.withOpacity(0.12), height: 1),
+          Divider(color: textColor.withValues(alpha: 0.12), height: 1),
           const SizedBox(height: 18),
 
           // Fallback notice if full text was behind Cloudflare/Paywall
@@ -739,9 +739,9 @@ class _ReaderScreenState extends State<ReaderScreen> {
               margin: const EdgeInsets.only(bottom: 20),
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: const Color(0xFF2563EB).withOpacity(0.08),
+                color: const Color(0xFF2563EB).withValues(alpha: 0.08),
                 borderRadius: BorderRadius.circular(10),
-                border: Border.all(color: const Color(0xFF2563EB).withOpacity(0.2)),
+                border: Border.all(color: const Color(0xFF2563EB).withValues(alpha: 0.2)),
               ),
               child: Row(
                 children: [
@@ -765,7 +765,7 @@ class _ReaderScreenState extends State<ReaderScreen> {
               style: TextStyle(
                 fontSize: _fontSize,
                 height: _lineHeight,
-                color: textColor.withOpacity(0.92),
+                color: textColor.withValues(alpha: 0.92),
                 fontFamily: fontFamily,
                 letterSpacing: 0.1,
               ),
@@ -780,12 +780,12 @@ class _ReaderScreenState extends State<ReaderScreen> {
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Container(width: 40, height: 1, color: textColor.withOpacity(0.2)),
+                Container(width: 40, height: 1, color: textColor.withValues(alpha: 0.2)),
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 10),
-                  child: Text('⚡ PowerNews Intelligence', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: textColor.withOpacity(0.5))),
+                  child: Text('⚡ PowerNews Intelligence', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: textColor.withValues(alpha: 0.5))),
                 ),
-                Container(width: 40, height: 1, color: textColor.withOpacity(0.2)),
+                Container(width: 40, height: 1, color: textColor.withValues(alpha: 0.2)),
               ],
             ),
           ),
@@ -804,7 +804,7 @@ class _ReaderScreenState extends State<ReaderScreen> {
         border: Border(top: BorderSide(color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0))),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.08),
+            color: Colors.black.withValues(alpha: 0.08),
             blurRadius: 10,
             offset: const Offset(0, -3),
           ),
@@ -818,7 +818,7 @@ class _ReaderScreenState extends State<ReaderScreen> {
             Container(
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
-                color: const Color(0xFF2563EB).withOpacity(0.12),
+                color: const Color(0xFF2563EB).withValues(alpha: 0.12),
                 shape: BoxShape.circle,
               ),
               child: const Icon(Icons.volume_up_rounded, size: 18, color: Color(0xFF2563EB)),
@@ -852,7 +852,7 @@ class _ReaderScreenState extends State<ReaderScreen> {
                 decoration: BoxDecoration(
                   color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF1F5F9),
                   borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: const Color(0xFF2563EB).withOpacity(0.3)),
+                  border: Border.all(color: const Color(0xFF2563EB).withValues(alpha: 0.3)),
                 ),
                 child: Text(
                   _getSpeedLabel(),

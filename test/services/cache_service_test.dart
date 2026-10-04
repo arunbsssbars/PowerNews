@@ -21,8 +21,14 @@ void main() {
   group('CacheService Tests', () {
     late CacheService cacheService;
 
-    setUp(() {
+    setUp(() async {
       cacheService = CacheService();
+      try {
+        final db = await DatabaseService().database;
+        await db.delete('articles');
+        await db.delete('search_history');
+        await db.delete('sync_meta');
+      } catch (_) {}
     });
 
     test('Caches and retrieves fresh articles', () async {

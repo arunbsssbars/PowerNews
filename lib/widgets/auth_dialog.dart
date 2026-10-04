@@ -49,7 +49,7 @@ class _AuthSheetContentState extends State<_AuthSheetContent> {
             borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.3),
+                color: Colors.black.withValues(alpha: 0.3),
                 blurRadius: 20,
                 offset: const Offset(0, -4),
               ),
@@ -108,9 +108,9 @@ class _AuthSheetContentState extends State<_AuthSheetContent> {
                     margin: const EdgeInsets.only(bottom: 16),
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      color: const Color(0xFFEF4444).withOpacity(0.1),
+                      color: const Color(0xFFEF4444).withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: const Color(0xFFEF4444).withOpacity(0.3)),
+                      border: Border.all(color: const Color(0xFFEF4444).withValues(alpha: 0.3)),
                     ),
                     child: Row(
                       children: [
@@ -236,7 +236,7 @@ class _AuthSheetContentState extends State<_AuthSheetContent> {
                                 Container(
                                   padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
                                   decoration: BoxDecoration(
-                                    color: const Color(0xFF10B981).withOpacity(0.15),
+                                    color: const Color(0xFF10B981).withValues(alpha: 0.15),
                                     border: Border.all(color: const Color(0xFF10B981), width: 0.8),
                                     borderRadius: BorderRadius.circular(20),
                                   ),
@@ -307,7 +307,7 @@ class _AuthSheetContentState extends State<_AuthSheetContent> {
                   child: OutlinedButton.icon(
                     style: OutlinedButton.styleFrom(
                       foregroundColor: const Color(0xFFEF4444),
-                      side: BorderSide(color: const Color(0xFFEF4444).withOpacity(0.4)),
+                      side: BorderSide(color: const Color(0xFFEF4444).withValues(alpha: 0.4)),
                       padding: const EdgeInsets.symmetric(vertical: 12),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(14),

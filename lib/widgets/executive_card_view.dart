@@ -185,8 +185,8 @@ class ExecutiveCardView extends StatelessWidget {
                   begin: Alignment.bottomCenter,
                   end: Alignment.topCenter,
                   colors: [
-                    Colors.black.withOpacity(0.85),
-                    Colors.black.withOpacity(0.40),
+                    Colors.black.withValues(alpha: 0.85),
+                    Colors.black.withValues(alpha: 0.40),
                     Colors.transparent,
                   ],
                   stops: const [0.0, 0.55, 1.0],
@@ -202,14 +202,14 @@ class ExecutiveCardView extends StatelessWidget {
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3.5),
               decoration: BoxDecoration(
-                color: Colors.black.withOpacity(0.65),
+                color: Colors.black.withValues(alpha: 0.65),
                 borderRadius: BorderRadius.circular(6),
-                border: Border.all(color: Colors.white.withOpacity(0.15), width: 0.8),
+                border: Border.all(color: Colors.white.withValues(alpha: 0.15), width: 0.8),
               ),
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(Icons.newspaper_rounded, size: 11, color: Colors.white.withOpacity(0.9)),
+                  Icon(Icons.newspaper_rounded, size: 11, color: Colors.white.withValues(alpha: 0.9)),
                   const SizedBox(width: 4),
                   Text(
                     article.source,
@@ -232,15 +232,15 @@ class ExecutiveCardView extends StatelessWidget {
             child: Container(
               height: 38,
               decoration: BoxDecoration(
-                color: const Color(0xFF0F172A).withOpacity(0.82),
+                color: const Color(0xFF0F172A).withValues(alpha: 0.82),
                 borderRadius: BorderRadius.circular(20),
                 border: Border.all(
-                  color: Colors.white.withOpacity(0.18),
+                  color: Colors.white.withValues(alpha: 0.18),
                   width: 0.9,
                 ),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.35),
+                    color: Colors.black.withValues(alpha: 0.35),
                     blurRadius: 10,
                     offset: const Offset(0, 2),
                   ),
@@ -277,7 +277,7 @@ class ExecutiveCardView extends StatelessWidget {
                   Container(
                     width: 0.8,
                     height: 16,
-                    color: Colors.white.withOpacity(0.18),
+                    color: Colors.white.withValues(alpha: 0.18),
                   ),
 
                   const Spacer(),
@@ -345,7 +345,7 @@ class ExecutiveCardView extends StatelessWidget {
                           borderRadius: BorderRadius.circular(14),
                           boxShadow: [
                             BoxShadow(
-                              color: const Color(0xFF0284C7).withOpacity(0.35),
+                              color: const Color(0xFF0284C7).withValues(alpha: 0.35),
                               blurRadius: 4,
                               offset: const Offset(0, 1.5),
                             ),
@@ -384,7 +384,7 @@ class ExecutiveCardView extends StatelessWidget {
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [
-            catColor.withOpacity(isDark ? 0.18 : 0.12),
+            catColor.withValues(alpha: isDark ? 0.18 : 0.12),
             isDark ? const Color(0xFF111827) : const Color(0xFFF8FAFC),
           ],
           begin: Alignment.topLeft,
@@ -395,7 +395,7 @@ class ExecutiveCardView extends StatelessWidget {
         child: Icon(
           article.getCategoryIcon(),
           size: 40,
-          color: catColor.withOpacity(0.65),
+          color: catColor.withValues(alpha: 0.65),
         ),
       ),
     );
@@ -409,9 +409,9 @@ class ExecutiveCardView extends StatelessWidget {
       Container(
         padding: const EdgeInsets.symmetric(horizontal: 6.5, vertical: 2.5),
         decoration: BoxDecoration(
-          color: catColor.withOpacity(isDark ? 0.22 : 0.12),
+          color: catColor.withValues(alpha: isDark ? 0.22 : 0.12),
           borderRadius: BorderRadius.circular(5),
-          border: Border.all(color: catColor.withOpacity(0.35), width: 0.8),
+          border: Border.all(color: catColor.withValues(alpha: 0.35), width: 0.8),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
@@ -496,7 +496,7 @@ class ExecutiveCardView extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 5),
       child: Text(
         '•',
-        style: TextStyle(color: color.withOpacity(0.55), fontSize: 11),
+        style: TextStyle(color: color.withValues(alpha: 0.55), fontSize: 11),
       ),
     );
   }

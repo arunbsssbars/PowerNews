@@ -23,12 +23,12 @@ class MorningDigestCard extends StatelessWidget {
         ),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: isDark ? const Color(0xFF0284C7).withOpacity(0.35) : const Color(0xFFBAE6FD),
+          color: isDark ? const Color(0xFF0284C7).withValues(alpha: 0.35) : const Color(0xFFBAE6FD),
           width: 1.2,
         ),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF0284C7).withOpacity(isDark ? 0.15 : 0.08),
+            color: const Color(0xFF0284C7).withValues(alpha: isDark ? 0.15 : 0.08),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -54,7 +54,7 @@ class MorningDigestCard extends StatelessWidget {
                     shape: BoxShape.circle,
                     boxShadow: [
                       BoxShadow(
-                        color: const Color(0xFF0284C7).withOpacity(0.3),
+                        color: const Color(0xFF0284C7).withValues(alpha: 0.3),
                         blurRadius: 8,
                         offset: const Offset(0, 2),
                       ),
@@ -78,7 +78,7 @@ class MorningDigestCard extends StatelessWidget {
                           Container(
                             padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                             decoration: BoxDecoration(
-                              color: const Color(0xFF0284C7).withOpacity(0.15),
+                              color: const Color(0xFF0284C7).withValues(alpha: 0.15),
                               borderRadius: BorderRadius.circular(4),
                             ),
                             child: const Text(

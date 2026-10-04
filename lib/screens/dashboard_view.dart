@@ -145,7 +145,7 @@ class _DashboardViewState extends State<DashboardView> {
                 ),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(isDark ? 0.25 : 0.04),
+                    color: Colors.black.withValues(alpha: isDark ? 0.25 : 0.04),
                     blurRadius: 8,
                     offset: const Offset(0, 2),
                   ),
@@ -208,7 +208,7 @@ class _DashboardViewState extends State<DashboardView> {
                     ? []
                     : [
                         BoxShadow(
-                          color: const Color(0xFF2563EB).withOpacity(0.2),
+                          color: const Color(0xFF2563EB).withValues(alpha: 0.2),
                           blurRadius: 8,
                           offset: const Offset(0, 2),
                         ),
@@ -222,7 +222,7 @@ class _DashboardViewState extends State<DashboardView> {
                       Container(
                         padding: const EdgeInsets.all(6),
                         decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.18),
+                          color: Colors.white.withValues(alpha: 0.18),
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: const Icon(Icons.insights_rounded, color: Colors.white, size: 18),
@@ -264,7 +264,7 @@ class _DashboardViewState extends State<DashboardView> {
                         child: Container(
                           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7.5),
                           decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.12),
+                            color: Colors.white.withValues(alpha: 0.12),
                             borderRadius: BorderRadius.circular(10),
                           ),
                           child: Column(
@@ -315,7 +315,7 @@ class _DashboardViewState extends State<DashboardView> {
                         child: Container(
                           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7.5),
                           decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.12),
+                            color: Colors.white.withValues(alpha: 0.12),
                             borderRadius: BorderRadius.circular(10),
                           ),
                           child: Column(
@@ -394,7 +394,7 @@ class _DashboardViewState extends State<DashboardView> {
                         ? []
                         : [
                             BoxShadow(
-                              color: const Color(0xFF6366F1).withOpacity(0.12),
+                              color: const Color(0xFF6366F1).withValues(alpha: 0.12),
                               blurRadius: 8,
                               offset: const Offset(0, 2),
                             ),
@@ -431,7 +431,7 @@ class _DashboardViewState extends State<DashboardView> {
                                 Container(
                                   padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1.5),
                                   decoration: BoxDecoration(
-                                    color: const Color(0xFF6366F1).withOpacity(0.2),
+                                    color: const Color(0xFF6366F1).withValues(alpha: 0.2),
                                     borderRadius: BorderRadius.circular(6),
                                   ),
                                   child: const Text(
@@ -519,7 +519,7 @@ class _DashboardViewState extends State<DashboardView> {
                             ),
                             boxShadow: [
                               BoxShadow(
-                                color: Colors.black.withOpacity(isDark ? 0.2 : 0.03),
+                                color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.03),
                                 blurRadius: 4,
                                 offset: const Offset(0, 1),
                               ),
@@ -534,7 +534,7 @@ class _DashboardViewState extends State<DashboardView> {
                                   Container(
                                     padding: const EdgeInsets.all(3.5),
                                     decoration: BoxDecoration(
-                                      color: color.withOpacity(isDark ? 0.22 : 0.12),
+                                      color: color.withValues(alpha: isDark ? 0.22 : 0.12),
                                       borderRadius: BorderRadius.circular(5),
                                     ),
                                     child: Icon(s['icon'] as IconData, color: color, size: 13),
@@ -551,7 +551,7 @@ class _DashboardViewState extends State<DashboardView> {
                                     padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1.5),
                                     decoration: BoxDecoration(
                                       color: count > 0
-                                          ? color.withOpacity(isDark ? 0.22 : 0.12)
+                                          ? color.withValues(alpha: isDark ? 0.22 : 0.12)
                                           : (isDark ? const Color(0xFF1E293B) : const Color(0xFFF1F5F9)),
                                       borderRadius: BorderRadius.circular(4),
                                       border: count > 0
@@ -684,7 +684,7 @@ class _DashboardViewState extends State<DashboardView> {
                                 Container(
                                   padding: const EdgeInsets.all(3.5),
                                   decoration: BoxDecoration(
-                                    color: color.withOpacity(isDark ? 0.22 : 0.12),
+                                    color: color.withValues(alpha: isDark ? 0.22 : 0.12),
                                     borderRadius: BorderRadius.circular(5),
                                   ),
                                   child: Icon(u['icon'] as IconData, color: color, size: 13),
@@ -701,7 +701,7 @@ class _DashboardViewState extends State<DashboardView> {
                                   padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1.5),
                                   decoration: BoxDecoration(
                                     color: count > 0
-                                        ? color.withOpacity(isDark ? 0.22 : 0.12)
+                                        ? color.withValues(alpha: isDark ? 0.22 : 0.12)
                                         : (isDark ? const Color(0xFF1E293B) : const Color(0xFFF1F5F9)),
                                     borderRadius: BorderRadius.circular(4),
                                     border: count > 0
@@ -833,7 +833,7 @@ class _DashboardViewState extends State<DashboardView> {
                                 Container(
                                   padding: const EdgeInsets.all(3.5),
                                   decoration: BoxDecoration(
-                                    color: color.withOpacity(isDark ? 0.22 : 0.12),
+                                    color: color.withValues(alpha: isDark ? 0.22 : 0.12),
                                     borderRadius: BorderRadius.circular(5),
                                   ),
                                   child: Icon(o['icon'] as IconData, color: color, size: 13),
@@ -850,7 +850,7 @@ class _DashboardViewState extends State<DashboardView> {
                                   padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1.5),
                                   decoration: BoxDecoration(
                                     color: count > 0
-                                        ? color.withOpacity(isDark ? 0.22 : 0.12)
+                                        ? color.withValues(alpha: isDark ? 0.22 : 0.12)
                                         : (isDark ? const Color(0xFF1E293B) : const Color(0xFFF1F5F9)),
                                     borderRadius: BorderRadius.circular(4),
                                     border: count > 0
@@ -925,7 +925,7 @@ class _DashboardViewState extends State<DashboardView> {
                   ),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(isDark ? 0.2 : 0.04),
+                      color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.04),
                       blurRadius: 8,
                       offset: const Offset(0, 2),
                     ),
@@ -936,7 +936,7 @@ class _DashboardViewState extends State<DashboardView> {
                     Container(
                       padding: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
-                        color: const Color(0xFF0284C7).withOpacity(isDark ? 0.22 : 0.12),
+                        color: const Color(0xFF0284C7).withValues(alpha: isDark ? 0.22 : 0.12),
                         borderRadius: BorderRadius.circular(10),
                       ),
                       child: const Icon(Icons.map_rounded, color: Color(0xFF0284C7), size: 20),

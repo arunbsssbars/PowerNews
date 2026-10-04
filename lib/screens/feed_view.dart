@@ -21,6 +21,13 @@ class SnappyPageScrollPhysics extends PageScrollPhysics {
     return SnappyPageScrollPhysics(parent: buildParent(ancestor));
   }
 
+  @override
+  SpringDescription get spring => const SpringDescription(
+    mass: 0.40,
+    stiffness: 160.0,
+    damping: 1.15,
+  );
+
   double _getPage(ScrollMetrics position) {
     return position.pixels / position.viewportDimension;
   }
@@ -40,10 +47,19 @@ class SnappyPageScrollPhysics extends PageScrollPhysics {
     final double page = _getPage(position);
     
     double targetPage;
-    if (velocity.abs() > 50.0) {
+    // Flick gesture (> 80 dp/s): snap directly in velocity direction
+    if (velocity.abs() > 80.0) {
       targetPage = velocity > 0 ? page.ceilToDouble() : page.floorToDouble();
     } else {
-      targetPage = page.roundToDouble();
+      // Drag & release gesture: 22% distance delta guarantees transition without bounceback
+      final double fraction = page - page.floor();
+      if (fraction > 0.22) {
+        targetPage = page.ceilToDouble();
+      } else if (fraction < 0.78 && fraction > 0.0) {
+        targetPage = page.floorToDouble();
+      } else {
+        targetPage = page.roundToDouble();
+      }
     }
     
     final double targetPixels = _getPixels(position, targetPage);
@@ -165,7 +181,7 @@ class _FeedViewState extends State<FeedView> {
                   ),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.18),
+                      color: Colors.black.withValues(alpha: 0.18),
                       blurRadius: 10,
                       offset: const Offset(0, 3),
                     ),

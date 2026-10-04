@@ -23,7 +23,10 @@ void main() {
   testWidgets('App smoke and initialization test', (WidgetTester tester) async {
     SharedPreferences.setMockInitialValues({
       'has_seen_onboarding': true,
-      'auth_is_guest': true,
+      'auth_user_id': 'smoke_test_user_id',
+      'auth_user_email': 'tester@powernews.com',
+      'auth_user_name': 'PowerNews Tester',
+      'auth_user_verified': true,
     });
 
     final authService = AuthService();

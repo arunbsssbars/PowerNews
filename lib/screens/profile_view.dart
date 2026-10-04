@@ -156,8 +156,6 @@ class _ProfileViewState extends State<ProfileView> {
     );
   }
 
-  @override
-  
   void _confirmDeleteAccount(BuildContext context, AuthService auth) {
     showDialog(
       context: context,
@@ -273,9 +271,9 @@ class _ProfileViewState extends State<ProfileView> {
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                       decoration: BoxDecoration(
-                        color: const Color(0xFF10B981).withOpacity(0.18),
+                        color: const Color(0xFF10B981).withValues(alpha: 0.18),
                         borderRadius: BorderRadius.circular(6),
-                        border: Border.all(color: const Color(0xFF10B981).withOpacity(0.4), width: 0.8),
+                        border: Border.all(color: const Color(0xFF10B981).withValues(alpha: 0.4), width: 0.8),
                       ),
                       child: const Row(
                         mainAxisSize: MainAxisSize.min,
@@ -396,7 +394,7 @@ class _ProfileViewState extends State<ProfileView> {
                       onPressed: () => _confirmSignOut(context, auth),
                       style: OutlinedButton.styleFrom(
                         foregroundColor: const Color(0xFFEF4444),
-                        side: BorderSide(color: const Color(0xFFEF4444).withOpacity(0.35)),
+                        side: BorderSide(color: const Color(0xFFEF4444).withValues(alpha: 0.35)),
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                         padding: const EdgeInsets.symmetric(vertical: 13),
                       ),
@@ -448,7 +446,7 @@ class _ProfileViewState extends State<ProfileView> {
           border: Border.all(color: borderColor),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(isDark ? 0.25 : 0.04),
+              color: Colors.black.withValues(alpha: isDark ? 0.25 : 0.04),
               blurRadius: 10,
               offset: const Offset(0, 3),
             ),
@@ -466,7 +464,7 @@ class _ProfileViewState extends State<ProfileView> {
                 borderRadius: BorderRadius.circular(16),
                 boxShadow: [
                   BoxShadow(
-                    color: const Color(0xFF2563EB).withOpacity(0.3),
+                    color: const Color(0xFF2563EB).withValues(alpha: 0.3),
                     blurRadius: 12,
                     offset: const Offset(0, 4),
                   ),
@@ -522,7 +520,7 @@ class _ProfileViewState extends State<ProfileView> {
         border: Border.all(color: borderColor),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(isDark ? 0.25 : 0.04),
+            color: Colors.black.withValues(alpha: isDark ? 0.25 : 0.04),
             blurRadius: 12,
             offset: const Offset(0, 3),
           ),
@@ -607,11 +605,11 @@ class _ProfileViewState extends State<ProfileView> {
                           padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2.5),
                           decoration: BoxDecoration(
                             color: isAdmin
-                                ? const Color(0xFF10B981).withOpacity(0.14)
-                                : const Color(0xFF2563EB).withOpacity(0.12),
+                                ? const Color(0xFF10B981).withValues(alpha: 0.14)
+                                : const Color(0xFF2563EB).withValues(alpha: 0.12),
                             borderRadius: BorderRadius.circular(5),
                             border: Border.all(
-                              color: isAdmin ? const Color(0xFF10B981).withOpacity(0.4) : const Color(0xFF2563EB).withOpacity(0.3),
+                              color: isAdmin ? const Color(0xFF10B981).withValues(alpha: 0.4) : const Color(0xFF2563EB).withValues(alpha: 0.3),
                               width: 0.8,
                             ),
                           ),
@@ -629,13 +627,13 @@ class _ProfileViewState extends State<ProfileView> {
                           padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2.5),
                           decoration: BoxDecoration(
                             color: user.isEmailVerified
-                                ? const Color(0xFF10B981).withOpacity(0.12)
-                                : const Color(0xFFF59E0B).withOpacity(0.14),
+                                ? const Color(0xFF10B981).withValues(alpha: 0.12)
+                                : const Color(0xFFF59E0B).withValues(alpha: 0.14),
                             borderRadius: BorderRadius.circular(5),
                             border: Border.all(
                               color: user.isEmailVerified
-                                  ? const Color(0xFF10B981).withOpacity(0.3)
-                                  : const Color(0xFFF59E0B).withOpacity(0.35),
+                                  ? const Color(0xFF10B981).withValues(alpha: 0.3)
+                                  : const Color(0xFFF59E0B).withValues(alpha: 0.35),
                               width: 0.8,
                             ),
                           ),
@@ -899,7 +897,7 @@ class _ProfileViewState extends State<ProfileView> {
             border: Border.all(color: borderColor),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(isDark ? 0.2 : 0.03),
+                color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.03),
                 blurRadius: 8,
                 offset: const Offset(0, 2),
               ),
@@ -914,7 +912,7 @@ class _ProfileViewState extends State<ProfileView> {
                   Container(
                     padding: const EdgeInsets.all(7),
                     decoration: BoxDecoration(
-                      color: accentColor.withOpacity(isDark ? 0.2 : 0.12),
+                      color: accentColor.withValues(alpha: isDark ? 0.2 : 0.12),
                       borderRadius: BorderRadius.circular(9),
                     ),
                     child: Icon(icon, size: 18, color: accentColor),
@@ -1089,7 +1087,7 @@ class _ProfileViewState extends State<ProfileView> {
             secondary: Container(
               padding: const EdgeInsets.all(7),
               decoration: BoxDecoration(
-                color: (isDark ? const Color(0xFFF59E0B) : const Color(0xFF2563EB)).withOpacity(0.12),
+                color: (isDark ? const Color(0xFFF59E0B) : const Color(0xFF2563EB)).withValues(alpha: 0.12),
                 borderRadius: BorderRadius.circular(9),
               ),
               child: Icon(
@@ -1107,7 +1105,7 @@ class _ProfileViewState extends State<ProfileView> {
               style: TextStyle(fontSize: 11.5, color: textSecondary),
             ),
             value: isDark,
-            activeColor: const Color(0xFF2563EB),
+            activeThumbColor: const Color(0xFF2563EB),
             onChanged: (_) => newsProvider.toggleTheme(),
           ),
           Divider(height: 1, color: borderColor),
@@ -1115,7 +1113,7 @@ class _ProfileViewState extends State<ProfileView> {
             leading: Container(
               padding: const EdgeInsets.all(7),
               decoration: BoxDecoration(
-                color: const Color(0xFF818CF8).withOpacity(0.14),
+                color: const Color(0xFF818CF8).withValues(alpha: 0.14),
                 borderRadius: BorderRadius.circular(9),
               ),
               child: const Icon(Icons.auto_awesome_rounded, color: Color(0xFF818CF8), size: 18),
@@ -1136,7 +1134,7 @@ class _ProfileViewState extends State<ProfileView> {
             leading: Container(
               padding: const EdgeInsets.all(7),
               decoration: BoxDecoration(
-                color: const Color(0xFF0284C7).withOpacity(0.14),
+                color: const Color(0xFF0284C7).withValues(alpha: 0.14),
                 borderRadius: BorderRadius.circular(9),
               ),
               child: const Icon(Icons.explore_rounded, color: Color(0xFF0284C7), size: 18),
@@ -1162,7 +1160,7 @@ class _ProfileViewState extends State<ProfileView> {
             leading: Container(
               padding: const EdgeInsets.all(7),
               decoration: BoxDecoration(
-                color: const Color(0xFF10B981).withOpacity(0.14),
+                color: const Color(0xFF10B981).withValues(alpha: 0.14),
                 borderRadius: BorderRadius.circular(9),
               ),
               child: const Icon(Icons.verified_user_outlined, color: Color(0xFF10B981), size: 18),

@@ -218,7 +218,7 @@ class FormattedSummaryView extends StatelessWidget {
                           boxShadow: isDark
                               ? [
                                   BoxShadow(
-                                    color: const Color(0xFF38BDF8).withOpacity(0.5),
+                                    color: const Color(0xFF38BDF8).withValues(alpha: 0.5),
                                     blurRadius: 4,
                                     spreadRadius: 0.5,
                                   )

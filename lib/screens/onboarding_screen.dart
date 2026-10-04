@@ -156,7 +156,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                               height: 140,
                               decoration: BoxDecoration(
                                 shape: BoxShape.circle,
-                                color: accent.withOpacity(isDark ? 0.18 : 0.1),
+                                color: accent.withValues(alpha: isDark ? 0.18 : 0.1),
                               ),
                             ),
                             // Gradient Core Container
@@ -172,7 +172,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                                 borderRadius: BorderRadius.circular(28),
                                 boxShadow: [
                                   BoxShadow(
-                                    color: accent.withOpacity(0.4),
+                                    color: accent.withValues(alpha: 0.4),
                                     blurRadius: 20,
                                     offset: const Offset(0, 8),
                                   ),
@@ -193,10 +193,10 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
                           decoration: BoxDecoration(
-                            color: accent.withOpacity(isDark ? 0.2 : 0.1),
+                            color: accent.withValues(alpha: isDark ? 0.2 : 0.1),
                             borderRadius: BorderRadius.circular(20),
                             border: Border.all(
-                              color: accent.withOpacity(0.35),
+                              color: accent.withValues(alpha: 0.35),
                               width: 1,
                             ),
                           ),
@@ -328,7 +328,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                           borderRadius: BorderRadius.circular(16),
                           boxShadow: [
                             BoxShadow(
-                              color: (_slides[_currentPage]['accentColor'] as Color).withOpacity(0.35),
+                              color: (_slides[_currentPage]['accentColor'] as Color).withValues(alpha: 0.35),
                               blurRadius: 10,
                               offset: const Offset(0, 4),
                             ),

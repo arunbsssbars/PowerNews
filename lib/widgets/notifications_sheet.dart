@@ -110,8 +110,8 @@ class _NotificationsSheetState extends State<NotificationsSheet> {
 
     final primaryTextColor = isDark ? const Color(0xFFF1F5F9) : const Color(0xFF0F172A);
     final secondaryTextColor = isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B);
-    final cardBgColor = isDark ? const Color(0xFF1E293B).withOpacity(0.55) : const Color(0xFFF8FAFC);
-    final cardBorderColor = isDark ? const Color(0xFF334155).withOpacity(0.5) : const Color(0xFFE2E8F0);
+    final cardBgColor = isDark ? const Color(0xFF1E293B).withValues(alpha: 0.55) : const Color(0xFFF8FAFC);
+    final cardBorderColor = isDark ? const Color(0xFF334155).withValues(alpha: 0.5) : const Color(0xFFE2E8F0);
 
     return DraggableScrollableSheet(
       initialChildSize: 0.85,
@@ -146,10 +146,10 @@ class _NotificationsSheetState extends State<NotificationsSheet> {
                     width: 40,
                     height: 40,
                     decoration: BoxDecoration(
-                      color: const Color(0xFF2563EB).withOpacity(0.12),
+                      color: const Color(0xFF2563EB).withValues(alpha: 0.12),
                       borderRadius: BorderRadius.circular(12),
                       border: Border.all(
-                        color: const Color(0xFF2563EB).withOpacity(0.25),
+                        color: const Color(0xFF2563EB).withValues(alpha: 0.25),
                         width: 1,
                       ),
                     ),
@@ -204,10 +204,10 @@ class _NotificationsSheetState extends State<NotificationsSheet> {
                               Container(
                                 padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                                 decoration: BoxDecoration(
-                                  color: const Color(0xFF10B981).withOpacity(0.15),
+                                  color: const Color(0xFF10B981).withValues(alpha: 0.15),
                                   borderRadius: BorderRadius.circular(8),
                                   border: Border.all(
-                                    color: const Color(0xFF10B981).withOpacity(0.4),
+                                    color: const Color(0xFF10B981).withValues(alpha: 0.4),
                                     width: 1,
                                   ),
                                 ),
@@ -225,10 +225,10 @@ class _NotificationsSheetState extends State<NotificationsSheet> {
                               Container(
                                 padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                                 decoration: BoxDecoration(
-                                  color: const Color(0xFF2563EB).withOpacity(0.12),
+                                  color: const Color(0xFF2563EB).withValues(alpha: 0.12),
                                   borderRadius: BorderRadius.circular(8),
                                   border: Border.all(
-                                    color: const Color(0xFF2563EB).withOpacity(0.3),
+                                    color: const Color(0xFF2563EB).withValues(alpha: 0.3),
                                     width: 1,
                                   ),
                                 ),
@@ -273,10 +273,10 @@ class _NotificationsSheetState extends State<NotificationsSheet> {
                       child: Container(
                         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
                         decoration: BoxDecoration(
-                          color: const Color(0xFF2563EB).withOpacity(0.12),
+                          color: const Color(0xFF2563EB).withValues(alpha: 0.12),
                           borderRadius: BorderRadius.circular(8),
                           border: Border.all(
-                            color: const Color(0xFF2563EB).withOpacity(0.3),
+                            color: const Color(0xFF2563EB).withValues(alpha: 0.3),
                             width: 1,
                           ),
                         ),
@@ -367,7 +367,7 @@ class _NotificationsSheetState extends State<NotificationsSheet> {
                             Icon(
                               Icons.notifications_none_rounded,
                               size: 48,
-                              color: secondaryTextColor.withOpacity(0.5),
+                              color: secondaryTextColor.withValues(alpha: 0.5),
                             ),
                             const SizedBox(height: 12),
                             Text(
@@ -439,13 +439,13 @@ class _NotificationsSheetState extends State<NotificationsSheet> {
                               decoration: BoxDecoration(
                                 color: isNewItem
                                     ? (isDark
-                                        ? const Color(0xFF0F291E).withOpacity(0.6)
+                                        ? const Color(0xFF0F291E).withValues(alpha: 0.6)
                                         : const Color(0xFFECFDF5))
                                     : cardBgColor,
                                 borderRadius: BorderRadius.circular(14),
                                 border: Border.all(
                                   color: isNewItem
-                                      ? const Color(0xFF10B981).withOpacity(0.5)
+                                      ? const Color(0xFF10B981).withValues(alpha: 0.5)
                                       : cardBorderColor,
                                   width: isNewItem ? 1.3 : 1,
                                 ),
@@ -458,7 +458,7 @@ class _NotificationsSheetState extends State<NotificationsSheet> {
                                     width: 36,
                                     height: 36,
                                     decoration: BoxDecoration(
-                                      color: categoryColor.withOpacity(isDark ? 0.2 : 0.12),
+                                      color: categoryColor.withValues(alpha: isDark ? 0.2 : 0.12),
                                       borderRadius: BorderRadius.circular(10),
                                     ),
                                     child: Icon(
@@ -484,7 +484,7 @@ class _NotificationsSheetState extends State<NotificationsSheet> {
                                                   Container(
                                                     padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                                                     decoration: BoxDecoration(
-                                                      color: categoryColor.withOpacity(0.15),
+                                                      color: categoryColor.withValues(alpha: 0.15),
                                                       borderRadius: BorderRadius.circular(6),
                                                     ),
                                                     child: Text(
@@ -562,7 +562,7 @@ class _NotificationsSheetState extends State<NotificationsSheet> {
                                               article.timeAgo,
                                               style: TextStyle(
                                                 fontSize: 10.5,
-                                                color: secondaryTextColor.withOpacity(0.85),
+                                                color: secondaryTextColor.withValues(alpha: 0.85),
                                                 fontWeight: FontWeight.w500,
                                               ),
                                             ),
@@ -609,7 +609,7 @@ class _NotificationsSheetState extends State<NotificationsSheet> {
                                     child: Icon(
                                       Icons.chevron_right_rounded,
                                       size: 18,
-                                      color: secondaryTextColor.withOpacity(0.6),
+                                      color: secondaryTextColor.withValues(alpha: 0.6),
                                     ),
                                   ),
                                 ],

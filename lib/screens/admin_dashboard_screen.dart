@@ -566,9 +566,9 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> with Single
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF10B981).withOpacity(0.12),
+                  color: const Color(0xFF10B981).withValues(alpha: 0.12),
                   borderRadius: BorderRadius.circular(10),
-                  border: Border.all(color: const Color(0xFF10B981).withOpacity(0.4)),
+                  border: Border.all(color: const Color(0xFF10B981).withValues(alpha: 0.4)),
                 ),
                 child: Text(
                   '${_flutterFeed.length} Live',
@@ -620,7 +620,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> with Single
                                       Container(
                                         padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
                                         decoration: BoxDecoration(
-                                          color: const Color(0xFF2563EB).withOpacity(0.1),
+                                          color: const Color(0xFF2563EB).withValues(alpha: 0.1),
                                           borderRadius: BorderRadius.circular(6),
                                         ),
                                         child: Text(
@@ -632,7 +632,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> with Single
                                       Container(
                                         padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                                         decoration: BoxDecoration(
-                                          color: const Color(0xFFF59E0B).withOpacity(0.12),
+                                          color: const Color(0xFFF59E0B).withValues(alpha: 0.12),
                                           borderRadius: BorderRadius.circular(6),
                                         ),
                                         child: Text(
@@ -667,7 +667,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> with Single
                                           margin: const EdgeInsets.only(right: 6),
                                           padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1.5),
                                           decoration: BoxDecoration(
-                                            color: Colors.grey.withOpacity(0.1),
+                                            color: Colors.grey.withValues(alpha: 0.1),
                                             borderRadius: BorderRadius.circular(4),
                                           ),
                                           child: Text(a['state'].toString(), style: const TextStyle(fontSize: 10, color: Colors.grey)),
@@ -789,7 +789,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> with Single
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF2563EB).withOpacity(0.08),
+                  color: const Color(0xFF2563EB).withValues(alpha: 0.08),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: const Row(
@@ -899,7 +899,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> with Single
                 runSpacing: 8,
                 children: _dynamicKeywords.map((kw) {
                   return Chip(
-                    backgroundColor: const Color(0xFF2563EB).withOpacity(0.12),
+                    backgroundColor: const Color(0xFF2563EB).withValues(alpha: 0.12),
                     side: const BorderSide(color: Color(0xFF2563EB), width: 0.8),
                     label: Text(kw, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Color(0xFF2563EB))),
                     deleteIcon: const Icon(Icons.close_rounded, size: 14),
@@ -1030,7 +1030,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> with Single
                                     Container(
                                       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                                       decoration: BoxDecoration(
-                                        color: badgeColor.withOpacity(0.12),
+                                        color: badgeColor.withValues(alpha: 0.12),
                                         borderRadius: BorderRadius.circular(6),
                                         border: Border.all(color: badgeColor),
                                       ),
@@ -1313,7 +1313,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> with Single
               Container(
                 padding: const EdgeInsets.all(7),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFF59E0B).withOpacity(0.14),
+                  color: const Color(0xFFF59E0B).withValues(alpha: 0.14),
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: const Icon(Icons.cloud_sync_rounded, color: Color(0xFFF59E0B), size: 20),
@@ -1338,8 +1338,8 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> with Single
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                 decoration: BoxDecoration(
                   color: isConnected
-                      ? const Color(0xFF10B981).withOpacity(0.14)
-                      : const Color(0xFFEF4444).withOpacity(0.14),
+                      ? const Color(0xFF10B981).withValues(alpha: 0.14)
+                      : const Color(0xFFEF4444).withValues(alpha: 0.14),
                   borderRadius: BorderRadius.circular(6),
                   border: Border.all(
                     color: isConnected ? const Color(0xFF10B981) : const Color(0xFFEF4444),
@@ -1676,7 +1676,7 @@ Step 5: Host locally with Ollama or vLLM for \$0 monthly API cost!
           width: 32,
           height: 32,
           decoration: BoxDecoration(
-            color: const Color(0xFF2563EB).withOpacity(0.12),
+            color: const Color(0xFF2563EB).withValues(alpha: 0.12),
             borderRadius: BorderRadius.circular(8),
           ),
           child: Center(

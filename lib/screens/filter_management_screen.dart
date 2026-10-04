@@ -88,7 +88,7 @@ class _FilterManagementScreenState extends State<FilterManagementScreen> {
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Icon(Icons.tune_rounded, size: 48, color: Colors.grey.withOpacity(0.5)),
+                        Icon(Icons.tune_rounded, size: 48, color: Colors.grey.withValues(alpha: 0.5)),
                         const SizedBox(height: 16),
                         const Text(
                           'No custom filters yet.',
@@ -139,7 +139,7 @@ class _FilterManagementScreenState extends State<FilterManagementScreen> {
                           leading: Container(
                             padding: const EdgeInsets.all(8),
                             decoration: BoxDecoration(
-                              color: const Color(0xFFD97706).withOpacity(0.15),
+                              color: const Color(0xFFD97706).withValues(alpha: 0.15),
                               borderRadius: BorderRadius.circular(8),
                             ),
                             child: const Icon(Icons.tag_rounded, color: Color(0xFFD97706), size: 18),

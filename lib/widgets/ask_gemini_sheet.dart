@@ -225,7 +225,7 @@ class _AskGeminiSheetState extends State<AskGeminiSheet> {
                     borderRadius: BorderRadius.circular(10),
                     boxShadow: [
                       BoxShadow(
-                        color: const Color(0xFF6366F1).withOpacity(0.3),
+                        color: const Color(0xFF6366F1).withValues(alpha: 0.3),
                         blurRadius: 8,
                         offset: const Offset(0, 2),
                       ),
@@ -330,7 +330,7 @@ class _AskGeminiSheetState extends State<AskGeminiSheet> {
                               ),
                               boxShadow: [
                                 BoxShadow(
-                                  color: Colors.black.withOpacity(isDark ? 0.2 : 0.04),
+                                  color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.04),
                                   blurRadius: 4,
                                   offset: const Offset(0, 1),
                                 ),
@@ -341,7 +341,7 @@ class _AskGeminiSheetState extends State<AskGeminiSheet> {
                                 Container(
                                   padding: const EdgeInsets.all(6),
                                   decoration: BoxDecoration(
-                                    color: (isDark ? const Color(0xFF38BDF8) : const Color(0xFF2563EB)).withOpacity(0.12),
+                                    color: (isDark ? const Color(0xFF38BDF8) : const Color(0xFF2563EB)).withValues(alpha: 0.12),
                                     shape: BoxShape.circle,
                                   ),
                                   child: Icon(
@@ -410,7 +410,7 @@ class _AskGeminiSheetState extends State<AskGeminiSheet> {
               ),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.06),
+                  color: Colors.black.withValues(alpha: 0.06),
                   blurRadius: 8,
                   offset: const Offset(0, -2),
                 ),
@@ -454,7 +454,7 @@ class _AskGeminiSheetState extends State<AskGeminiSheet> {
                       ),
                       boxShadow: [
                         BoxShadow(
-                          color: const Color(0xFF6366F1).withOpacity(0.4),
+                          color: const Color(0xFF6366F1).withValues(alpha: 0.4),
                           blurRadius: 6,
                           offset: const Offset(0, 2),
                         ),
@@ -498,7 +498,7 @@ class _AskGeminiSheetState extends State<AskGeminiSheet> {
           ),
           boxShadow: [
             BoxShadow(
-              color: const Color(0xFF4F46E5).withOpacity(0.25),
+              color: const Color(0xFF4F46E5).withValues(alpha: 0.25),
               blurRadius: 6,
               offset: const Offset(0, 2),
             ),
@@ -541,7 +541,7 @@ class _AskGeminiSheetState extends State<AskGeminiSheet> {
           Container(
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
-              color: const Color(0xFF6366F1).withOpacity(0.12),
+              color: const Color(0xFF6366F1).withValues(alpha: 0.12),
               shape: BoxShape.circle,
             ),
             child: const SizedBox(
@@ -599,7 +599,7 @@ class _AskGeminiSheetState extends State<AskGeminiSheet> {
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(isDark ? 0.25 : 0.05),
+            color: Colors.black.withValues(alpha: isDark ? 0.25 : 0.05),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
@@ -625,7 +625,7 @@ class _AskGeminiSheetState extends State<AskGeminiSheet> {
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3.5),
                   decoration: BoxDecoration(
-                    color: const Color(0xFF10B981).withOpacity(0.12),
+                    color: const Color(0xFF10B981).withValues(alpha: 0.12),
                     borderRadius: BorderRadius.circular(6),
                   ),
                   child: const Row(
@@ -851,10 +851,10 @@ class _AskGeminiSheetState extends State<AskGeminiSheet> {
             margin: const EdgeInsets.only(bottom: 10),
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: accentColor.withOpacity(isDark ? 0.08 : 0.05),
+              color: accentColor.withValues(alpha: isDark ? 0.08 : 0.05),
               borderRadius: BorderRadius.circular(10),
               border: Border.all(
-                color: accentColor.withOpacity(0.2),
+                color: accentColor.withValues(alpha: 0.2),
               ),
             ),
             child: Row(
@@ -863,7 +863,7 @@ class _AskGeminiSheetState extends State<AskGeminiSheet> {
                 Container(
                   padding: const EdgeInsets.all(5),
                   decoration: BoxDecoration(
-                    color: accentColor.withOpacity(0.15),
+                    color: accentColor.withValues(alpha: 0.15),
                     borderRadius: BorderRadius.circular(6),
                   ),
                   child: Icon(iconData, size: 15, color: accentColor),
@@ -923,7 +923,7 @@ class _AskGeminiSheetState extends State<AskGeminiSheet> {
           text: parts[i],
           style: TextStyle(
             fontWeight: FontWeight.w400,
-            color: baseColor.withOpacity(0.9),
+            color: baseColor.withValues(alpha: 0.9),
           ),
         ));
       }
