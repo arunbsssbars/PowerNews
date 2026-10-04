@@ -992,6 +992,16 @@ class _ProfileViewState extends State<ProfileView> {
             children: [
               Expanded(
                 child: _buildMetricTile(
+                  icon: Icons.done_all_rounded,
+                  color: const Color(0xFF10B981),
+                  label: 'Read Stories',
+                  value: '${newsProvider.totalReadCount}',
+                  isDark: isDark,
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: _buildMetricTile(
                   icon: Icons.bookmark_added_rounded,
                   color: const Color(0xFFD97706),
                   label: 'Saved Briefings',
@@ -1005,17 +1015,7 @@ class _ProfileViewState extends State<ProfileView> {
                   icon: Icons.bolt_rounded,
                   color: const Color(0xFF2563EB),
                   label: 'Feed Ingested',
-                  value: '${newsProvider.articles.length} Stories',
-                  isDark: isDark,
-                ),
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: _buildMetricTile(
-                  icon: Icons.cloud_done_rounded,
-                  color: const Color(0xFF10B981),
-                  label: 'Cloud Sync',
-                  value: 'Live Active',
+                  value: '${newsProvider.articles.length}',
                   isDark: isDark,
                 ),
               ),

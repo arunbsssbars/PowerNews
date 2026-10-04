@@ -163,6 +163,8 @@ class NewsProvider extends ChangeNotifier {
   List<NewsArticle> get notificationArticles => List.unmodifiable(_notificationArticles);
   int get newArticlesCount => _notificationArticles.where((a) => !_readArticleIds.contains(a.id)).length;
   bool isArticleNew(String id) => _newArticleIds.contains(id) && !_readArticleIds.contains(id);
+  Set<String> get readArticleIds => Set.unmodifiable(_readArticleIds);
+  int get totalReadCount => _readArticleIds.length;
   bool get hasInitialDataLoaded => _hasInitialDataLoaded;
   bool get isNewsCacheExpired {
     if (_lastNewsFetchTime == null) return true;
