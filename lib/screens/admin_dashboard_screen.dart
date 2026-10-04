@@ -182,6 +182,39 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> with Single
     }
   }
 
+  Future<void> _triggerBatchSummarization() async {
+    try {
+      final res = await http.get(
+        Uri.parse('$_baseUrl/api/summarize-all'),
+        headers: _getHeaders(),
+      );
+      if (mounted) {
+        if (res.statusCode == 200) {
+          final data = jsonDecode(res.body);
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(data['message'] ?? 'Gemini batch summarization queued!'),
+              backgroundColor: const Color(0xFF10B981),
+            ),
+          );
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Failed to trigger summarization (${res.statusCode})'),
+              backgroundColor: Colors.redAccent,
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error: $e'), backgroundColor: Colors.redAccent),
+        );
+      }
+    }
+  }
+
   // ===========================================================================
   // 2. KEYWORDS AUTOMATION API
   // ===========================================================================
@@ -562,7 +595,34 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> with Single
                   onChanged: (val) => setState(() => _feedFilterQuery = val),
                 ),
               ),
-              const SizedBox(width: 10),
+              const SizedBox(width: 8),
+              Tooltip(
+                message: 'Trigger Gemini Batch Summarization on unsummarized articles',
+                child: InkWell(
+                  onTap: _triggerBatchSummarization,
+                  borderRadius: BorderRadius.circular(10),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF6366F1).withValues(alpha: 0.15),
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(color: const Color(0xFF6366F1).withValues(alpha: 0.4)),
+                    ),
+                    child: const Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(Icons.auto_awesome, size: 14, color: Color(0xFF6366F1)),
+                        SizedBox(width: 4),
+                        Text(
+                          'AI Batch',
+                          style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF6366F1)),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 8),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
                 decoration: BoxDecoration(
