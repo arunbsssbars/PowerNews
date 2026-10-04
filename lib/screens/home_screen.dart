@@ -11,6 +11,7 @@ import '../widgets/about_sheet.dart';
 import '../widgets/notifications_sheet.dart';
 import '../services/auth_service.dart';
 import 'admin_dashboard_screen.dart';
+import 'morning_digest_sheet.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -188,6 +189,45 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
           ),
 
           const SizedBox(width: 6),
+
+          // 2. Executive Morning Digest Action Button (36x36 touch target)
+          Tooltip(
+            message: 'Executive Morning Briefing',
+            child: InkWell(
+              borderRadius: BorderRadius.circular(10),
+              onTap: () {
+                final digest = provider.morningDigest;
+                if (digest != null && digest.items.isNotEmpty) {
+                  MorningDigestSheet.show(context, digest);
+                } else {
+                  provider.fetchMorningDigest().then((_) {
+                    if (context.mounted && provider.morningDigest != null) {
+                      MorningDigestSheet.show(context, provider.morningDigest!);
+                    }
+                  });
+                }
+              },
+              child: Container(
+                width: 36,
+                height: 36,
+                decoration: BoxDecoration(
+                  color: isDark ? const Color(0xFF1E293B).withValues(alpha: 0.7) : const Color(0xFFF1F5F9),
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(
+                    color: isDark ? const Color(0xFF334155).withValues(alpha: 0.7) : const Color(0xFFE2E8F0),
+                    width: 1,
+                  ),
+                ),
+                child: Center(
+                  child: Icon(
+                    Icons.wb_sunny_rounded,
+                    size: 18,
+                    color: isDark ? const Color(0xFF38BDF8) : const Color(0xFF0284C7),
+                  ),
+                ),
+              ),
+            ),
+          ),
 
           const SizedBox(width: 6),
 
