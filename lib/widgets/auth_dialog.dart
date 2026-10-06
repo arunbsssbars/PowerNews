@@ -145,17 +145,21 @@ class _AuthSheetContentState extends State<_AuthSheetContent> {
                     onPressed: _auth.isLoading
                         ? null
                         : () async {
-                            final messenger = ScaffoldMessenger.of(context);
-                            final success = await _auth.signInWithGoogle();
-                            if (success && mounted) {
-                              if (_auth.isAdmin) {
-                                messenger.showSnackBar(
-                                  const SnackBar(
-                                    content: Text('👑 Welcome Admin! Full privileges unlocked.'),
-                                    backgroundColor: Color(0xFF10B981),
-                                  ),
-                                );
+                            try {
+                              final messenger = ScaffoldMessenger.of(context);
+                              final success = await _auth.signInWithGoogle();
+                              if (success && mounted) {
+                                if (_auth.isAdmin) {
+                                  messenger.showSnackBar(
+                                    const SnackBar(
+                                      content: Text('👑 Welcome Admin! Full privileges unlocked.'),
+                                      backgroundColor: Color(0xFF10B981),
+                                    ),
+                                  );
+                                }
                               }
+                            } catch (e) {
+                              debugPrint('[AuthDialog] Sign in error: $e');
                             }
                           },
                     child: _auth.isLoading

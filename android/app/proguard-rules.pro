@@ -36,6 +36,13 @@
 # AudioPlayers
 -keep class xyz.luan.audioplayers.** { *; }
 
+# Google Sign-In & Google Play Services Auth
+-keep class com.google.android.gms.auth.api.signin.** { *; }
+-keep class com.google.android.gms.common.api.** { *; }
+-keep class com.google.android.gms.common.** { *; }
+-keep class io.flutter.plugins.googlesignin.** { *; }
+-dontwarn com.google.android.gms.**
+
 # Don't warn on missing optional references
 -dontwarn javax.annotation.**
 -dontwarn kotlin.Unit

@@ -80,8 +80,9 @@ class AuthService extends ChangeNotifier {
   AuthService._internal();
 
   late final GoogleSignIn _googleSignIn = GoogleSignIn(
-    serverClientId: AppConfig.googleWebClientId,
-    scopes: ['email', 'profile'],
+    clientId: kIsWeb ? AppConfig.googleWebClientId : null,
+    serverClientId: kIsWeb ? AppConfig.googleWebClientId : null,
+    scopes: ['email'],
   );
 
   AppUser? _currentUser;
@@ -169,20 +170,25 @@ class AuthService extends ChangeNotifier {
         return false;
       }
 
-      final auth = await account.authentication;
+      String? idToken;
+      try {
+        final auth = await account.authentication;
+        idToken = auth.idToken;
+      } catch (authErr) {
+        debugPrint('[AuthService] Could not retrieve Google idToken: $authErr');
+      }
 
       _currentUser = AppUser(
         id: account.id,
         email: account.email,
         displayName: account.displayName ?? account.email.split('@').first,
         photoUrl: account.photoUrl,
-        idToken: auth.idToken,
+        idToken: idToken,
         isEmailVerified: true,
         createdAt: DateTime.now().toIso8601String(),
         authProvider: 'google',
       );
 
-      
       await _saveUserToPrefs(_currentUser!);
       _isLoading = false;
       notifyListeners();
@@ -192,8 +198,8 @@ class AuthService extends ChangeNotifier {
       final errStr = e.toString();
       debugPrint('[AuthService] Google Sign-In error: $errStr');
 
-      if (errStr.contains('10') || errStr.contains('DEVELOPER_ERROR')) {
-        _errorMessage = 'Google Services OAuth mismatch. Ensure debug SHA-1 fingerprint is registered in Firebase.';
+      if (errStr.contains('10') || errStr.contains('DEVELOPER_ERROR') || errStr.contains('BadAuthentication')) {
+        _errorMessage = 'Google Services OAuth configuration mismatch. Please check SHA-1 in Firebase Console or use Email Sign-In.';
       } else if (errStr.contains('network') || errStr.contains('7')) {
         _errorMessage = 'Network connection failed during Google authentication.';
       } else {

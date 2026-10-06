@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../services/auth_service.dart';
-import 'home_screen.dart';
 
 class LoginSignUpScreen extends StatefulWidget {
   final bool isModal;
@@ -46,19 +45,35 @@ class _LoginSignUpScreenState extends State<LoginSignUpScreen> with SingleTicker
 
   void _proceedToApp() {
     if (widget.isModal) {
-      Navigator.of(context).pop();
+      if (Navigator.of(context).canPop()) {
+        Navigator.of(context).pop();
+      }
     } else {
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (_) => const HomeScreen()),
-      );
+      // When hosted inside AuthWrapper, AuthWrapper automatically switches to HomeScreen
+      // reactively when auth state updates.
+      if (mounted && ModalRoute.of(context)?.isCurrent == true && Navigator.of(context).canPop()) {
+        Navigator.of(context).pop();
+      }
     }
   }
 
   Future<void> _handleGoogleSignIn() async {
-    final auth = context.read<AuthService>();
-    final success = await auth.signInWithGoogle();
-    if (success && mounted) {
-      _proceedToApp();
+    try {
+      final auth = context.read<AuthService>();
+      final success = await auth.signInWithGoogle();
+      if (success && mounted) {
+        _proceedToApp();
+      }
+    } catch (e) {
+      debugPrint('[LoginSignUpScreen] Google Sign-In error: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Google Sign-In failed: $e'),
+            backgroundColor: const Color(0xFFEF4444),
+          ),
+        );
+      }
     }
   }
 
@@ -298,11 +313,23 @@ class _LoginSignUpScreenState extends State<LoginSignUpScreen> with SingleTicker
                             child: Row(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
-                                Image.network(
-                                  'https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg',
-                                  width: 20,
-                                  height: 20,
-                                  errorBuilder: (_, __, ___) => const Icon(Icons.g_mobiledata_rounded, size: 24, color: Color(0xFF4285F4)),
+                                Container(
+                                  width: 22,
+                                  height: 22,
+                                  decoration: const BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    color: Colors.white,
+                                  ),
+                                  child: const Center(
+                                    child: Text(
+                                      'G',
+                                      style: TextStyle(
+                                        color: Color(0xFF4285F4),
+                                        fontWeight: FontWeight.w900,
+                                        fontSize: 14,
+                                      ),
+                                    ),
+                                  ),
                                 ),
                                 const SizedBox(width: 12),
                                 Flexible(
