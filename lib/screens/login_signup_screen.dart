@@ -145,7 +145,7 @@ class _LoginSignUpScreenState extends State<LoginSignUpScreen> with SingleTicker
                     SizedBox(width: 8),
                     Expanded(
                       child: Text(
-                        'You can start exploring all power briefings right away!',
+                        'Please verify your email to unlock access to all power briefings.',
                         style: TextStyle(fontSize: 11.5, color: Color(0xFF047857), fontWeight: FontWeight.w500),
                       ),
                     ),
@@ -157,7 +157,7 @@ class _LoginSignUpScreenState extends State<LoginSignUpScreen> with SingleTicker
           actions: [
             TextButton(
               onPressed: () => Navigator.of(ctx).pop(),
-              child: const Text('Start Reading', style: TextStyle(fontWeight: FontWeight.bold)),
+              child: const Text('Proceed to Verification', style: TextStyle(fontWeight: FontWeight.bold)),
             ),
           ],
         ),

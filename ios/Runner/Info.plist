@@ -56,5 +56,17 @@
 		<string>https</string>
 		<string>http</string>
 	</array>
+	<!-- Google Sign-In URL Scheme for iOS -->
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>com.googleusercontent.apps.1022634770385-qfb9nj8e2b1835ss9j4tn9657m34lpil</string>
+			</array>
+		</dict>
+	</array>
 </dict>
 </plist>

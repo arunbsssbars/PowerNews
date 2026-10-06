@@ -52,11 +52,16 @@ class EmailVerificationScreen extends StatelessWidget {
                   TextButton.icon(
                     onPressed: () async {
                       if (auth.currentUser?.email != null) {
-                        // Note: Using sendPasswordReset here since Firebase free tier REST api doesn't expose sendEmailVerification easily
-                        // without an Identity Toolkit extension. We assume password reset sends a link to the email.
-                        await auth.sendPasswordReset(auth.currentUser!.email);
+                        final sent = await auth.sendEmailVerification();
                         if (context.mounted) {
-                          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Resent link.')));
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text(sent
+                                  ? 'Verification email resent to ${auth.currentUser!.email}.'
+                                  : 'Could not resend email. Please try again shortly.'),
+                              backgroundColor: sent ? const Color(0xFF10B981) : const Color(0xFFEF4444),
+                            ),
+                          );
                         }
                       }
                     },

@@ -334,9 +334,9 @@ class AuthService extends ChangeNotifier {
       
       await _saveUserToPrefs(_currentUser!);
       
-      // Lookup actual verification status in background
+      // Immediately check verification status
       if (idToken != null) {
-        checkEmailVerificationStatus();
+        await checkEmailVerificationStatus();
       }
 
       _isLoading = false;
