@@ -64,12 +64,12 @@
 			<string>Editor</string>
 			<key>CFBundleURLSchemes</key>
 			<array>
-				<string>com.googleusercontent.apps.1022634770385-qfb9nj8e2b1835ss9j4tn9657m34lpil</string>
+				<string>com.googleusercontent.apps.1022634770385-gdna1qf5pob71v1261l2cubqhlrphj29</string>
 			</array>
 		</dict>
 	</array>
 	<key>GIDClientID</key>
-	<string>1022634770385-qfb9nj8e2b1835ss9j4tn9657m34lpil.apps.googleusercontent.com</string>
+	<string>1022634770385-gdna1qf5pob71v1261l2cubqhlrphj29.apps.googleusercontent.com</string>
 	<key>GIDServerClientID</key>
 	<string>1022634770385-qfb9nj8e2b1835ss9j4tn9657m34lpil.apps.googleusercontent.com</string>
 </dict>

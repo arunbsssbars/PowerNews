@@ -80,9 +80,11 @@ class AuthService extends ChangeNotifier {
   AuthService._internal();
 
   late final GoogleSignIn _googleSignIn = GoogleSignIn(
-    clientId: (!kIsWeb && defaultTargetPlatform == TargetPlatform.android)
-        ? null
-        : AppConfig.googleWebClientId,
+    clientId: kIsWeb
+        ? AppConfig.googleWebClientId
+        : (defaultTargetPlatform == TargetPlatform.iOS
+            ? AppConfig.googleIosClientId
+            : null),
     serverClientId: AppConfig.googleWebClientId,
     scopes: const ['email'],
   );
