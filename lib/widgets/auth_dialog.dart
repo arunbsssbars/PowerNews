@@ -147,8 +147,10 @@ class _AuthSheetContentState extends State<_AuthSheetContent> {
                         : () async {
                             try {
                               final messenger = ScaffoldMessenger.of(context);
+                              final nav = Navigator.of(context);
                               final success = await _auth.signInWithGoogle();
-                              if (success && mounted) {
+                              if (!mounted) return;
+                              if (success) {
                                 if (_auth.isAdmin) {
                                   messenger.showSnackBar(
                                     const SnackBar(
@@ -157,6 +159,16 @@ class _AuthSheetContentState extends State<_AuthSheetContent> {
                                     ),
                                   );
                                 }
+                                if (nav.canPop()) {
+                                  nav.pop();
+                                }
+                              } else if (_auth.errorMessage != null) {
+                                messenger.showSnackBar(
+                                  SnackBar(
+                                    content: Text(_auth.errorMessage!),
+                                    backgroundColor: const Color(0xFFEF4444),
+                                  ),
+                                );
                               }
                             } catch (e) {
                               debugPrint('[AuthDialog] Sign in error: $e');

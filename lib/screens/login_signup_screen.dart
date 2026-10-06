@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../main.dart';
 import '../services/auth_service.dart';
 
 class LoginSignUpScreen extends StatefulWidget {
@@ -49,11 +50,10 @@ class _LoginSignUpScreenState extends State<LoginSignUpScreen> with SingleTicker
         Navigator.of(context).pop();
       }
     } else {
-      // When hosted inside AuthWrapper, AuthWrapper automatically switches to HomeScreen
-      // reactively when auth state updates.
-      if (mounted && ModalRoute.of(context)?.isCurrent == true && Navigator.of(context).canPop()) {
-        Navigator.of(context).pop();
-      }
+      Navigator.of(context).pushAndRemoveUntil(
+        MaterialPageRoute(builder: (_) => const AuthWrapper()),
+        (route) => false,
+      );
     }
   }
 
@@ -63,6 +63,13 @@ class _LoginSignUpScreenState extends State<LoginSignUpScreen> with SingleTicker
       final success = await auth.signInWithGoogle();
       if (success && mounted) {
         _proceedToApp();
+      } else if (!success && mounted && auth.errorMessage != null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(auth.errorMessage!),
+            backgroundColor: const Color(0xFFEF4444),
+          ),
+        );
       }
     } catch (e) {
       debugPrint('[LoginSignUpScreen] Google Sign-In error: $e');

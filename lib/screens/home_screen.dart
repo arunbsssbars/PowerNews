@@ -9,8 +9,8 @@ import 'onboarding_screen.dart';
 import '../widgets/ask_gemini_sheet.dart';
 import '../widgets/about_sheet.dart';
 import '../widgets/notifications_sheet.dart';
+import '../main.dart';
 import '../services/auth_service.dart';
-import 'login_signup_screen.dart';
 import 'email_verification_screen.dart';
 import 'admin_dashboard_screen.dart';
 import 'morning_digest_sheet.dart';
@@ -49,7 +49,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (context.mounted) {
           Navigator.of(context).pushAndRemoveUntil(
-            MaterialPageRoute(builder: (_) => const LoginSignUpScreen()),
+            MaterialPageRoute(builder: (_) => const AuthWrapper()),
             (route) => false,
           );
         }
