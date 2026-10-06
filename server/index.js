@@ -139,6 +139,9 @@ const corsOptions = {
 app.use(cors(corsOptions));
 app.use(express.json());
 
+// Direct Health check for Docker / Render / AWS ALBs
+app.get('/health', (req, res) => res.status(200).json({ status: 'healthy', timestamp: new Date().toISOString() }));
+
 // Mount API router
 app.use('/api', apiRoutes);
 
@@ -375,10 +378,18 @@ cron.schedule('0 4,16 * * *', async () => {
 let server = null;
 
 async function startServer() {
-  server = app.listen(PORT, '0.0.0.0', async () => {
-    console.log(`[PowerNews Aggregator] Running on port ${PORT} (0.0.0.0)`);
-    const initialArticles = await syncFeeds(articleStore.getArticles(), articleStore);
-    articleStore.setArticles(initialArticles);
+  server = app.listen(PORT, '0.0.0.0', () => {
+    console.log(`[PowerNews Aggregator] Running on port ${PORT} (0.0.0.0) — health checks ready`);
+    
+    // Asynchronous background initial feed hydration (does not block port listening or health checks)
+    setImmediate(async () => {
+      try {
+        const initialArticles = await syncFeeds(articleStore.getArticles(), articleStore);
+        articleStore.setArticles(initialArticles);
+      } catch (err) {
+        console.error('[PowerNews] Startup initial feed sync error:', err.message);
+      }
+    });
 
     // Initial storage check 30 seconds after boot
     setTimeout(async () => {

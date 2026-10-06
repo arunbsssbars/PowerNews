@@ -159,6 +159,25 @@ function getActiveArticles() {
   return retained.filter(a => Boolean(a.id && aiSummaryCache[a.id] && aiSummaryCache[a.id].length >= 50));
 }
 
+router.get('/health', (req, res) => {
+  const lifecycle = getSystemLifecycle();
+  const mem = process.memoryUsage();
+  res.status(200).json({
+    status: 'healthy',
+    uptime: lifecycle.uptimeFormatted,
+    uptimeSeconds: lifecycle.uptimeSeconds,
+    startedAt: lifecycle.serverStartedAt,
+    databaseMode: lifecycle.databaseMode,
+    totalArticles: articleStore.getArticles().length,
+    activeAiSummaries: Object.keys(aiSummaryCache).length,
+    memory: {
+      rssMb: (mem.rss / (1024 * 1024)).toFixed(1),
+      heapUsedMb: (mem.heapUsed / (1024 * 1024)).toFixed(1),
+    },
+    timestamp: new Date().toISOString()
+  });
+});
+
 router.get('/memory', (req, res) => {
   const mem = process.memoryUsage();
   res.json({
