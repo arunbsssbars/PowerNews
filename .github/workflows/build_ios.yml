@@ -22,6 +22,14 @@ jobs:
       - name: Install Dependencies
         run: flutter pub get
 
+      - name: Create fallback .env file for asset bundling
+        run: |
+          if [ -n "${{ secrets.ENV_FILE }}" ]; then
+            echo "${{ secrets.ENV_FILE }}" > .env
+          else
+            touch .env
+          fi
+
       - name: Build iOS App with Unsigned Signing Allowed
         run: |
           flutter build ios --release --no-codesign --config-only
