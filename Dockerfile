@@ -15,7 +15,10 @@ COPY . .
 
 # Default environment variables
 ENV NODE_ENV=production
+ENV PORT=3000
 
+# Document port 3000 for container orchestrators
+EXPOSE 3000
 
 # Start server using direct node execution (eliminates ~40MB npm wrapper overhead)
 CMD ["node", "--optimize-for-size", "--max-old-space-size=256", "news-aggregator.js"]
