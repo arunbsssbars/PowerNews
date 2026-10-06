@@ -13,17 +13,31 @@ import 'services/auth_service.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   
+  FlutterError.onError = (details) {
+    FlutterError.presentError(details);
+    debugPrint('[FlutterError] Caught during runtime: ${details.exception}');
+  };
+
   try {
     await dotenv.load(fileName: ".env");
   } catch (e) {
     debugPrint('[DotEnv] Notice: .env file could not be loaded ($e). Using default AppConfig.');
   }
 
-  final prefs = await SharedPreferences.getInstance();
-  final hasSeenOnboarding = prefs.getBool('has_seen_onboarding') ?? false;
+  bool hasSeenOnboarding = false;
+  try {
+    final prefs = await SharedPreferences.getInstance();
+    hasSeenOnboarding = prefs.getBool('has_seen_onboarding') ?? false;
+  } catch (e) {
+    debugPrint('[Prefs] Failed reading SharedPreferences: $e');
+  }
 
   final authService = AuthService();
-  await authService.init();
+  try {
+    await authService.init();
+  } catch (e) {
+    debugPrint('[AuthService] Init error: $e');
+  }
 
   runApp(
     MultiProvider(
