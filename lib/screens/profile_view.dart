@@ -9,9 +9,9 @@ import '../providers/news_provider.dart';
 import '../widgets/about_sheet.dart';
 import '../widgets/ask_gemini_sheet.dart';
 import 'admin_dashboard_screen.dart';
-import 'login_signup_screen.dart';
 import 'onboarding_screen.dart';
 import '../services/database_service.dart';
+import '../main.dart';
 
 class ProfileView extends StatefulWidget {
   const ProfileView({super.key});
@@ -139,8 +139,9 @@ class _ProfileViewState extends State<ProfileView> {
                 Navigator.pop(ctx);
                 await auth.signOut();
                 if (context.mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Signed out successfully')),
+                  Navigator.of(context).pushAndRemoveUntil(
+                    MaterialPageRoute(builder: (_) => const AuthWrapper()),
+                    (route) => false,
                   );
                 }
               },
@@ -173,6 +174,12 @@ class _ProfileViewState extends State<ProfileView> {
               onPressed: () async {
                 Navigator.pop(ctx);
                 await auth.deleteAccount();
+                if (context.mounted) {
+                  Navigator.of(context).pushAndRemoveUntil(
+                    MaterialPageRoute(builder: (_) => const AuthWrapper()),
+                    (route) => false,
+                  );
+                }
               },
               style: ElevatedButton.styleFrom(backgroundColor: Colors.red, foregroundColor: Colors.white),
               child: const Text('Delete'),
@@ -439,78 +446,7 @@ class _ProfileViewState extends State<ProfileView> {
     Color textSecondary,
   ) {
     if (user == null) {
-      return Container(
-        padding: const EdgeInsets.all(22),
-        decoration: BoxDecoration(
-          color: bgCard,
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: borderColor),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: isDark ? 0.25 : 0.04),
-              blurRadius: 10,
-              offset: const Offset(0, 3),
-            ),
-          ],
-        ),
-        child: Column(
-          children: [
-            Container(
-              width: 54,
-              height: 54,
-              decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                  colors: [Color(0xFF2563EB), Color(0xFF0284C7)],
-                ),
-                borderRadius: BorderRadius.circular(16),
-                boxShadow: [
-                  BoxShadow(
-                    color: const Color(0xFF2563EB).withValues(alpha: 0.3),
-                    blurRadius: 12,
-                    offset: const Offset(0, 4),
-                  ),
-                ],
-              ),
-              child: const Icon(Icons.shield_rounded, color: Colors.white, size: 28),
-            ),
-            const SizedBox(height: 14),
-            Text(
-              'PowerNews Executive Access',
-              style: TextStyle(
-                fontSize: 17,
-                fontWeight: FontWeight.w800,
-                color: textPrimary,
-              ),
-            ),
-            const SizedBox(height: 6),
-            Text(
-              'Sign in to access real-time power sector intelligence, saved briefings, and administrative controls.',
-              textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 12.5, color: textSecondary, height: 1.4),
-            ),
-            const SizedBox(height: 16),
-            SizedBox(
-              width: double.infinity,
-              height: 44,
-              child: ElevatedButton.icon(
-                onPressed: () {
-                  Navigator.of(context).push(
-                    MaterialPageRoute(builder: (_) => const LoginSignUpScreen(isModal: true)),
-                  );
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF2563EB),
-                  foregroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                  elevation: 2,
-                ),
-                icon: const Icon(Icons.login_rounded, size: 18),
-                label: const Text('Sign In / Create Account', style: TextStyle(fontWeight: FontWeight.bold)),
-              ),
-            ),
-          ],
-        ),
-      );
+      return const SizedBox.shrink();
     }
 
     return Container(
@@ -1196,7 +1132,7 @@ class _ProfileViewState extends State<ProfileView> {
               builder: (context, snapshot) {
                 final count = snapshot.data ?? 0;
                 return Text(
-                  '$count offline articles stored (7-day rolling cache)',
+                  '$count offline articles stored (30-day rolling cache)',
                   style: TextStyle(fontSize: 11.5, color: textSecondary),
                 );
               },

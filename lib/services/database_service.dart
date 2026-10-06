@@ -155,8 +155,8 @@ class DatabaseService {
     return count;
   }
 
-  /// Retrieve all cached articles within retention window (7 days / 1 week only), sorted by published_at DESC
-  Future<List<NewsArticle>> getAllArticles({int retentionDays = 7}) async {
+  /// Retrieve all cached articles within retention window (30 days / 1 month), sorted by published_at DESC
+  Future<List<NewsArticle>> getAllArticles({int retentionDays = 30}) async {
     final db = await database;
     final cutoff = DateTime.now().subtract(Duration(days: retentionDays)).toIso8601String();
 
@@ -284,8 +284,8 @@ class DatabaseService {
     }
   }
 
-  /// Purge articles older than retentionDays (7 days / 1 week only, preserving bookmarks)
-  Future<int> purgeExpired({int retentionDays = 7}) async {
+  /// Purge articles older than retentionDays (30 days / 1 month, preserving bookmarks)
+  Future<int> purgeExpired({int retentionDays = 30}) async {
     final db = await database;
     final cutoff = DateTime.now().subtract(Duration(days: retentionDays)).toIso8601String();
     final deleted = await db.delete(

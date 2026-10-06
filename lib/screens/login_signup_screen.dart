@@ -213,17 +213,17 @@ class _LoginSignUpScreenState extends State<LoginSignUpScreen> with SingleTicker
       body: SafeArea(
         child: LayoutBuilder(
           builder: (context, constraints) {
-            return SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
-              child: ConstrainedBox(
-                constraints: BoxConstraints(
-                  maxWidth: 440,
-                  minHeight: constraints.maxHeight - 40,
-                ),
-                child: Center(
+            final maxBoxWidth = (constraints.maxWidth - 32.0).clamp(0.0, 420.0);
+            return Center(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(
+                    maxWidth: maxBoxWidth,
+                  ),
                   child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
                   // App Brand Logo & Title
                   Container(
                     width: 58,
@@ -305,12 +305,15 @@ class _LoginSignUpScreenState extends State<LoginSignUpScreen> with SingleTicker
                                   errorBuilder: (_, __, ___) => const Icon(Icons.g_mobiledata_rounded, size: 24, color: Color(0xFF4285F4)),
                                 ),
                                 const SizedBox(width: 12),
-                                Text(
-                                  'Continue with Google',
-                                  style: TextStyle(
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.w700,
-                                    color: textPrimary,
+                                Flexible(
+                                  child: Text(
+                                    'Continue with Google',
+                                    style: TextStyle(
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w700,
+                                      color: textPrimary,
+                                    ),
+                                    overflow: TextOverflow.ellipsis,
                                   ),
                                 ),
                               ],
@@ -395,7 +398,7 @@ class _LoginSignUpScreenState extends State<LoginSignUpScreen> with SingleTicker
 
                         // TabBarView for Login vs Signup Forms
                         SizedBox(
-                          height: 230,
+                          height: 270,
                           child: TabBarView(
                             controller: _tabController,
                             children: [

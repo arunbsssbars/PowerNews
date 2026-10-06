@@ -14,7 +14,7 @@ class FeedView extends StatefulWidget {
 
 
 class SnappyPageScrollPhysics extends PageScrollPhysics {
-  const SnappyPageScrollPhysics({super.parent});
+  const SnappyPageScrollPhysics({super.parent = const ClampingScrollPhysics()});
 
   @override
   SnappyPageScrollPhysics applyTo(ScrollPhysics? ancestor) {
@@ -23,9 +23,9 @@ class SnappyPageScrollPhysics extends PageScrollPhysics {
 
   @override
   SpringDescription get spring => const SpringDescription(
-    mass: 0.40,
-    stiffness: 160.0,
-    damping: 1.15,
+    mass: 0.50,
+    stiffness: 110.0,
+    damping: 18.0, // Critically damped: zero upside-down oscillation or overshoot
   );
 
   double _getPage(ScrollMetrics position) {
@@ -47,18 +47,16 @@ class SnappyPageScrollPhysics extends PageScrollPhysics {
     final double page = _getPage(position);
     
     double targetPage;
-    // Flick gesture (> 80 dp/s): snap directly in velocity direction
-    if (velocity.abs() > 80.0) {
+    // Flick gesture (> 40 dp/s): snap directly in velocity direction
+    if (velocity.abs() > 40.0) {
       targetPage = velocity > 0 ? page.ceilToDouble() : page.floorToDouble();
     } else {
-      // Drag & release gesture: 22% distance delta guarantees transition without bounceback
+      // Drag & release gesture: 30% delta guarantees crisp page advance without rubberband bounce
       final double fraction = page - page.floor();
-      if (fraction > 0.22) {
+      if (fraction > 0.30) {
         targetPage = page.ceilToDouble();
-      } else if (fraction < 0.78 && fraction > 0.0) {
-        targetPage = page.floorToDouble();
       } else {
-        targetPage = page.roundToDouble();
+        targetPage = page.floorToDouble();
       }
     }
     
@@ -130,151 +128,154 @@ class _FeedViewState extends State<FeedView> {
       return _buildEmptyState(context, provider, isDark);
     }
 
-    // 4. Main Executive Card Stream (Vertical PageView)
-    return Stack(
+    // 4. Main Executive Card Stream & Dedicated Quick Filter Header
+    return Column(
       children: [
-        PageView.builder(
-          controller: _pageController,
-          scrollDirection: Axis.vertical,
-          physics: const SnappyPageScrollPhysics(),
-          itemCount: articles.length,
-          onPageChanged: (index) {
-            HapticFeedback.selectionClick();
-            provider.markArticleAsSeen(articles[index].id);
-            if (index >= articles.length - 2 && provider.hasMore && !provider.isLoadingMore) {
-              provider.fetchMoreNews();
-            }
-          },
-          itemBuilder: (context, index) {
-            final article = articles[index];
-            return ExecutiveCardView(
-              article: article,
-              currentIndex: index,
-              totalCount: articles.length,
-              onNextCard: () {
-                if (index < articles.length - 1) {
-                  _pageController.nextPage(
-                    duration: const Duration(milliseconds: 300),
-                    curve: Curves.easeOut,
-                  );
-                }
-              },
-            );
-          },
-        ),
-
-        // Top Topic Filter Quick Chips (AQIL responsive horizontal bar)
-        Positioned(
-          top: 8,
-          left: 0,
-          right: 0,
-          child: SizedBox(
-            height: 34,
-            child: ListView(
-              scrollDirection: Axis.horizontal,
-              padding: const EdgeInsets.symmetric(horizontal: 14),
-              physics: const BouncingScrollPhysics(),
-              children: [
-                _buildQuickFilterChip(
-                  label: 'All Feed',
-                  icon: Icons.all_inclusive_rounded,
-                  isSelected: provider.selectedCategory == 'All' &&
-                      provider.selectedPlayer == 'All' &&
-                      provider.selectedPlayer != 'All Players',
-                  isDark: isDark,
-                  onTap: () {
-                    HapticFeedback.selectionClick();
-                    provider.resetFiltersInMemory();
-                  },
-                ),
-                const SizedBox(width: 6),
-                _buildQuickFilterChip(
-                  label: 'Renewables',
-                  icon: Icons.solar_power_rounded,
-                  isSelected: provider.selectedCategory.toLowerCase() == 'renewables',
-                  isDark: isDark,
-                  onTap: () {
-                    HapticFeedback.selectionClick();
-                    provider.setCategory('renewables');
-                  },
-                ),
-                const SizedBox(width: 6),
-                _buildQuickFilterChip(
-                  label: 'Grid & T&D',
-                  icon: Icons.electric_bolt_rounded,
-                  isSelected: provider.selectedCategory.toLowerCase() == 'transmission',
-                  isDark: isDark,
-                  onTap: () {
-                    HapticFeedback.selectionClick();
-                    provider.setCategory('transmission');
-                  },
-                ),
-                const SizedBox(width: 6),
-                _buildQuickFilterChip(
-                  label: 'DISCOMs',
-                  icon: Icons.bolt_rounded,
-                  isSelected: provider.selectedCategory.toLowerCase() == 'distribution',
-                  isDark: isDark,
-                  onTap: () {
-                    HapticFeedback.selectionClick();
-                    provider.setCategory('distribution');
-                  },
-                ),
-                const SizedBox(width: 6),
-                _buildQuickFilterChip(
-                  label: 'Generation',
-                  icon: Icons.factory_rounded,
-                  isSelected: provider.selectedCategory.toLowerCase() == 'generation',
-                  isDark: isDark,
-                  onTap: () {
-                    HapticFeedback.selectionClick();
-                    provider.setCategory('generation');
-                  },
-                ),
-                const SizedBox(width: 6),
-                _buildQuickFilterChip(
-                  label: 'Smart Meters',
-                  icon: Icons.speed_rounded,
-                  isSelected: provider.selectedCategory.toLowerCase() == 'smart_meters',
-                  isDark: isDark,
-                  onTap: () {
-                    HapticFeedback.selectionClick();
-                    provider.setCategory('smart_meters');
-                  },
-                ),
-              ],
-            ),
-          ),
-        ),
-
-        // Floating Offline Mode Pill
-        if (provider.isOffline)
-          Positioned(
-            bottom: 16,
-            left: 0,
-            right: 0,
-            child: Center(
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
-                decoration: BoxDecoration(
-                  color: Colors.black87,
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: Colors.white24, width: 0.8),
-                ),
-                child: const Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(Icons.cloud_off_rounded, size: 12, color: Colors.amberAccent),
-                    SizedBox(width: 6),
-                    Text(
-                      'Offline Cache Mode',
-                      style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w600),
-                    ),
-                  ],
-                ),
+        // Top Topic Filter Quick Chips (Dedicated non-overlapping header bar)
+        Container(
+          height: 38,
+          margin: const EdgeInsets.only(top: 4, bottom: 4),
+          child: ListView(
+            scrollDirection: Axis.horizontal,
+            padding: const EdgeInsets.symmetric(horizontal: 14),
+            physics: const BouncingScrollPhysics(),
+            children: [
+              _buildQuickFilterChip(
+                label: 'All Feed',
+                icon: Icons.all_inclusive_rounded,
+                isSelected: provider.selectedCategory == 'All' &&
+                    provider.selectedPlayer == 'All' &&
+                    provider.selectedPlayer != 'All Players',
+                isDark: isDark,
+                onTap: () {
+                  HapticFeedback.selectionClick();
+                  provider.resetFiltersInMemory();
+                },
               ),
-            ),
+              const SizedBox(width: 6),
+              _buildQuickFilterChip(
+                label: 'Renewables',
+                icon: Icons.solar_power_rounded,
+                isSelected: provider.selectedCategory.toLowerCase() == 'renewables',
+                isDark: isDark,
+                onTap: () {
+                  HapticFeedback.selectionClick();
+                  provider.setCategory('renewables');
+                },
+              ),
+              const SizedBox(width: 6),
+              _buildQuickFilterChip(
+                label: 'Grid & T&D',
+                icon: Icons.electric_bolt_rounded,
+                isSelected: provider.selectedCategory.toLowerCase() == 'transmission',
+                isDark: isDark,
+                onTap: () {
+                  HapticFeedback.selectionClick();
+                  provider.setCategory('transmission');
+                },
+              ),
+              const SizedBox(width: 6),
+              _buildQuickFilterChip(
+                label: 'DISCOMs',
+                icon: Icons.bolt_rounded,
+                isSelected: provider.selectedCategory.toLowerCase() == 'distribution',
+                isDark: isDark,
+                onTap: () {
+                  HapticFeedback.selectionClick();
+                  provider.setCategory('distribution');
+                },
+              ),
+              const SizedBox(width: 6),
+              _buildQuickFilterChip(
+                label: 'Generation',
+                icon: Icons.factory_rounded,
+                isSelected: provider.selectedCategory.toLowerCase() == 'generation',
+                isDark: isDark,
+                onTap: () {
+                  HapticFeedback.selectionClick();
+                  provider.setCategory('generation');
+                },
+              ),
+              const SizedBox(width: 6),
+              _buildQuickFilterChip(
+                label: 'Smart Meters',
+                icon: Icons.speed_rounded,
+                isSelected: provider.selectedCategory.toLowerCase() == 'smart_meters',
+                isDark: isDark,
+                onTap: () {
+                  HapticFeedback.selectionClick();
+                  provider.setCategory('smart_meters');
+                },
+              ),
+            ],
           ),
+        ),
+
+        // Main Vertical Card Viewport
+        Expanded(
+          child: Stack(
+            children: [
+              PageView.builder(
+                controller: _pageController,
+                scrollDirection: Axis.vertical,
+                physics: const SnappyPageScrollPhysics(),
+                itemCount: articles.length,
+                onPageChanged: (index) {
+                  HapticFeedback.selectionClick();
+                  provider.markArticleAsSeen(articles[index].id);
+                  if (index >= articles.length - 2 && provider.hasMore && !provider.isLoadingMore) {
+                    provider.fetchMoreNews();
+                  }
+                },
+                itemBuilder: (context, index) {
+                  final article = articles[index];
+                  return ExecutiveCardView(
+                    article: article,
+                    currentIndex: index,
+                    totalCount: articles.length,
+                    onNextCard: () {
+                      if (index < articles.length - 1) {
+                        _pageController.nextPage(
+                          duration: const Duration(milliseconds: 300),
+                          curve: Curves.easeOut,
+                        );
+                      }
+                    },
+                  );
+                },
+              ),
+
+              // Floating Offline Mode Pill
+              if (provider.isOffline)
+                Positioned(
+                  bottom: 16,
+                  left: 0,
+                  right: 0,
+                  child: Center(
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
+                      decoration: BoxDecoration(
+                        color: Colors.black87,
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(color: Colors.white24, width: 0.8),
+                      ),
+                      child: const Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(Icons.cloud_off_rounded, size: 12, color: Colors.amberAccent),
+                          SizedBox(width: 6),
+                          Text(
+                            'Offline Cache Mode',
+                            style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w600),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+            ],
+          ),
+        ),
       ],
     );
   }

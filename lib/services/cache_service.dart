@@ -6,9 +6,9 @@ import 'database_service.dart';
 /// Maintains the same public API so NewsProvider requires zero changes.
 class CacheService {
   final DatabaseService _db = DatabaseService();
-  static const int _retentionDays = 7;
+  static const int _retentionDays = 30;
 
-  /// Save articles to SQLite with automatic 7-day (1 week only) auto-purge (EXCLUDING bookmarked articles)
+  /// Save articles to SQLite with automatic 30-day (1 month) auto-purge (EXCLUDING bookmarked articles)
   Future<void> cacheArticles(List<NewsArticle> newArticles) async {
     if (newArticles.isEmpty) return;
     try {
@@ -31,7 +31,7 @@ class CacheService {
     }
   }
 
-  /// Clear expired articles older than 7 days (1 week)
+  /// Clear expired articles older than 30 days (1 month)
   Future<void> pruneExpiredCache() async {
     await _db.purgeExpired(retentionDays: _retentionDays);
   }

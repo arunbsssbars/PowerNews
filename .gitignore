@@ -95,3 +95,6 @@ app.*.map.json
 Thumbs.db
 *.log
 .history
+
+build/ios_derived
+

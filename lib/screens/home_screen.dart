@@ -10,6 +10,8 @@ import '../widgets/ask_gemini_sheet.dart';
 import '../widgets/about_sheet.dart';
 import '../widgets/notifications_sheet.dart';
 import '../services/auth_service.dart';
+import 'login_signup_screen.dart';
+import 'email_verification_screen.dart';
 import 'admin_dashboard_screen.dart';
 import 'morning_digest_sheet.dart';
 
@@ -40,8 +42,28 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
 
   @override
   Widget build(BuildContext context) {
-    final provider = context.watch<NewsProvider>();
     final auth = context.watch<AuthService>();
+
+    // Strict Auth Gate: unauthenticated or unverified users cannot access news
+    if (!auth.isAuthenticated || auth.currentUser == null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (context.mounted) {
+          Navigator.of(context).pushAndRemoveUntil(
+            MaterialPageRoute(builder: (_) => const LoginSignUpScreen()),
+            (route) => false,
+          );
+        }
+      });
+      return const Scaffold(
+        body: Center(child: CircularProgressIndicator()),
+      );
+    }
+
+    if (!auth.currentUser!.isEmailVerified) {
+      return const EmailVerificationScreen();
+    }
+
+    final provider = context.watch<NewsProvider>();
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
     final currentIndex = provider.currentNavIndex;
@@ -220,7 +242,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                 ),
                 child: Center(
                   child: Icon(
-                    Icons.wb_sunny_rounded,
+                    Icons.auto_stories_rounded,
                     size: 18,
                     color: isDark ? const Color(0xFF38BDF8) : const Color(0xFF0284C7),
                   ),
