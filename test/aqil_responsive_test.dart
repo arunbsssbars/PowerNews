@@ -20,7 +20,7 @@ void main() {
   });
 
   tearDownAll(() async {
-    await DatabaseService().close();
+    await DatabaseService().close(deleteDb: false);
   });
 
   const viewports = <String, Size>{
