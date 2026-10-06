@@ -80,9 +80,11 @@ class AuthService extends ChangeNotifier {
   AuthService._internal();
 
   late final GoogleSignIn _googleSignIn = GoogleSignIn(
-    clientId: kIsWeb ? AppConfig.googleWebClientId : null,
-    serverClientId: kIsWeb ? AppConfig.googleWebClientId : null,
-    scopes: ['email'],
+    clientId: (!kIsWeb && defaultTargetPlatform == TargetPlatform.android)
+        ? null
+        : AppConfig.googleWebClientId,
+    serverClientId: AppConfig.googleWebClientId,
+    scopes: const ['email'],
   );
 
   AppUser? _currentUser;
@@ -193,12 +195,16 @@ class AuthService extends ChangeNotifier {
       _isLoading = false;
       notifyListeners();
       return true;
-    } catch (e) {
+    } catch (e, stack) {
       _isLoading = false;
       final errStr = e.toString();
-      debugPrint('[AuthService] Google Sign-In error: $errStr');
+      debugPrint('[AuthService] Google Sign-In error: $errStr\n$stack');
 
-      if (errStr.contains('10') || errStr.contains('DEVELOPER_ERROR') || errStr.contains('BadAuthentication')) {
+      if (errStr.contains('canceled') || errStr.contains('cancelled') || errStr.contains('sign_in_canceled')) {
+        _errorMessage = 'Sign-in was cancelled.';
+      } else if (errStr.contains('GIDClientID') || errStr.contains('No active configuration')) {
+        _errorMessage = 'Google OAuth configuration missing on iOS. Please verify GIDClientID in Info.plist.';
+      } else if (errStr.contains('10') || errStr.contains('DEVELOPER_ERROR') || errStr.contains('BadAuthentication')) {
         _errorMessage = 'Google Services OAuth configuration mismatch. Please check SHA-1 in Firebase Console or use Email Sign-In.';
       } else if (errStr.contains('network') || errStr.contains('7')) {
         _errorMessage = 'Network connection failed during Google authentication.';

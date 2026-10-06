@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import '../main.dart';
 import '../services/auth_service.dart';
@@ -71,12 +72,25 @@ class _LoginSignUpScreenState extends State<LoginSignUpScreen> with SingleTicker
           ),
         );
       }
+    } on PlatformException catch (pe) {
+      debugPrint('[LoginSignUpScreen] PlatformException in Google Sign-In: ${pe.code} - ${pe.message}');
+      if (mounted) {
+        final message = (pe.code == 'sign_in_canceled')
+            ? 'Google Sign-In was cancelled.'
+            : 'Google Sign-In unavailable (${pe.message ?? pe.code}). Please try Email login.';
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(message),
+            backgroundColor: const Color(0xFFEF4444),
+          ),
+        );
+      }
     } catch (e) {
       debugPrint('[LoginSignUpScreen] Google Sign-In error: $e');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Google Sign-In failed: $e'),
+            content: Text('Google Sign-In failed: $e. You can also sign in with Email.'),
             backgroundColor: const Color(0xFFEF4444),
           ),
         );
