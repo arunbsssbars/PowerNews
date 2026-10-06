@@ -260,17 +260,18 @@ ${sourceTextForAi.slice(0, 4000)}
 
           let aiText = cleanSummaryOutput(parsed.executive_brief || '');
           if (aiText && aiText.length > 25) {
-            // Strictly enforce under 60 words
+            // Ensure crisp narrative ending on a complete sentence (target 40–60 words)
             const words = aiText.split(/\s+/).filter(Boolean);
-            if (words.length > 58) {
-              const trimmedWords = words.slice(0, 55);
-              let trimmed = trimmedWords.join(' ');
-              const lastPeriod = trimmed.lastIndexOf('.');
-              if (lastPeriod > 80) {
-                aiText = trimmed.slice(0, lastPeriod + 1);
+            if (words.length > 65) {
+              const candidate = words.slice(0, 65).join(' ');
+              const lastPeriod = candidate.lastIndexOf('.');
+              if (lastPeriod > candidate.length * 0.60) {
+                aiText = candidate.slice(0, lastPeriod + 1).trim();
               } else {
-                aiText = trimmed + '.';
+                aiText = candidate.replace(/[,;:\s]+$/, '') + '.';
               }
+            } else if (!/[.!?]$/.test(aiText.trim())) {
+              aiText = aiText.trim() + '.';
             }
 
             if (articleId) {

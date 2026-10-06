@@ -12,6 +12,7 @@ class FormattedSummaryView extends StatelessWidget {
   final String? fontFamily;
   final double lineHeight;
   final bool isScrollable;
+  final VoidCallback? onReadMore;
 
   const FormattedSummaryView({
     super.key,
@@ -25,6 +26,7 @@ class FormattedSummaryView extends StatelessWidget {
     this.fontFamily,
     this.lineHeight = 1.54,
     this.isScrollable = false,
+    this.onReadMore,
   });
 
   // Highlights quantitative power sector metrics (MW, GW, kV, Capex, Tariffs, etc.)
@@ -282,6 +284,16 @@ class FormattedSummaryView extends StatelessWidget {
           color: highlightColor,
         );
 
+        final textPainter = TextPainter(
+          text: TextSpan(
+            children: _buildHighlightedSpans(cleanProse, effectiveBaseStyle, effectiveHighlightStyle),
+          ),
+          textDirection: TextDirection.ltr,
+          textAlign: TextAlign.justify,
+        )..layout(maxWidth: constraints.maxWidth);
+
+        final bool fitsCompletely = textPainter.size.height <= constraints.maxHeight;
+
         final proseWidget = SizedBox(
           width: double.infinity,
           child: Text.rich(
@@ -299,9 +311,75 @@ class FormattedSummaryView extends StatelessWidget {
           );
         }
 
-        return SizedBox(
-          width: double.infinity,
-          child: proseWidget,
+        if (fitsCompletely) {
+          return SizedBox(
+            width: double.infinity,
+            child: proseWidget,
+          );
+        }
+
+        // If summary is not completely accommodated on summary card:
+        // Show ... dots and read button thereafter as requested
+        final double reservedActionHeight = onReadMore != null ? 36.0 : 0.0;
+        final double availableTextHeight = (constraints.maxHeight - reservedActionHeight - 4.0).clamp(20.0, constraints.maxHeight);
+        final double singleLineHeight = effectiveFontSize * lineHeight;
+        final int maxLines = (availableTextHeight / singleLineHeight).floor().clamp(2, 20);
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Flexible(
+              child: Text.rich(
+                TextSpan(
+                  children: _buildHighlightedSpans(cleanProse, effectiveBaseStyle, effectiveHighlightStyle),
+                ),
+                maxLines: maxLines,
+                overflow: TextOverflow.ellipsis,
+                textAlign: TextAlign.justify,
+              ),
+            ),
+            if (onReadMore != null) ...[
+              const SizedBox(height: 4),
+              Material(
+                color: Colors.transparent,
+                child: InkWell(
+                  onTap: onReadMore,
+                  borderRadius: BorderRadius.circular(12),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4.5),
+                    decoration: BoxDecoration(
+                      color: (isDark ? const Color(0xFF38BDF8) : const Color(0xFF2563EB)).withValues(alpha: 0.12),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: (isDark ? const Color(0xFF38BDF8) : const Color(0xFF2563EB)).withValues(alpha: 0.35),
+                        width: 0.8,
+                      ),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          '... Read full story',
+                          style: TextStyle(
+                            fontSize: 11.5,
+                            fontWeight: FontWeight.w700,
+                            color: isDark ? const Color(0xFF38BDF8) : const Color(0xFF2563EB),
+                          ),
+                        ),
+                        const SizedBox(width: 4),
+                        Icon(
+                          Icons.arrow_forward_rounded,
+                          size: 12,
+                          color: isDark ? const Color(0xFF38BDF8) : const Color(0xFF2563EB),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ],
         );
       },
     );

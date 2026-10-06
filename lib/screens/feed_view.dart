@@ -154,6 +154,17 @@ class _FeedViewState extends State<FeedView> {
               ),
               const SizedBox(width: 6),
               _buildQuickFilterChip(
+                label: 'Transmission',
+                icon: Icons.electric_bolt_rounded,
+                isSelected: provider.selectedCategory.toLowerCase() == 'transmission',
+                isDark: isDark,
+                onTap: () {
+                  HapticFeedback.selectionClick();
+                  provider.setCategory('transmission');
+                },
+              ),
+              const SizedBox(width: 6),
+              _buildQuickFilterChip(
                 label: 'Renewables',
                 icon: Icons.solar_power_rounded,
                 isSelected: provider.selectedCategory.toLowerCase() == 'renewables',
@@ -161,17 +172,6 @@ class _FeedViewState extends State<FeedView> {
                 onTap: () {
                   HapticFeedback.selectionClick();
                   provider.setCategory('renewables');
-                },
-              ),
-              const SizedBox(width: 6),
-              _buildQuickFilterChip(
-                label: 'Grid & T&D',
-                icon: Icons.electric_bolt_rounded,
-                isSelected: provider.selectedCategory.toLowerCase() == 'transmission',
-                isDark: isDark,
-                onTap: () {
-                  HapticFeedback.selectionClick();
-                  provider.setCategory('transmission');
                 },
               ),
               const SizedBox(width: 6),
@@ -198,13 +198,13 @@ class _FeedViewState extends State<FeedView> {
               ),
               const SizedBox(width: 6),
               _buildQuickFilterChip(
-                label: 'Smart Meters',
-                icon: Icons.speed_rounded,
-                isSelected: provider.selectedCategory.toLowerCase() == 'smart_meters',
+                label: 'Policy',
+                icon: Icons.gavel_rounded,
+                isSelected: provider.selectedCategory.toLowerCase() == 'policy',
                 isDark: isDark,
                 onTap: () {
                   HapticFeedback.selectionClick();
-                  provider.setCategory('smart_meters');
+                  provider.setCategory('policy');
                 },
               ),
             ],

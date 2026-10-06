@@ -79,8 +79,8 @@ class ExecutiveCardView extends StatelessWidget {
     final metaColor = isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B);
 
     final size = MediaQuery.of(context).size;
-    // Balanced lead image height (allocated 30% of screen height to perfectly fill card without bottom gaps)
-    final imageHeight = (size.height * 0.30).clamp(150.0, 260.0);
+    // Balanced lead image height (allocated 23% of screen height to guarantee ample vertical space for summary)
+    final imageHeight = (size.height * 0.23).clamp(130.0, 195.0);
 
     return Container(
       width: double.infinity,
@@ -95,30 +95,30 @@ class ExecutiveCardView extends StatelessWidget {
           // 2. Main Executive Intelligence Content (Non-scrolling body, justified text, guaranteed fit)
           Expanded(
             child: Padding(
-              padding: const EdgeInsets.fromLTRB(18, 14, 18, 16),
+              padding: const EdgeInsets.fromLTRB(18, 12, 18, 14),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   // Minimalist Breadcrumb Meta Row
                   _buildMinimalMetaRow(catColor, metaColor, isDark),
-                  const SizedBox(height: 12),
+                  const SizedBox(height: 10),
 
-                  // Executive Headline (High-contrast 18.5pt bold)
+                  // Executive Headline (High-contrast 17pt bold, max 2 lines for ample brief room)
                   Text(
                     article.title,
-                    maxLines: 3,
+                    maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(
-                      fontSize: 18.5,
-                      height: 1.30,
+                      fontSize: 17.0,
+                      height: 1.25,
                       fontWeight: FontWeight.w800,
                       letterSpacing: -0.25,
                       color: isDark ? AppTheme.darkTextPrimary : AppTheme.lightTextPrimary,
                     ),
                   ),
-                  const SizedBox(height: 12),
+                  const SizedBox(height: 10),
 
-                  // Strict 60-Word Brief with full width, justified alignment, and fitted height (no scroll)
+                  // Strict Executive Brief with full width, justified alignment, and fitted height (no clip)
                   Expanded(
                     child: FormattedSummaryView(
                       summary: article.summary,
@@ -127,9 +127,18 @@ class ExecutiveCardView extends StatelessWidget {
                       player: article.player,
                       city: article.city,
                       state: article.state,
-                      fontSize: 16.5,
-                      lineHeight: 1.54,
+                      fontSize: 16.0,
+                      lineHeight: 1.50,
                       isScrollable: false,
+                      onReadMore: () {
+                        HapticFeedback.lightImpact();
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => ReaderScreen(article: article),
+                          ),
+                        );
+                      },
                     ),
                   ),
                 ],

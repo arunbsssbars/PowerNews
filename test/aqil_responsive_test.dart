@@ -19,7 +19,7 @@ void main() {
     databaseFactory = databaseFactoryFfi;
   });
 
-  tearDown(() async {
+  tearDownAll(() async {
     await DatabaseService().close();
   });
 
