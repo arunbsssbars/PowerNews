@@ -141,6 +141,17 @@ class _FeedViewState extends State<FeedView> {
             physics: const BouncingScrollPhysics(),
             children: [
               _buildQuickFilterChip(
+                label: provider.sortOrder == FeedSortOrder.earliestFirst ? 'Earliest First' : 'Latest First',
+                icon: provider.sortOrder == FeedSortOrder.earliestFirst ? Icons.schedule_rounded : Icons.bolt_rounded,
+                isSelected: true,
+                isDark: isDark,
+                onTap: () {
+                  HapticFeedback.selectionClick();
+                  provider.toggleSortOrder();
+                },
+              ),
+              const SizedBox(width: 6),
+              _buildQuickFilterChip(
                 label: 'All Feed',
                 icon: Icons.all_inclusive_rounded,
                 isSelected: provider.selectedCategory == 'All' &&
@@ -219,22 +230,34 @@ class _FeedViewState extends State<FeedView> {
                 controller: _pageController,
                 scrollDirection: Axis.vertical,
                 physics: const SnappyPageScrollPhysics(),
-                itemCount: articles.length,
+                itemCount: articles.length + 1,
                 onPageChanged: (index) {
                   HapticFeedback.selectionClick();
-                  provider.markArticleAsSeen(articles[index].id);
-                  if (index >= articles.length - 2 && provider.hasMore && !provider.isLoadingMore) {
+                  if (index < articles.length) {
+                    provider.markArticleAsSeen(articles[index].id);
+                  }
+                  if (index >= articles.length - 5 && provider.hasMore && !provider.isLoadingMore) {
+                    provider.fetchMoreNews();
+                  }
+                  if (index >= articles.length && provider.hasMore && !provider.isLoadingMore) {
                     provider.fetchMoreNews();
                   }
                 },
                 itemBuilder: (context, index) {
+                  if (index >= articles.length) {
+                    if (provider.hasMore || provider.isLoadingMore) {
+                      return _buildLoadingPage(isDark);
+                    } else {
+                      return _buildEndOfFeedPage(isDark, provider);
+                    }
+                  }
                   final article = articles[index];
                   return ExecutiveCardView(
                     article: article,
                     currentIndex: index,
                     totalCount: articles.length,
                     onNextCard: () {
-                      if (index < articles.length - 1) {
+                      if (index < articles.length) {
                         _pageController.nextPage(
                           duration: const Duration(milliseconds: 300),
                           curve: Curves.easeOut,
@@ -486,6 +509,134 @@ class _FeedViewState extends State<FeedView> {
                 backgroundColor: isDark ? AppTheme.darkPrimary : AppTheme.lightPrimary,
                 foregroundColor: Colors.white,
                 padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 11),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildLoadingPage(bool isDark) {
+    return Center(
+      child: Container(
+        margin: const EdgeInsets.symmetric(horizontal: 24),
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
+        decoration: BoxDecoration(
+          color: isDark ? AppTheme.darkSurface : AppTheme.lightSurface,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: isDark ? AppTheme.darkBorder : const Color(0xFFE2E8F0),
+            width: 1,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: isDark ? 0.3 : 0.05),
+              blurRadius: 16,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            SizedBox(
+              width: 36,
+              height: 36,
+              child: CircularProgressIndicator(
+                strokeWidth: 2.8,
+                valueColor: AlwaysStoppedAnimation<Color>(
+                  isDark ? AppTheme.darkPrimary : AppTheme.lightPrimary,
+                ),
+              ),
+            ),
+            const SizedBox(height: 20),
+            Text(
+              'Loading More Stories...',
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w700,
+                color: isDark ? AppTheme.darkTextPrimary : AppTheme.lightTextPrimary,
+              ),
+            ),
+            const SizedBox(height: 6),
+            Text(
+              'Fetching next executive power briefings',
+              style: TextStyle(
+                fontSize: 12.5,
+                color: isDark ? AppTheme.darkTextSecondary : AppTheme.lightTextSecondary,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildEndOfFeedPage(bool isDark, NewsProvider provider) {
+    return Center(
+      child: Container(
+        margin: const EdgeInsets.symmetric(horizontal: 24),
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
+        decoration: BoxDecoration(
+          color: isDark ? AppTheme.darkSurface : AppTheme.lightSurface,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: isDark ? AppTheme.darkBorder : const Color(0xFFE2E8F0),
+            width: 1,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: isDark ? 0.3 : 0.05),
+              blurRadius: 16,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 52,
+              height: 52,
+              decoration: BoxDecoration(
+                color: (isDark ? AppTheme.darkPrimary : AppTheme.lightPrimary).withValues(alpha: 0.12),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                Icons.check_circle_rounded,
+                size: 28,
+                color: isDark ? AppTheme.darkPrimary : AppTheme.lightPrimary,
+              ),
+            ),
+            const SizedBox(height: 16),
+            Text(
+              "You're All Caught Up",
+              style: TextStyle(
+                fontSize: 17,
+                fontWeight: FontWeight.w800,
+                color: isDark ? AppTheme.darkTextPrimary : AppTheme.lightTextPrimary,
+              ),
+            ),
+            const SizedBox(height: 6),
+            Text(
+              'All verified power sector briefings have been reviewed.',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 13,
+                color: isDark ? AppTheme.darkTextSecondary : AppTheme.lightTextSecondary,
+              ),
+            ),
+            const SizedBox(height: 20),
+            ElevatedButton.icon(
+              onPressed: _scrollToTop,
+              icon: const Icon(Icons.arrow_upward_rounded, size: 16),
+              label: const Text('Back to Top'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: isDark ? AppTheme.darkPrimary : AppTheme.lightPrimary,
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
               ),
             ),

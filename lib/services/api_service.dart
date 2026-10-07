@@ -80,6 +80,7 @@ class ApiService {
     String? city,
     String? discom,
     String? search,
+    String? sort,
     int page = 1,
     int limit = 15,
   }) async {
@@ -93,6 +94,7 @@ class ApiService {
     if (city != null) queryParams['city'] = city;
     if (discom != null) queryParams['discom'] = discom;
     if (search != null && search.isNotEmpty) queryParams['search'] = search;
+    if (sort != null && sort.isNotEmpty) queryParams['sort'] = sort;
 
     final isUnfiltered = category == null &&
         player == null &&

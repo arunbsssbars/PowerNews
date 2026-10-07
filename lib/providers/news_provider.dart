@@ -11,6 +11,11 @@ import '../services/cache_service.dart';
 import '../services/database_service.dart';
 import '../services/location_service.dart';
 
+enum FeedSortOrder {
+  earliestFirst,
+  latestFirst,
+}
+
 class NewsProvider extends ChangeNotifier {
   final ApiService _apiService = ApiService();
   final BookmarkService _bookmarkService = BookmarkService();
@@ -79,6 +84,30 @@ class NewsProvider extends ChangeNotifier {
   int _currentNavIndex = 0;
   DateTime? _lastNewsFetchTime;
   static const Duration _newsCacheTtl = Duration(minutes: 10);
+
+  FeedSortOrder _sortOrder = FeedSortOrder.earliestFirst;
+  FeedSortOrder get sortOrder => _sortOrder;
+
+  Future<void> setSortOrder(FeedSortOrder order) async {
+    if (_sortOrder == order) return;
+    _sortOrder = order;
+    _sortAndApplyPersonaToArticles();
+    notifyListeners();
+    await fetchNews(isRefresh: true);
+  }
+
+  void toggleSortOrder() {
+    setSortOrder(_sortOrder == FeedSortOrder.earliestFirst
+        ? FeedSortOrder.latestFirst
+        : FeedSortOrder.earliestFirst);
+  }
+
+  String _normalizeTitle(String title) {
+    return title
+        .toLowerCase()
+        .replaceAll(RegExp(r'\s*-\s*[a-z0-9\.\-\s]+(?:\.com|\.in|\.org|\.net|times of india|economic times|et energyworld|mercom india|power line magazine|power line|the hindu|mint|business standard|financial express)$', caseSensitive: false), '')
+        .replaceAll(RegExp(r'[^a-z0-9]'), '');
+  }
 
   // Getters
   int get currentNavIndex => _currentNavIndex;
@@ -949,7 +978,11 @@ class NewsProvider extends ChangeNotifier {
           return relB.compareTo(relA);
         }
       }
-      return b.publishedAt.compareTo(a.publishedAt);
+      if (_sortOrder == FeedSortOrder.earliestFirst) {
+        return a.publishedAt.compareTo(b.publishedAt);
+      } else {
+        return b.publishedAt.compareTo(a.publishedAt);
+      }
     });
     return copy;
   }
@@ -1052,6 +1085,7 @@ class NewsProvider extends ChangeNotifier {
         city: _selectedCity == 'All Cities' ? null : _selectedCity,
         discom: _selectedDiscom == 'All DISCOMs' ? null : _selectedDiscom,
         search: _searchQuery.isEmpty ? null : _searchQuery,
+        sort: _sortOrder == FeedSortOrder.earliestFirst ? 'earliest' : 'latest',
         page: _currentPage,
         limit: _pageSize,
       );
@@ -1118,9 +1152,29 @@ class NewsProvider extends ChangeNotifier {
         }).toList();
 
         if (isRefresh) {
-          _articles = filteredList;
+          final seenIds = <String>{};
+          final seenTitles = <String>{};
+          final deduplicated = <NewsArticle>[];
+          for (final a in filteredList) {
+            final norm = _normalizeTitle(a.title);
+            if (!seenIds.contains(a.id) && !seenTitles.contains(norm)) {
+              seenIds.add(a.id);
+              seenTitles.add(norm);
+              deduplicated.add(a);
+            }
+          }
+          _articles = deduplicated;
         } else {
-          _articles.addAll(filteredList);
+          final existingIds = _articles.map((a) => a.id).toSet();
+          final existingTitles = _articles.map((a) => _normalizeTitle(a.title)).toSet();
+          for (final a in filteredList) {
+            final norm = _normalizeTitle(a.title);
+            if (!existingIds.contains(a.id) && !existingTitles.contains(norm)) {
+              existingIds.add(a.id);
+              existingTitles.add(norm);
+              _articles.add(a);
+            }
+          }
         }
         _hasMore = news.length == _pageSize;
         // Strictly persist ONLY verified AI-summarized articles into local cache
@@ -1210,7 +1264,16 @@ class NewsProvider extends ChangeNotifier {
         final nextBatch = _cachedFullList.skip(startIndex).take(_pageSize).toList();
         _currentPage++;
         if (nextBatch.isNotEmpty) {
-          _articles.addAll(nextBatch);
+          final existingIds = _articles.map((a) => a.id).toSet();
+          final existingTitles = _articles.map((a) => _normalizeTitle(a.title)).toSet();
+          for (final a in nextBatch) {
+            final norm = _normalizeTitle(a.title);
+            if (!existingIds.contains(a.id) && !existingTitles.contains(norm)) {
+              existingIds.add(a.id);
+              existingTitles.add(norm);
+              _articles.add(a);
+            }
+          }
         }
         _hasMore = _cachedFullList.length > _currentPage * _pageSize;
         _isLoadingMore = false;
@@ -1233,21 +1296,65 @@ class NewsProvider extends ChangeNotifier {
         city: _selectedCity == "All Cities" ? null : _selectedCity,
         discom: _selectedDiscom == "All DISCOMs" ? null : _selectedDiscom,
         search: _searchQuery.isEmpty ? null : _searchQuery,
+        sort: _sortOrder == FeedSortOrder.earliestFirst ? 'earliest' : 'latest',
         page: nextPage,
         limit: _pageSize,
       );
 
       _currentPage = nextPage;
       final cleanMore = moreNews.where((a) => a.summary.trim().length >= 50).toList();
+      final filteredMore = _applyFiltersTo(cleanMore);
 
-      if (cleanMore.isNotEmpty) {
-        _articles.addAll(cleanMore);
-        await _cacheService.cacheArticles(cleanMore);
+      final existingIds = _articles.map((a) => a.id).toSet();
+      final existingTitles = _articles.map((a) => _normalizeTitle(a.title)).toSet();
+      final added = <NewsArticle>[];
+
+      for (final a in filteredMore) {
+        final norm = _normalizeTitle(a.title);
+        if (!existingIds.contains(a.id) && !existingTitles.contains(norm)) {
+          existingIds.add(a.id);
+          existingTitles.add(norm);
+          added.add(a);
+        }
       }
-      _hasMore = moreNews.length == _pageSize;
+
+      if (added.isNotEmpty) {
+        _articles.addAll(added);
+        await _cacheService.cacheArticles(added);
+      }
+
+      // If online batch was small/empty, check if local cache has more unshown items
+      if (added.isEmpty && _cachedFullList.length > _articles.length) {
+        final nextBatch = _cachedFullList.skip(_articles.length).take(_pageSize).toList();
+        for (final a in nextBatch) {
+          final norm = _normalizeTitle(a.title);
+          if (!existingIds.contains(a.id) && !existingTitles.contains(norm)) {
+            existingIds.add(a.id);
+            existingTitles.add(norm);
+            _articles.add(a);
+          }
+        }
+      }
+
+      _hasMore = moreNews.length >= _pageSize || _cachedFullList.length > _articles.length;
     } catch (e) {
-      _noInternetOnScroll = true;
-      debugPrint("[NewsProvider] Error fetching more news: ");
+      if (_cachedFullList.length > _articles.length) {
+        final existingIds = _articles.map((a) => a.id).toSet();
+        final existingTitles = _articles.map((a) => _normalizeTitle(a.title)).toSet();
+        final nextBatch = _cachedFullList.skip(_articles.length).take(_pageSize).toList();
+        for (final a in nextBatch) {
+          final norm = _normalizeTitle(a.title);
+          if (!existingIds.contains(a.id) && !existingTitles.contains(norm)) {
+            existingIds.add(a.id);
+            existingTitles.add(norm);
+            _articles.add(a);
+          }
+        }
+        _hasMore = _cachedFullList.length > _articles.length;
+      } else {
+        _noInternetOnScroll = true;
+      }
+      debugPrint("[NewsProvider] Error fetching more news: $e");
     } finally {
       _isLoadingMore = false;
       notifyListeners();

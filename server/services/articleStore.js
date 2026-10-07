@@ -14,13 +14,24 @@ module.exports = {
   mergeArticles: (articles = []) => {
     if (!articles || articles.length === 0) return;
     const existingMap = new Map(cachedArticles.map(a => [a.id, a]));
+    const existingTitleMap = new Map(
+      cachedArticles.map(a => [(a.title || '').toLowerCase().replace(/[^a-z0-9]/g, ''), a.id])
+    );
+
     for (const a of articles) {
-      if (!a || !a.id) continue;
-      if (!existingMap.has(a.id)) {
-        existingMap.set(a.id, a);
+      if (!a) continue;
+      const titleKey = (a.title || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+      const existingIdByTitle = titleKey ? existingTitleMap.get(titleKey) : null;
+      const targetId = existingMap.has(a.id) ? a.id : existingIdByTitle;
+
+      if (!targetId || !existingMap.has(targetId)) {
+        if (a.id) {
+          existingMap.set(a.id, a);
+          if (titleKey) existingTitleMap.set(titleKey, a.id);
+        }
       } else {
-        const current = existingMap.get(a.id);
-        existingMap.set(a.id, {
+        const current = existingMap.get(targetId);
+        existingMap.set(targetId, {
           ...a,
           ...current,
           summary: (current.summary && current.summary.length >= 75 && !current.summary.startsWith('• '))

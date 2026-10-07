@@ -203,7 +203,7 @@ router.get('/refresh', async (req, res) => {
 // Primary News Feed Endpoint (Strictly AI-Summarized Curated Feed)
 // ----------------------------------------------------------------------------
 router.get('/news', async (req, res) => {
-  const { category, state, city, discom, player, search, source, page = 1, limit = DEFAULT_PAGE_SIZE } = req.query;
+  const { category, state, city, discom, player, search, source, sort, page = 1, limit = DEFAULT_PAGE_SIZE } = req.query;
   const activePool = getActiveArticles();
 
   // If page == 1 and feed is stale (> 2 hours old or server was sleeping),
@@ -319,33 +319,69 @@ router.get('/news', async (req, res) => {
     a._calculatedScore = baseScore / Math.pow(safeAge + 2, 1.5);
   });
 
-  // Sort by calculated score descending
-  filtered.sort((a, b) => b._calculatedScore - a._calculatedScore);
+  // Deep Deduplication by normalized headline & ID to eliminate duplicate syndications across feeds/pages
+  const uniqueArticlesMap = new Map();
+  for (const item of filtered) {
+    if (!item) continue;
+    const normKey = (item.title || '')
+      .toLowerCase()
+      .replace(/\s*-\s*[a-z0-9\.\-\s]+(?:\.com|\.in|\.org|\.net|times of india|economic times|et energyworld|mercom india|power line magazine|power line|the hindu|mint|business standard|financial express)$/i, '')
+      .replace(/[^a-z0-9]/g, '');
 
-  // 1. Anti-Clumping (Category Quotas for Solar)
-  if (isDefaultFeed) {
+    const existing = uniqueArticlesMap.get(item.id) || (normKey ? uniqueArticlesMap.get(normKey) : null);
+    if (!existing) {
+      uniqueArticlesMap.set(item.id, item);
+      if (normKey) uniqueArticlesMap.set(normKey, item);
+    } else {
+      if (item.source && !(existing.sources || []).includes(item.source)) {
+        existing.sources = [...(existing.sources || [existing.source]), item.source];
+      }
+      if (item.url && !(existing.sourceLinks || []).some(s => s.url === item.url)) {
+        existing.sourceLinks = [...(existing.sourceLinks || []), { source: item.source || 'PowerNews', url: item.url }];
+      }
+      if (!existing.imageUrl && item.imageUrl) {
+        existing.imageUrl = item.imageUrl;
+      }
+    }
+  }
+
+  const deduplicatedList = Array.from(new Set(uniqueArticlesMap.values()));
+
+  // Sorting: strictly respect sort parameter if specified
+  if (sort === 'earliest') {
+    // Pure chronological order: earliest published timestamp first
+    deduplicatedList.sort((a, b) => new Date(a.publishedAt || 0) - new Date(b.publishedAt || 0));
+  } else if (sort === 'latest') {
+    // Pure reverse chronological: newest published timestamp first
+    deduplicatedList.sort((a, b) => new Date(b.publishedAt || 0) - new Date(a.publishedAt || 0));
+  } else {
+    // Default: Sort by calculated score descending
+    deduplicatedList.sort((a, b) => (b._calculatedScore || 0) - (a._calculatedScore || 0));
+  }
+
+  // 1. Anti-Clumping (Category Quotas for Solar) on non-chronological feed
+  if (isDefaultFeed && sort !== 'earliest' && sort !== 'latest') {
     let recentSolarCount = 0;
-    for (let i = 0; i < filtered.length; i++) {
-      const cats = (filtered[i].categories || []).map((c) => c.toLowerCase());
+    for (let i = 0; i < deduplicatedList.length; i++) {
+      const cats = (deduplicatedList[i].categories || []).map((c) => c.toLowerCase());
       const isSolar = cats.includes('solar') || cats.includes('renewables');
 
       if (isSolar) {
         recentSolarCount++;
         if (recentSolarCount > 2) {
-          // Find next non-solar article and swap to break the clump
           let swapIdx = -1;
-          for (let j = i + 1; j < filtered.length; j++) {
-            const jCats = (filtered[j].categories || []).map((c) => c.toLowerCase());
+          for (let j = i + 1; j < deduplicatedList.length; j++) {
+            const jCats = (deduplicatedList[j].categories || []).map((c) => c.toLowerCase());
             if (!jCats.includes('solar') && !jCats.includes('renewables')) {
               swapIdx = j;
               break;
             }
           }
           if (swapIdx !== -1) {
-            const temp = filtered[i];
-            filtered[i] = filtered[swapIdx];
-            filtered[swapIdx] = temp;
-            recentSolarCount = 0; // Reset after breaking clump
+            const temp = deduplicatedList[i];
+            deduplicatedList[i] = deduplicatedList[swapIdx];
+            deduplicatedList[swapIdx] = temp;
+            recentSolarCount = 0;
           }
         }
       } else {
@@ -357,10 +393,10 @@ router.get('/news', async (req, res) => {
   const p = parseInt(page, 10) || 1;
   const l = parseInt(limit, 10) || DEFAULT_PAGE_SIZE;
   const startIndex = (p - 1) * l;
-  const paginated = filtered.slice(startIndex, startIndex + l);
+  const paginated = deduplicatedList.slice(startIndex, startIndex + l);
 
   res.json({
-    total: filtered.length,
+    total: deduplicatedList.length,
     page: p,
     limit: l,
     articles: paginated
