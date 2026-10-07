@@ -56,15 +56,18 @@
 		<string>https</string>
 		<string>http</string>
 	</array>
-	<!-- Google Sign-In URL Scheme for iOS -->
+	<!-- URL Schemes (Google Sign-In + PowerNews App Scheme) -->
 	<key>CFBundleURLTypes</key>
 	<array>
 		<dict>
 			<key>CFBundleTypeRole</key>
 			<string>Editor</string>
+			<key>CFBundleURLName</key>
+			<string>com.powernews.app.powerNewsApp</string>
 			<key>CFBundleURLSchemes</key>
 			<array>
 				<string>com.googleusercontent.apps.1022634770385-gdna1qf5pob71v1261l2cubqhlrphj29</string>
+				<string>powernews</string>
 			</array>
 		</dict>
 	</array>

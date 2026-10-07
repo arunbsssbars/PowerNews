@@ -371,6 +371,11 @@ class AuthService extends ChangeNotifier {
         body: jsonEncode({
           'requestType': 'VERIFY_EMAIL',
           'idToken': token,
+          'continueUrl': 'https://powernews-app-2026.firebaseapp.com/verify-email?appName=PowerNews',
+          'iOSBundleId': 'com.powernews.app.powerNewsApp',
+          'androidPackageName': 'com.powernews.app.power_news_app',
+          'androidInstallApp': true,
+          'canHandleCodeInApp': false,
         }),
       );
 

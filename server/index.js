@@ -73,10 +73,13 @@ app.get('/verify-email', (req, res) => {
         });
         const data = await res.json();
         if (res.ok) {
-          box.className = 'mb-6 p-4 rounded-xl text-xs font-semibold bg-emerald-50 text-emerald-800 border border-emerald-200 flex items-center justify-center';
-          box.innerHTML = '✅ Email verified successfully! You can return to the PowerNews app.';
+          box.className = 'mb-6 p-4 rounded-xl text-xs font-semibold bg-emerald-50 text-emerald-800 border border-emerald-200 flex flex-col items-center justify-center text-center';
+          box.innerHTML = '<span class="mb-2">✅ Email verified successfully! Redirecting back to PowerNews app...</span><a href="powernews://email-verified" class="mt-2 inline-block py-2.5 px-5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl shadow-xs transition">Open PowerNews App</a>';
           box.classList.remove('hidden');
           btn.style.display = 'none';
+          setTimeout(function() {
+            window.location.href = 'powernews://email-verified';
+          }, 500);
         } else {
           box.className = 'mb-6 p-4 rounded-xl text-xs font-semibold bg-rose-50 text-rose-800 border border-rose-200';
           box.textContent = data.error && data.error.message ? data.error.message : 'Verification failed or link expired.';
@@ -91,6 +94,11 @@ app.get('/verify-email', (req, res) => {
         btn.disabled = false;
         btn.textContent = 'Try Again';
       }
+    }
+
+    // Auto-verify if code is present in URL
+    if (oobCode) {
+      submitVerification();
     }
   </script>
 </body>
