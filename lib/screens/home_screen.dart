@@ -6,7 +6,6 @@ import 'dashboard_view.dart';
 import 'bookmarks_view.dart';
 import 'profile_view.dart';
 import 'onboarding_screen.dart';
-import '../widgets/ask_gemini_sheet.dart';
 import '../widgets/about_sheet.dart';
 import '../widgets/notifications_sheet.dart';
 import '../main.dart';
@@ -349,8 +348,6 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                   );
                 } else if (value == 'account') {
                   _onNavigateTab(3);
-                } else if (value == 'ai_desk') {
-                  AskGeminiSheet.show(context);
                 } else if (value == 'guide') {
                   Navigator.push(
                     context,
@@ -388,21 +385,6 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                       Text(
                         auth.isAuthenticated ? 'Account & Profile' : 'Sign In with Google',
                         style: const TextStyle(fontSize: 12.5, fontWeight: FontWeight.w600),
-                      ),
-                    ],
-                  ),
-                ),
-                const PopupMenuDivider(height: 1),
-                const PopupMenuItem(
-                  value: 'ai_desk',
-                  height: 42,
-                  child: Row(
-                    children: [
-                      Icon(Icons.auto_awesome_rounded, size: 17, color: Color(0xFF818CF8)),
-                      SizedBox(width: 10),
-                      Text(
-                        'Ask AI Desk',
-                        style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.w600),
                       ),
                     ],
                   ),

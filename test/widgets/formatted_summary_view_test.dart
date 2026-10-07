@@ -26,6 +26,36 @@ void main() {
       // Verify that summary text is rendered
       expect(find.textContaining('POWERGRID'), findsWidgets);
       expect(find.textContaining('Rajasthan'), findsWidgets);
+
+      // Verify that Text.rich applies TextAlign.justify
+      final textWidget = tester.widget<Text>(find.byType(Text).first);
+      expect(textWidget.textAlign, TextAlign.justify);
+    });
+
+    testWidgets('Renders within tight constrained container without overflow', (WidgetTester tester) async {
+      const summaryText =
+          'TGNPDCL has commissioned its first indoor 33/11 kV substation in Karimnagar to bolster local distribution infrastructure. '
+          'This strategic grid asset enhances voltage stability and improves power reliability for the district.';
+
+      await tester.pumpWidget(
+        const MaterialApp(
+          home: Scaffold(
+            body: SizedBox(
+              width: 350,
+              height: 180,
+              child: FormattedSummaryView(
+                summary: summaryText,
+                isDark: true,
+                fontSize: 16.0,
+                lineHeight: 1.5,
+              ),
+            ),
+          ),
+        ),
+      );
+
+      expect(tester.takeException(), isNull);
+      expect(find.textContaining('TGNPDCL'), findsWidgets);
     });
   });
 }

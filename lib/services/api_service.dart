@@ -355,28 +355,18 @@ class ApiService {
     return null;
   }
 
-  Future<Map<String, dynamic>?> askGeminiGridQA(String question, {String? persona}) async {
+  Future<bool> refreshFeeds() async {
     try {
-      final uri = Uri.parse('$_activeHost${ApiConstants.askGeminiEndpoint}');
-      final res = await http.post(
-        uri,
-        headers: _headers,
-        body: json.encode({
-          'question': question,
-          'persona': persona,
-        }),
-      ).timeout(const Duration(seconds: 12));
-
+      final uri = Uri.parse('$_activeHost${ApiConstants.refreshEndpoint}');
+      final res = await http.get(uri, headers: _headers).timeout(const Duration(seconds: 25));
       if (res.statusCode == 200) {
-        final data = json.decode(utf8.decode(res.bodyBytes));
-        if (data is Map<String, dynamic> && data['success'] == true) {
-          return data;
-        }
+        debugPrint('[ApiService] Aggregator feed refresh successfully triggered on $_activeHost');
+        return true;
       }
     } catch (e) {
-      debugPrint('[ApiService] Error asking Gemini Grid QA: $e');
+      debugPrint('[ApiService] Notice: Feed refresh ping completed: $e');
     }
-    return null;
+    return false;
   }
 
   Future<List<NewsArticle>> searchTopic(String query) async {

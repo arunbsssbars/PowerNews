@@ -43,6 +43,48 @@ class NewsArticle {
     this.calculatedScore = 0.0,
   });
 
+  NewsArticle copyWith({
+    String? id,
+    String? title,
+    String? summary,
+    String? url,
+    String? source,
+    DateTime? publishedAt,
+    List<String>? categories,
+    String? player,
+    String? city,
+    String? state,
+    String? discom,
+    String? fullText,
+    List<String>? sources,
+    List<Map<String, String>>? sourceLinks,
+    int? coverageCount,
+    String? imageUrl,
+    bool? isAiGenerated,
+    double? calculatedScore,
+  }) {
+    return NewsArticle(
+      id: id ?? this.id,
+      title: title ?? this.title,
+      summary: summary ?? this.summary,
+      url: url ?? this.url,
+      source: source ?? this.source,
+      publishedAt: publishedAt ?? this.publishedAt,
+      categories: categories ?? this.categories,
+      player: player ?? this.player,
+      city: city ?? this.city,
+      state: state ?? this.state,
+      discom: discom ?? this.discom,
+      fullText: fullText ?? this.fullText,
+      sources: sources ?? this.sources,
+      sourceLinks: sourceLinks ?? this.sourceLinks,
+      coverageCount: coverageCount ?? this.coverageCount,
+      imageUrl: imageUrl ?? this.imageUrl,
+      isAiGenerated: isAiGenerated ?? this.isAiGenerated,
+      calculatedScore: calculatedScore ?? this.calculatedScore,
+    );
+  }
+
   static String cleanHtmlAndEntities(String input) {
     if (input.isEmpty) return '';
     String text = input;

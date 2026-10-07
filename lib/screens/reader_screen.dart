@@ -692,6 +692,7 @@ class _ReaderScreenState extends State<ReaderScreen> {
           // Headline
           Text(
             article.title,
+            textAlign: TextAlign.justify,
             style: TextStyle(
               fontSize: _fontSize + 5,
               fontWeight: FontWeight.w900,

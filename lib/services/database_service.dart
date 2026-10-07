@@ -128,24 +128,31 @@ class DatabaseService {
 
     final batch = db.batch();
     for (final a in validArticles) {
+      final safeImg = (a.imageUrl != null && a.imageUrl!.trim().isNotEmpty) ? a.imageUrl!.trim() : null;
+      final safeFullText = (a.fullText != null && a.fullText!.trim().isNotEmpty) ? a.fullText!.trim() : null;
+
       batch.rawInsert('''
         INSERT OR REPLACE INTO articles
           (id, title, summary, url, source, published_at, categories, player, city, state,
            discom, full_text, sources_json, source_links_json, coverage_count,
            image_url, is_bookmarked, cached_at, synced_at)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,
+          COALESCE(?, (SELECT full_text FROM articles WHERE id = ?)),
+          ?, ?, ?,
+          COALESCE(?, (SELECT image_url FROM articles WHERE id = ?)),
           COALESCE((SELECT is_bookmarked FROM articles WHERE id = ?), 0),
           ?, ?)
       ''', [
         a.id, a.title, a.summary, a.url, a.source,
         a.publishedAt.toIso8601String(),
         json.encode(a.categories),
-        a.player, a.city, a.state, a.discom, a.fullText,
+        a.player, a.city, a.state, a.discom,
+        safeFullText, a.id, // COALESCE for full_text
         json.encode(a.sources),
         json.encode(a.sourceLinks.map((l) => {'source': l['source'], 'url': l['url']}).toList()),
         a.coverageCount,
-        a.imageUrl,
-        a.id, // for COALESCE subquery
+        safeImg, a.id, // COALESCE for image_url
+        a.id, // for COALESCE is_bookmarked
         now, now,
       ]);
       count++;
@@ -214,8 +221,8 @@ class DatabaseService {
         INSERT INTO articles
           (id, title, summary, url, source, published_at, categories, player, city, state,
            discom, full_text, sources_json, source_links_json, coverage_count,
-           is_bookmarked, cached_at)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, ?)
+           image_url, is_bookmarked, cached_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, ?)
       ''', [
         article.id, article.title, article.summary, article.url, article.source,
         article.publishedAt.toIso8601String(),
@@ -224,6 +231,7 @@ class DatabaseService {
         json.encode(article.sources),
         json.encode(article.sourceLinks.map((l) => {'source': l['source'], 'url': l['url']}).toList()),
         article.coverageCount,
+        (article.imageUrl != null && article.imageUrl!.trim().isNotEmpty) ? article.imageUrl!.trim() : null,
         now,
       ]);
       return true;

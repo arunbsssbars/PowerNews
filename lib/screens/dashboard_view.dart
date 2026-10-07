@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/news_provider.dart';
-import '../widgets/ask_gemini_sheet.dart';
 import 'regions_view.dart';
 
 import 'package:flutter/services.dart';
@@ -367,109 +366,6 @@ class _DashboardViewState extends State<DashboardView> {
             ),
 
             const SizedBox(height: 12),
-
-            // Phase 5: "Ask Gemini About the Grid" Interactive AI Analyst Card
-            Material(
-              color: Colors.transparent,
-              child: InkWell(
-                borderRadius: BorderRadius.circular(16),
-                onTap: () => AskGeminiSheet.show(context),
-                child: Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 13),
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      colors: isDark
-                          ? const [Color(0xFF1E1B4B), Color(0xFF312E81)]
-                          : const [Color(0xFFEEF2FF), Color(0xFFE0E7FF)],
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                    ),
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(
-                      color: isDark ? const Color(0xFF4338CA) : const Color(0xFFC7D2FE),
-                      width: 1.2,
-                    ),
-                    boxShadow: isDark
-                        ? []
-                        : [
-                            BoxShadow(
-                              color: const Color(0xFF6366F1).withValues(alpha: 0.12),
-                              blurRadius: 8,
-                              offset: const Offset(0, 2),
-                            ),
-                          ],
-                  ),
-                  child: Row(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.all(9),
-                        decoration: BoxDecoration(
-                          gradient: const LinearGradient(
-                            colors: [Color(0xFF6366F1), Color(0xFF9333EA)],
-                          ),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: const Icon(Icons.auto_awesome, color: Colors.white, size: 20),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              children: [
-                                Text(
-                                  'Ask Gemini Grid AI',
-                                  style: TextStyle(
-                                    fontSize: 14.5,
-                                    fontWeight: FontWeight.w900,
-                                    color: isDark ? Colors.white : const Color(0xFF1E1B4B),
-                                  ),
-                                ),
-                                const SizedBox(width: 6),
-                                Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1.5),
-                                  decoration: BoxDecoration(
-                                    color: const Color(0xFF6366F1).withValues(alpha: 0.2),
-                                    borderRadius: BorderRadius.circular(6),
-                                  ),
-                                  child: const Text(
-                                    'AI ANALYST',
-                                    style: TextStyle(
-                                      color: Color(0xFF6366F1),
-                                      fontSize: 8.5,
-                                      fontWeight: FontWeight.w800,
-                                      letterSpacing: 0.5,
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 2),
-                            Text(
-                              'Instant briefings on tariffs, 765kV orders, DISCOMs & BESS',
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: TextStyle(
-                                fontSize: 11,
-                                color: isDark ? const Color(0xFFA5B4FC) : const Color(0xFF4338CA),
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      Icon(
-                        Icons.arrow_forward_ios_rounded,
-                        size: 14,
-                        color: isDark ? const Color(0xFFA5B4FC) : const Color(0xFF4338CA),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
 
             const SizedBox(height: 16),
 

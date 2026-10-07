@@ -108,6 +108,7 @@ class ExecutiveCardView extends StatelessWidget {
                     article.title,
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
+                    textAlign: TextAlign.justify,
                     style: TextStyle(
                       fontSize: 17.0,
                       height: 1.25,
@@ -150,6 +151,20 @@ class ExecutiveCardView extends StatelessWidget {
     );
   }
 
+  String? _resolveRawImageUrl(String? url) {
+    if (url == null || !url.startsWith('http')) return null;
+    if (url.contains('wsrv.nl/?url=') || url.contains('images.weserv.nl/?url=')) {
+      try {
+        final uri = Uri.parse(url);
+        final raw = uri.queryParameters['url'];
+        if (raw != null && raw.startsWith('http')) {
+          return raw;
+        }
+      } catch (_) {}
+    }
+    return url;
+  }
+
   Widget _buildLeadImage(
     BuildContext context,
     double height,
@@ -170,15 +185,26 @@ class ExecutiveCardView extends StatelessWidget {
         children: [
           if (hasValidImage)
             CachedNetworkImage(
-  imageUrl: imgUrl,
-  fit: BoxFit.cover,
-  filterQuality: FilterQuality.high,
-  memCacheWidth: 600,
-  memCacheHeight: 400,
-  fadeInDuration: const Duration(milliseconds: 300),
-  placeholder: (context, url) => Container(color: isDark ? const Color(0xFF1E293B) : const Color(0xFFE2E8F0)),
-  errorWidget: (context, url, error) => _buildFallbackBanner(isDark, catColor),
-)
+              imageUrl: imgUrl,
+              fit: BoxFit.cover,
+              filterQuality: FilterQuality.medium,
+              fadeInDuration: const Duration(milliseconds: 250),
+              placeholder: (context, url) => Container(color: isDark ? const Color(0xFF1E293B) : const Color(0xFFE2E8F0)),
+              errorWidget: (context, url, error) {
+                final raw = _resolveRawImageUrl(imgUrl);
+                if (raw != null && raw != imgUrl) {
+                  return CachedNetworkImage(
+                    imageUrl: raw,
+                    fit: BoxFit.cover,
+                    filterQuality: FilterQuality.medium,
+                    fadeInDuration: const Duration(milliseconds: 200),
+                    placeholder: (context, url) => Container(color: isDark ? const Color(0xFF1E293B) : const Color(0xFFE2E8F0)),
+                    errorWidget: (context, url, err) => _buildFallbackBanner(isDark, catColor),
+                  );
+                }
+                return _buildFallbackBanner(isDark, catColor);
+              },
+            )
           else
             _buildFallbackBanner(isDark, catColor),
 

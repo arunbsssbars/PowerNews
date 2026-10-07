@@ -211,5 +211,43 @@ void main() {
       expect(retrieved.first.id, 'img-test-1');
       expect(retrieved.first.imageUrl, 'https://powerline.net.in/wp-content/uploads/2026/09/ntpc_solar.jpg');
     });
+
+    test('Preserves existing imageUrl and fullText when updated with null via COALESCE', () async {
+      final articleWithImage = NewsArticle(
+        id: 'img-coalesce-1',
+        title: 'PGCIL expands 765kV substation network',
+        summary: 'Power Grid Corporation of India expands interstate transmission network with new transformers.',
+        url: 'http://test.com/pgcil-substation',
+        source: 'PowerLine',
+        publishedAt: DateTime.now(),
+        categories: ['transmission'],
+        imageUrl: 'https://powerline.net.in/wp-content/uploads/2026/09/pgcil_substation.jpg',
+        fullText: 'Full article text here',
+        state: 'National',
+      );
+
+      await dbService.upsertArticles([articleWithImage]);
+
+      // Re-fetch/upsert the same article where network returned null imageUrl and null fullText
+      final updatedArticleWithoutImage = NewsArticle(
+        id: 'img-coalesce-1',
+        title: 'PGCIL expands 765kV substation network',
+        summary: 'Updated summary.',
+        url: 'http://test.com/pgcil-substation',
+        source: 'PowerLine',
+        publishedAt: DateTime.now(),
+        categories: ['transmission'],
+        imageUrl: null,
+        fullText: null,
+        state: 'National',
+      );
+
+      await dbService.upsertArticles([updatedArticleWithoutImage]);
+
+      final retrieved = await dbService.getAllArticles();
+      final match = retrieved.firstWhere((a) => a.id == 'img-coalesce-1');
+      expect(match.imageUrl, 'https://powerline.net.in/wp-content/uploads/2026/09/pgcil_substation.jpg');
+      expect(match.fullText, 'Full article text here');
+    });
   });
 }

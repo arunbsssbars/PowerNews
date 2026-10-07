@@ -43,6 +43,8 @@ const globalLimiter = rateLimit({
   message: { error: 'Too many requests from this IP, please try again after 15 minutes' }
 });
 
+let lastFeedSyncTime = 0;
+
 const qnaLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 20,
@@ -191,7 +193,8 @@ router.get('/memory', (req, res) => {
 });
 
 router.get('/refresh', async (req, res) => {
-  const freshArticles = await syncFeeds(articleStore.getArticles());
+  lastFeedSyncTime = Date.now();
+  const freshArticles = await syncFeeds(articleStore.getArticles(), articleStore);
   articleStore.setArticles(freshArticles);
   res.json({ success: true, count: freshArticles.length });
 });
@@ -202,6 +205,25 @@ router.get('/refresh', async (req, res) => {
 router.get('/news', async (req, res) => {
   const { category, state, city, discom, player, search, source, page = 1, limit = DEFAULT_PAGE_SIZE } = req.query;
   const activePool = getActiveArticles();
+
+  // If page == 1 and feed is stale (> 2 hours old or server was sleeping),
+  // proactively schedule an immediate background feed synchronization without blocking the response
+  if (parseInt(page, 10) === 1 && (!lastFeedSyncTime || (Date.now() - lastFeedSyncTime > 15 * 60 * 1000))) {
+    const newestTime = activePool.length > 0 ? new Date(activePool[0].publishedAt).getTime() : 0;
+    const hoursSinceNewest = (Date.now() - newestTime) / (1000 * 60 * 60);
+    if (hoursSinceNewest >= 2 || !lastFeedSyncTime) {
+      lastFeedSyncTime = Date.now();
+      setImmediate(async () => {
+        try {
+          console.log(`[AutoRefresh] 🔄 Stale feed detected (${hoursSinceNewest.toFixed(1)}h old). Triggering background feed sync...`);
+          const fresh = await syncFeeds(articleStore.getArticles(), articleStore);
+          articleStore.setArticles(fresh);
+        } catch (e) {
+          console.warn('[AutoRefresh] Background feed sync failed:', e.message);
+        }
+      });
+    }
+  }
 
   let filtered = [...activePool];
 

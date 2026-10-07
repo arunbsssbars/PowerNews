@@ -1031,6 +1031,8 @@ class NewsProvider extends ChangeNotifier {
     if (isRefresh) {
       _isRefreshing = true;
       notifyListeners();
+      // Proactively poke the aggregator to sync and ingest breaking news from the past few hours
+      _apiService.refreshFeeds().catchError((_) => false);
     } else {
       _isLoading = _articles.isEmpty;
       _currentPage = 1;
@@ -1054,8 +1056,43 @@ class NewsProvider extends ChangeNotifier {
         limit: _pageSize,
       );
 
+      // Hydrate incoming articles with previously cached image URLs and fullText if incoming has null
+      final allCachedBefore = await _cacheService.getCachedArticles();
+      final cachedImageMap = <String, String>{};
+      final cachedFullTextMap = <String, String>{};
+      for (final a in allCachedBefore) {
+        if (a.imageUrl != null && a.imageUrl!.trim().isNotEmpty) {
+          cachedImageMap[a.id] = a.imageUrl!.trim();
+        }
+        if (a.fullText != null && a.fullText!.trim().isNotEmpty) {
+          cachedFullTextMap[a.id] = a.fullText!.trim();
+        }
+      }
+      for (final a in _articles) {
+        if (a.imageUrl != null && a.imageUrl!.trim().isNotEmpty) {
+          cachedImageMap[a.id] = a.imageUrl!.trim();
+        }
+        if (a.fullText != null && a.fullText!.trim().isNotEmpty) {
+          cachedFullTextMap[a.id] = a.fullText!.trim();
+        }
+      }
+
+      final hydratedNews = news.map((a) {
+        final existingImg = cachedImageMap[a.id];
+        final existingFull = cachedFullTextMap[a.id];
+        final needImg = (a.imageUrl == null || a.imageUrl!.trim().isEmpty) && existingImg != null;
+        final needFull = (a.fullText == null || a.fullText!.trim().isEmpty) && existingFull != null;
+        if (needImg || needFull) {
+          return a.copyWith(
+            imageUrl: needImg ? existingImg : a.imageUrl,
+            fullText: needFull ? existingFull : a.fullText,
+          );
+        }
+        return a;
+      }).toList();
+
       // Filter out low-grade or non-AI stubs so feed contains 100% verified AI summaries
-      final cleanNews = news.where((a) {
+      final cleanNews = hydratedNews.where((a) {
         final s = a.summary.trim();
         return s.length >= 50 && s.toLowerCase() != a.title.trim().toLowerCase();
       }).toList();

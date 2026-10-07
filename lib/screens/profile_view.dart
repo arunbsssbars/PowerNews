@@ -7,7 +7,6 @@ import 'package:provider/provider.dart';
 import '../services/auth_service.dart';
 import '../providers/news_provider.dart';
 import '../widgets/about_sheet.dart';
-import '../widgets/ask_gemini_sheet.dart';
 import 'admin_dashboard_screen.dart';
 import 'onboarding_screen.dart';
 import '../services/database_service.dart';
@@ -1044,27 +1043,6 @@ class _ProfileViewState extends State<ProfileView> {
             value: isDark,
             activeThumbColor: const Color(0xFF2563EB),
             onChanged: (_) => newsProvider.toggleTheme(),
-          ),
-          Divider(height: 1, color: borderColor),
-          ListTile(
-            leading: Container(
-              padding: const EdgeInsets.all(7),
-              decoration: BoxDecoration(
-                color: const Color(0xFF818CF8).withValues(alpha: 0.14),
-                borderRadius: BorderRadius.circular(9),
-              ),
-              child: const Icon(Icons.auto_awesome_rounded, color: Color(0xFF818CF8), size: 18),
-            ),
-            title: Text(
-              'Ask AI Desk (Gemini)',
-              style: TextStyle(fontSize: 13.5, fontWeight: FontWeight.w700, color: textPrimary),
-            ),
-            subtitle: Text(
-              'Deep analytical queries on Indian power grid & tariffs',
-              style: TextStyle(fontSize: 11.5, color: textSecondary),
-            ),
-            trailing: const Icon(Icons.chevron_right_rounded, size: 20),
-            onTap: () => AskGeminiSheet.show(context),
           ),
           Divider(height: 1, color: borderColor),
           ListTile(

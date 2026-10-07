@@ -13,7 +13,7 @@ class ApiConstants {
   static const String articleContentEndpoint = '/api/article-content';
   static const String articleSummaryEndpoint = '/api/article-summary';
   static const String morningDigestEndpoint = '/api/morning-digest';
-  static const String askGeminiEndpoint = '/api/ask-gemini';
+  static const String refreshEndpoint = '/api/refresh';
   static const String searchTopicEndpoint = '/api/search-topic';
   
   static const int defaultTimeoutMs = 15000;

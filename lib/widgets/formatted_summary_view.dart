@@ -56,31 +56,31 @@ class FormattedSummaryView extends StatelessWidget {
 
   double _calculateFittingFontSize({
     required String text,
-    required double startFontSize,
+    required TextStyle baseStyle,
+    required TextStyle highlightStyle,
+    required double preferredFontSize,
     required double minFontSize,
+    required double maxFontSize,
     required double maxWidth,
     required double maxHeight,
-    required double lineHeight,
-    required String? fontFamily,
   }) {
-    if (!maxHeight.isFinite || maxHeight <= 0 || maxWidth <= 0) return startFontSize;
-    final bufferMaxHeight = maxHeight - 4.0; // Buffer to prevent edge clipping
-    for (double size = startFontSize; size >= minFontSize; size -= 0.5) {
-      final textPainter = TextPainter(
-        text: TextSpan(
-          text: text,
-          style: TextStyle(
-            fontSize: size,
-            height: lineHeight,
-            fontFamily: fontFamily,
-          ),
-        ),
+    if (!maxHeight.isFinite || maxHeight <= 0 || maxWidth <= 0) return preferredFontSize;
+    final bufferMaxHeight = maxHeight - 2.0; // Minimal buffer for edge safety
+
+    // Scan downward from maxFontSize to minFontSize in 0.5 decrements
+    // to discover the largest legible font size that snugly fits within container height
+    for (double size = maxFontSize; size >= minFontSize; size -= 0.5) {
+      final curBase = baseStyle.copyWith(fontSize: size);
+      final curHighlight = highlightStyle.copyWith(fontSize: size);
+      final spans = _buildHighlightedSpans(text, curBase, curHighlight);
+
+      final painter = TextPainter(
+        text: TextSpan(children: spans),
         textDirection: TextDirection.ltr,
         textAlign: TextAlign.justify,
-        maxLines: null,
       )..layout(maxWidth: maxWidth);
 
-      if (textPainter.size.height <= bufferMaxHeight) {
+      if (painter.size.height <= bufferMaxHeight) {
         return size;
       }
     }
@@ -109,6 +109,10 @@ class FormattedSummaryView extends StatelessWidget {
       fontWeight: FontWeight.w400,
       color: textColor,
       letterSpacing: 0.1,
+    );
+    final highlightStyle = baseStyle.copyWith(
+      fontWeight: FontWeight.w700,
+      color: highlightColor,
     );
 
     if (cleanSummary.isEmpty || isHeadlineDuplicate) {
@@ -184,14 +188,16 @@ class FormattedSummaryView extends StatelessWidget {
 
       return LayoutBuilder(
         builder: (context, constraints) {
+          final double maxAllowedFontSize = (fontSize + 1.5).clamp(15.0, 18.0);
           final double effectiveFontSize = _calculateFittingFontSize(
             text: points.join(' '),
-            startFontSize: fontSize,
-            minFontSize: 9.0,
+            baseStyle: baseStyle,
+            highlightStyle: highlightStyle,
+            preferredFontSize: fontSize,
+            minFontSize: 11.0,
+            maxFontSize: maxAllowedFontSize,
             maxWidth: constraints.maxWidth,
             maxHeight: constraints.maxHeight,
-            lineHeight: lineHeight,
-            fontFamily: fontFamily,
           );
 
           final effectiveBaseStyle = baseStyle.copyWith(fontSize: effectiveFontSize);
@@ -268,14 +274,16 @@ class FormattedSummaryView extends StatelessWidget {
 
     return LayoutBuilder(
       builder: (context, constraints) {
+        final double maxAllowedFontSize = (fontSize + 2.0).clamp(16.0, 18.5);
         final double effectiveFontSize = _calculateFittingFontSize(
           text: cleanProse,
-          startFontSize: fontSize,
-          minFontSize: 9.0,
+          baseStyle: baseStyle,
+          highlightStyle: highlightStyle,
+          preferredFontSize: fontSize,
+          minFontSize: 11.5,
+          maxFontSize: maxAllowedFontSize,
           maxWidth: constraints.maxWidth,
           maxHeight: constraints.maxHeight,
-          lineHeight: lineHeight,
-          fontFamily: fontFamily,
         );
 
         final effectiveBaseStyle = baseStyle.copyWith(fontSize: effectiveFontSize);
@@ -292,7 +300,7 @@ class FormattedSummaryView extends StatelessWidget {
           textAlign: TextAlign.justify,
         )..layout(maxWidth: constraints.maxWidth);
 
-        final bool fitsCompletely = textPainter.size.height <= constraints.maxHeight;
+        final bool fitsCompletely = textPainter.size.height <= (constraints.maxHeight + 1.0);
 
         final proseWidget = SizedBox(
           width: double.infinity,
@@ -323,7 +331,10 @@ class FormattedSummaryView extends StatelessWidget {
         final double reservedActionHeight = onReadMore != null ? 36.0 : 0.0;
         final double availableTextHeight = (constraints.maxHeight - reservedActionHeight - 4.0).clamp(20.0, constraints.maxHeight);
         final double singleLineHeight = effectiveFontSize * lineHeight;
-        final int maxLines = (availableTextHeight / singleLineHeight).floor().clamp(2, 20);
+        final int computedMaxLines = (availableTextHeight / singleLineHeight).floor().clamp(2, 20);
+        final int actualLines = textPainter.computeLineMetrics().length;
+        // Never allocate more lines than the actual text lines to prevent empty trailing line
+        final int maxLines = actualLines > 0 ? computedMaxLines.clamp(1, actualLines) : computedMaxLines;
 
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
