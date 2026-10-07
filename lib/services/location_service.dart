@@ -80,7 +80,7 @@ class LocationService {
         );
         final geoRes = await http.get(
           geoUri,
-          headers: {'User-Agent': 'PowerNewsApp/1.0 (Android Location Detection)'},
+          headers: {'User-Agent': 'PowerNews/1.0 (Android Location Detection)'},
         ).timeout(const Duration(seconds: 4));
 
         if (geoRes.statusCode == 200) {

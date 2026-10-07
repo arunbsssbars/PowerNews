@@ -45,15 +45,15 @@ void main() async {
         ChangeNotifierProvider(create: (_) => NewsProvider()),
         ChangeNotifierProvider.value(value: authService),
       ],
-      child: PowerNewsApp(showOnboarding: !hasSeenOnboarding),
+      child: PowerNews(showOnboarding: !hasSeenOnboarding),
     ),
   );
 }
 
-class PowerNewsApp extends StatelessWidget {
+class PowerNews extends StatelessWidget {
   final bool showOnboarding;
 
-  const PowerNewsApp({
+  const PowerNews({
     super.key,
     this.showOnboarding = false,
   });
