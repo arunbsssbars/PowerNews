@@ -154,9 +154,16 @@ app.get('/health', (req, res) => res.status(200).json({ status: 'healthy', times
 app.use('/api', apiRoutes);
 
 // Serve Flutter Web App on root
-app.use(express.static(path.join(__dirname, '..', 'public', 'web')));
+app.use(express.static(path.join(__dirname, '..', 'public', 'web'), {
+  setHeaders: (res, filePath) => {
+    if (filePath.endsWith('index.html') || filePath.endsWith('flutter_service_worker.js') || filePath.endsWith('version.json')) {
+      res.set('Cache-Control', 'no-store, no-cache, must-revalidate, private');
+    }
+  }
+}));
 
 app.get('/', (req, res) => {
+  res.set('Cache-Control', 'no-store, no-cache, must-revalidate, private');
   res.sendFile(path.join(__dirname, '..', 'public', 'web', 'index.html'));
 });
 
@@ -166,6 +173,7 @@ app.use((req, res, next) => {
   if (req.path.startsWith('/api') || req.path.startsWith('/admin') || req.path.startsWith('/download') || req.path.startsWith('/apk')) {
     return next();
   }
+  res.set('Cache-Control', 'no-store, no-cache, must-revalidate, private');
   res.sendFile(path.join(__dirname, '..', 'public', 'web', 'index.html'));
 });
 

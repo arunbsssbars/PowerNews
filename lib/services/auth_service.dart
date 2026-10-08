@@ -86,7 +86,7 @@ class AuthService extends ChangeNotifier {
             ? AppConfig.googleIosClientId
             : null),
     serverClientId: kIsWeb ? null : AppConfig.googleWebClientId,
-    scopes: const ['email'],
+    scopes: const ['email', 'profile'],
   );
 
   AppUser? _currentUser;
