@@ -103,28 +103,31 @@ class _AuthSheetContentState extends State<_AuthSheetContent> {
                 ),
                 const SizedBox(height: 24),
 
-                if (_auth.errorMessage != null)
-                  Container(
-                    margin: const EdgeInsets.only(bottom: 16),
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFEF4444).withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: const Color(0xFFEF4444).withValues(alpha: 0.3)),
-                    ),
-                    child: Row(
-                      children: [
-                        const Icon(Icons.error_outline_rounded, color: Color(0xFFEF4444), size: 18),
-                        const SizedBox(width: 10),
-                        Expanded(
-                          child: Text(
-                            _auth.errorMessage!,
-                            style: const TextStyle(fontSize: 12, color: Color(0xFFEF4444)),
+                if (_auth.errorMessage?.isNotEmpty == true)
+                  Builder(builder: (context) {
+                    final errText = _auth.errorMessage ?? '';
+                    return Container(
+                      margin: const EdgeInsets.only(bottom: 16),
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFEF4444).withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: const Color(0xFFEF4444).withValues(alpha: 0.3)),
+                      ),
+                      child: Row(
+                        children: [
+                          const Icon(Icons.error_outline_rounded, color: Color(0xFFEF4444), size: 18),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: Text(
+                              errText,
+                              style: const TextStyle(fontSize: 12, color: Color(0xFFEF4444)),
+                            ),
                           ),
-                        ),
-                      ],
-                    ),
-                  ),
+                        ],
+                      ),
+                    );
+                  }),
 
                 // Google Sign-In Button
                 SizedBox(
@@ -162,13 +165,16 @@ class _AuthSheetContentState extends State<_AuthSheetContent> {
                                 if (nav.canPop()) {
                                   nav.pop();
                                 }
-                              } else if (_auth.errorMessage != null) {
-                                messenger.showSnackBar(
-                                  SnackBar(
-                                    content: Text(_auth.errorMessage!),
-                                    backgroundColor: const Color(0xFFEF4444),
-                                  ),
-                                );
+                              } else {
+                                final err = _auth.errorMessage;
+                                if (err != null && err.isNotEmpty) {
+                                  messenger.showSnackBar(
+                                    SnackBar(
+                                      content: Text(err),
+                                      backgroundColor: const Color(0xFFEF4444),
+                                    ),
+                                  );
+                                }
                               }
                             } catch (e) {
                               debugPrint('[AuthDialog] Sign in error: $e');
@@ -218,17 +224,21 @@ class _AuthSheetContentState extends State<_AuthSheetContent> {
                 // --- Logged In View ---
                 Row(
                   children: [
-                    CircleAvatar(
-                      radius: 26,
-                      backgroundColor: const Color(0xFF2563EB),
-                      backgroundImage: user.photoUrl != null ? NetworkImage(user.photoUrl!) : null,
-                      child: user.photoUrl == null
-                          ? Text(
-                              user.displayName.isNotEmpty ? user.displayName[0].toUpperCase() : 'U',
-                              style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 20),
-                            )
-                          : null,
-                    ),
+                    Builder(builder: (context) {
+                      final photoUrl = user.photoUrl;
+                      final hasPhoto = photoUrl != null && photoUrl.isNotEmpty;
+                      return CircleAvatar(
+                        radius: 26,
+                        backgroundColor: const Color(0xFF2563EB),
+                        backgroundImage: hasPhoto ? NetworkImage(photoUrl) : null,
+                        child: !hasPhoto
+                            ? Text(
+                                user.displayName.isNotEmpty ? user.displayName[0].toUpperCase() : 'U',
+                                style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 20),
+                              )
+                            : null,
+                      );
+                    }),
                     const SizedBox(width: 14),
                     Expanded(
                       child: Column(

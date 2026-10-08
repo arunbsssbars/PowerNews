@@ -58,7 +58,8 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
       );
     }
 
-    if (!auth.currentUser!.isEmailVerified) {
+    final user = auth.currentUser;
+    if (user == null || !user.isEmailVerified) {
       return const EmailVerificationScreen();
     }
 
@@ -467,51 +468,59 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
             selectedIcon: Icon(Icons.bookmark_rounded, color: Color(0xFF2563EB)),
             label: 'Saved',
           ),
-          NavigationDestination(
-            icon: auth.isAuthenticated && auth.currentUser?.photoUrl != null
-                ? ClipRRect(
-                    borderRadius: BorderRadius.circular(12),
-                    child: Image.network(
-                      auth.currentUser!.photoUrl!,
-                      width: 24,
-                      height: 24,
-                      fit: BoxFit.cover,
-                      errorBuilder: (_, __, ___) => Icon(
-                        auth.isAdmin ? Icons.shield_outlined : Icons.person_outline_rounded,
-                      ),
-                    ),
-                  )
-                : Icon(
-                    auth.isAdmin ? Icons.shield_outlined : Icons.person_outline_rounded,
-                  ),
-            selectedIcon: auth.isAuthenticated && auth.currentUser?.photoUrl != null
-                ? Container(
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      border: Border.all(
-                        color: auth.isAdmin ? const Color(0xFF10B981) : const Color(0xFF2563EB),
-                        width: 2,
-                      ),
-                    ),
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(12),
-                      child: Image.network(
-                        auth.currentUser!.photoUrl!,
-                        width: 24,
-                        height: 24,
-                        fit: BoxFit.cover,
-                        errorBuilder: (_, __, ___) => Icon(
-                          auth.isAdmin ? Icons.shield_rounded : Icons.person_rounded,
-                          color: auth.isAdmin ? const Color(0xFF10B981) : const Color(0xFF2563EB),
+          Builder(
+            builder: (context) {
+              final photo = user.photoUrl;
+              final hasPhoto = photo != null && photo.isNotEmpty;
+              final isAdmin = auth.isAdmin;
+
+              return NavigationDestination(
+                icon: hasPhoto
+                    ? ClipRRect(
+                        borderRadius: BorderRadius.circular(12),
+                        child: Image.network(
+                          photo,
+                          width: 24,
+                          height: 24,
+                          fit: BoxFit.cover,
+                          errorBuilder: (_, __, ___) => Icon(
+                            isAdmin ? Icons.shield_outlined : Icons.person_outline_rounded,
+                          ),
                         ),
+                      )
+                    : Icon(
+                        isAdmin ? Icons.shield_outlined : Icons.person_outline_rounded,
                       ),
-                    ),
-                  )
-                : Icon(
-                    auth.isAdmin ? Icons.shield_rounded : Icons.person_rounded,
-                    color: auth.isAdmin ? const Color(0xFF10B981) : const Color(0xFF2563EB),
-                  ),
-            label: auth.isAdmin ? 'Admin' : 'Profile',
+                selectedIcon: hasPhoto
+                    ? Container(
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          border: Border.all(
+                            color: isAdmin ? const Color(0xFF10B981) : const Color(0xFF2563EB),
+                            width: 2,
+                          ),
+                        ),
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(12),
+                          child: Image.network(
+                            photo,
+                            width: 24,
+                            height: 24,
+                            fit: BoxFit.cover,
+                            errorBuilder: (_, __, ___) => Icon(
+                              isAdmin ? Icons.shield_rounded : Icons.person_rounded,
+                              color: isAdmin ? const Color(0xFF10B981) : const Color(0xFF2563EB),
+                            ),
+                          ),
+                        ),
+                      )
+                    : Icon(
+                        isAdmin ? Icons.shield_rounded : Icons.person_rounded,
+                        color: isAdmin ? const Color(0xFF10B981) : const Color(0xFF2563EB),
+                      ),
+                label: isAdmin ? 'Admin' : 'Profile',
+              );
+            },
           ),
         ],
       ),

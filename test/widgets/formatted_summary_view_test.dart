@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:power_news_app/widgets/formatted_summary_view.dart';
+import 'package:power_news/widgets/formatted_summary_view.dart';
 
 void main() {
   group('FormattedSummaryView Widget Tests', () {

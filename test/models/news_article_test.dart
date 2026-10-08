@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:power_news_app/models/news_article.dart';
+import 'package:power_news/models/news_article.dart';
 
 void main() {
   group('NewsArticle Model Tests', () {

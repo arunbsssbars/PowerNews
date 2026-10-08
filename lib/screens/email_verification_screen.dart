@@ -63,7 +63,7 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> with 
     try {
       final auth = context.read<AuthService>();
       await auth.reloadUser();
-      if (auth.currentUser != null && auth.currentUser!.isEmailVerified) {
+      if (auth.currentUser?.isEmailVerified == true) {
         _periodicCheckTimer?.cancel();
         if (mounted && context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(

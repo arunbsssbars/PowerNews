@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:power_news_app/models/morning_digest.dart';
+import 'package:power_news/models/morning_digest.dart';
 
 void main() {
   group('MorningDigest Model Tests', () {

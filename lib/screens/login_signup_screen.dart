@@ -62,15 +62,19 @@ class _LoginSignUpScreenState extends State<LoginSignUpScreen> with SingleTicker
     try {
       final auth = context.read<AuthService>();
       final success = await auth.signInWithGoogle();
-      if (success && mounted) {
+      if (!mounted) return;
+      if (success) {
         _proceedToApp();
-      } else if (!success && mounted && auth.errorMessage != null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(auth.errorMessage!),
-            backgroundColor: const Color(0xFFEF4444),
-          ),
-        );
+      } else {
+        final err = auth.errorMessage;
+        if (err != null && err.isNotEmpty) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(err),
+              backgroundColor: const Color(0xFFEF4444),
+            ),
+          );
+        }
       }
     } on PlatformException catch (pe) {
       debugPrint('[LoginSignUpScreen] PlatformException in Google Sign-In: ${pe.code} - ${pe.message}');
@@ -420,28 +424,31 @@ class _LoginSignUpScreenState extends State<LoginSignUpScreen> with SingleTicker
                         const SizedBox(height: 18),
 
                         // Error Banner
-                        if (auth.errorMessage != null) ...[
-                          Container(
-                            padding: const EdgeInsets.all(10),
-                            margin: const EdgeInsets.only(bottom: 14),
-                            decoration: BoxDecoration(
-                              color: const Color(0xFFEF4444).withValues(alpha: 0.1),
-                              borderRadius: BorderRadius.circular(10),
-                              border: Border.all(color: const Color(0xFFEF4444).withValues(alpha: 0.3)),
-                            ),
-                            child: Row(
-                              children: [
-                                const Icon(Icons.error_outline_rounded, size: 16, color: Color(0xFFEF4444)),
-                                const SizedBox(width: 8),
-                                Expanded(
-                                  child: Text(
-                                    auth.errorMessage!,
-                                    style: const TextStyle(fontSize: 11.5, color: Color(0xFFEF4444), fontWeight: FontWeight.w500),
+                        if (auth.errorMessage?.isNotEmpty == true) ...[
+                          Builder(builder: (context) {
+                            final errText = auth.errorMessage ?? '';
+                            return Container(
+                              padding: const EdgeInsets.all(10),
+                              margin: const EdgeInsets.only(bottom: 14),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFEF4444).withValues(alpha: 0.1),
+                                borderRadius: BorderRadius.circular(10),
+                                border: Border.all(color: const Color(0xFFEF4444).withValues(alpha: 0.3)),
+                              ),
+                              child: Row(
+                                children: [
+                                  const Icon(Icons.error_outline_rounded, size: 16, color: Color(0xFFEF4444)),
+                                  const SizedBox(width: 8),
+                                  Expanded(
+                                    child: Text(
+                                      errText,
+                                      style: const TextStyle(fontSize: 11.5, color: Color(0xFFEF4444), fontWeight: FontWeight.w500),
+                                    ),
                                   ),
-                                ),
-                              ],
-                            ),
-                          ),
+                                ],
+                              ),
+                            );
+                          }),
                         ],
 
                         // TabBarView for Login vs Signup Forms

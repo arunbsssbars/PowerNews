@@ -3,13 +3,13 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
-import 'package:power_news_app/providers/news_provider.dart';
-import 'package:power_news_app/services/auth_service.dart';
-import 'package:power_news_app/services/database_service.dart';
-import 'package:power_news_app/screens/login_signup_screen.dart';
-import 'package:power_news_app/screens/email_verification_screen.dart';
-import 'package:power_news_app/screens/home_screen.dart';
-import 'package:power_news_app/theme/app_theme.dart';
+import 'package:power_news/providers/news_provider.dart';
+import 'package:power_news/services/auth_service.dart';
+import 'package:power_news/services/database_service.dart';
+import 'package:power_news/screens/login_signup_screen.dart';
+import 'package:power_news/screens/email_verification_screen.dart';
+import 'package:power_news/screens/home_screen.dart';
+import 'package:power_news/theme/app_theme.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();

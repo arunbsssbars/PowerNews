@@ -105,6 +105,7 @@ class _FilterManagementScreenState extends State<FilterManagementScreen> {
                 : ReorderableListView.builder(
                     padding: const EdgeInsets.symmetric(vertical: 8),
                     itemCount: provider.customFilters.length,
+                    // ignore: deprecated_member_use
                     onReorder: (oldIndex, newIndex) {
                       provider.reorderCustomFilters(oldIndex, newIndex);
                     },

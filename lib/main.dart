@@ -91,10 +91,11 @@ class AuthWrapper extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final auth = context.watch<AuthService>();
-    if (!auth.isAuthenticated) {
+    final user = auth.currentUser;
+    if (!auth.isAuthenticated || user == null) {
       return const LoginSignUpScreen();
     }
-    if (!auth.currentUser!.isEmailVerified) {
+    if (!user.isEmailVerified) {
       return const EmailVerificationScreen();
     }
     return const HomeScreen();

@@ -85,7 +85,7 @@ class AuthService extends ChangeNotifier {
         : (defaultTargetPlatform == TargetPlatform.iOS
             ? AppConfig.googleIosClientId
             : null),
-    serverClientId: AppConfig.googleWebClientId,
+    serverClientId: kIsWeb ? null : AppConfig.googleWebClientId,
     scopes: const ['email'],
   );
 
@@ -96,7 +96,7 @@ class AuthService extends ChangeNotifier {
 
   AppUser? get currentUser => _currentUser;
   bool get isAuthenticated => _currentUser != null;
-  bool get isAdmin => _currentUser != null && _currentUser!.isAdmin;
+  bool get isAdmin => _currentUser?.isAdmin == true;
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
   
@@ -139,18 +139,24 @@ class AuthService extends ChangeNotifier {
       if (provider == 'google') {
         _googleSignIn.signInSilently().then((account) async {
           if (account != null) {
-            final auth = await account.authentication;
-            _currentUser = AppUser(
+            String? idToken;
+            try {
+              final auth = await account.authentication;
+              idToken = auth.idToken;
+            } catch (_) {}
+            final email = account.email;
+            final user = AppUser(
               id: account.id,
-              email: account.email,
-              displayName: account.displayName ?? account.email.split('@').first,
+              email: email,
+              displayName: account.displayName ?? (email.isNotEmpty ? email.split('@').first : 'Executive'),
               photoUrl: account.photoUrl,
-              idToken: auth.idToken,
+              idToken: idToken,
               isEmailVerified: true,
               createdAt: _currentUser?.createdAt ?? DateTime.now().toIso8601String(),
               authProvider: 'google',
             );
-            await _saveUserToPrefs(_currentUser!);
+            _currentUser = user;
+            await _saveUserToPrefs(user);
             notifyListeners();
           }
         }).catchError((_) {});
@@ -182,10 +188,11 @@ class AuthService extends ChangeNotifier {
         debugPrint('[AuthService] Could not retrieve Google idToken: $authErr');
       }
 
-      _currentUser = AppUser(
+      final email = account.email;
+      final user = AppUser(
         id: account.id,
-        email: account.email,
-        displayName: account.displayName ?? account.email.split('@').first,
+        email: email,
+        displayName: account.displayName ?? (email.isNotEmpty ? email.split('@').first : 'Executive'),
         photoUrl: account.photoUrl,
         idToken: idToken,
         isEmailVerified: true,
@@ -193,7 +200,8 @@ class AuthService extends ChangeNotifier {
         authProvider: 'google',
       );
 
-      await _saveUserToPrefs(_currentUser!);
+      _currentUser = user;
+      await _saveUserToPrefs(user);
       _isLoading = false;
       notifyListeners();
       return true;
@@ -202,7 +210,7 @@ class AuthService extends ChangeNotifier {
       final errStr = e.toString();
       debugPrint('[AuthService] Google Sign-In error: $errStr\n$stack');
 
-      if (errStr.contains('canceled') || errStr.contains('cancelled') || errStr.contains('sign_in_canceled')) {
+      if (errStr.contains('canceled') || errStr.contains('cancelled') || errStr.contains('sign_in_canceled') || errStr.contains('popup_closed_by_user')) {
         _errorMessage = 'Sign-in was cancelled.';
       } else if (errStr.contains('GIDClientID') || errStr.contains('No active configuration')) {
         _errorMessage = 'Google OAuth configuration missing on iOS. Please verify GIDClientID in Info.plist.';
@@ -210,6 +218,8 @@ class AuthService extends ChangeNotifier {
         _errorMessage = 'Google Services OAuth configuration mismatch. Please check SHA-1 in Firebase Console or use Email Sign-In.';
       } else if (errStr.contains('network') || errStr.contains('7')) {
         _errorMessage = 'Network connection failed during Google authentication.';
+      } else if (kIsWeb && (errStr.contains('origin') || errStr.contains('idpiframe_initialization_failed'))) {
+        _errorMessage = 'Web domain not authorized in Google Cloud Console. Add https://powernewsapp-backend.onrender.com to Authorized JavaScript Origins.';
       } else {
         _errorMessage = 'Google Sign-In failed: $errStr';
       }
@@ -272,7 +282,7 @@ class AuthService extends ChangeNotifier {
         await sendEmailVerification(tokenOverride: idToken);
       }
 
-      _currentUser = AppUser(
+      final user = AppUser(
         id: localId,
         email: email.trim(),
         displayName: cleanName,
@@ -281,9 +291,9 @@ class AuthService extends ChangeNotifier {
         createdAt: DateTime.now().toIso8601String(),
         authProvider: 'password',
       );
+      _currentUser = user;
 
-      
-      await _saveUserToPrefs(_currentUser!);
+      await _saveUserToPrefs(user);
       _isLoading = false;
       notifyListeners();
       return true;
@@ -329,7 +339,7 @@ class AuthService extends ChangeNotifier {
       final localId = data['localId'] as String? ?? '';
       final displayName = data['displayName'] as String? ?? email.split('@').first;
 
-      _currentUser = AppUser(
+      final user = AppUser(
         id: localId,
         email: email.trim(),
         displayName: displayName,
@@ -338,9 +348,9 @@ class AuthService extends ChangeNotifier {
         createdAt: DateTime.now().toIso8601String(),
         authProvider: 'password',
       );
+      _currentUser = user;
 
-      
-      await _saveUserToPrefs(_currentUser!);
+      await _saveUserToPrefs(user);
       
       // Immediately check verification status
       if (idToken != null) {
@@ -423,8 +433,9 @@ class AuthService extends ChangeNotifier {
         final users = data['users'] as List<dynamic>?;
         if (users != null && users.isNotEmpty) {
           final isVerified = users[0]['emailVerified'] == true;
-          if (_currentUser != null && _currentUser!.isEmailVerified != isVerified) {
-            _currentUser = _currentUser!.copyWith(isEmailVerified: isVerified);
+          final user = _currentUser;
+          if (user != null && user.isEmailVerified != isVerified) {
+            _currentUser = user.copyWith(isEmailVerified: isVerified);
             final prefs = await SharedPreferences.getInstance();
             await prefs.setBool('auth_user_verified', isVerified);
             notifyListeners();
@@ -443,9 +454,10 @@ class AuthService extends ChangeNotifier {
     required String displayName,
     String? photoUrl,
   }) async {
-    if (_currentUser == null) return false;
+    final user = _currentUser;
+    if (user == null) return false;
 
-    final token = _currentUser?.idToken;
+    final token = user.idToken;
     if (token != null && token.isNotEmpty) {
       try {
         final body = <String, dynamic>{
@@ -467,11 +479,12 @@ class AuthService extends ChangeNotifier {
       }
     }
 
-    _currentUser = _currentUser!.copyWith(
+    final updated = user.copyWith(
       displayName: displayName.trim(),
-      photoUrl: photoUrl?.trim() ?? _currentUser!.photoUrl,
+      photoUrl: photoUrl?.trim() ?? user.photoUrl,
     );
-    await _saveUserToPrefs(_currentUser!);
+    _currentUser = updated;
+    await _saveUserToPrefs(updated);
     notifyListeners();
     return true;
   }
@@ -494,8 +507,9 @@ class AuthService extends ChangeNotifier {
         final users = data['users'] as List;
         if (users.isNotEmpty) {
           final isVerified = users.first['emailVerified'] ?? false;
-          _currentUser = _currentUser!.copyWith(isEmailVerified: isVerified);
-          await _saveUserToPrefs(_currentUser!);
+          final updated = user.copyWith(isEmailVerified: isVerified);
+          _currentUser = updated;
+          await _saveUserToPrefs(updated);
           notifyListeners();
         }
       }
@@ -558,12 +572,14 @@ class AuthService extends ChangeNotifier {
     await prefs.setString('auth_user_email', user.email);
     await prefs.setString('auth_user_id', user.id);
     await prefs.setString('auth_user_name', user.displayName);
-    if (user.photoUrl != null) await prefs.setString('auth_user_photo', user.photoUrl!);
-    if (user.idToken != null) await prefs.setString('auth_user_token', user.idToken!);
+    final photo = user.photoUrl;
+    if (photo != null) await prefs.setString('auth_user_photo', photo);
+    final token = user.idToken;
+    if (token != null) await prefs.setString('auth_user_token', token);
     await prefs.setBool('auth_user_verified', user.isEmailVerified);
-    if (user.createdAt != null) await prefs.setString('auth_user_created', user.createdAt!);
+    final created = user.createdAt;
+    if (created != null) await prefs.setString('auth_user_created', created);
     await prefs.setString('auth_user_provider', user.authProvider);
-    
   }
 
   String _parseFirebaseAuthError(String raw) {

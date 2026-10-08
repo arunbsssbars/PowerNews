@@ -1,9 +1,9 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
-import 'package:power_news_app/providers/news_provider.dart';
-import 'package:power_news_app/models/grid_persona.dart';
-import 'package:power_news_app/services/database_service.dart';
+import 'package:power_news/providers/news_provider.dart';
+import 'package:power_news/models/grid_persona.dart';
+import 'package:power_news/services/database_service.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();

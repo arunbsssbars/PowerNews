@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:power_news_app/models/grid_persona.dart';
+import 'package:power_news/models/grid_persona.dart';
 
 void main() {
   group('GridPersona Model & Relevance Tests', () {

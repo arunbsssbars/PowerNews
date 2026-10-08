@@ -1,7 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
-import 'package:power_news_app/models/news_article.dart';
-import 'package:power_news_app/services/database_service.dart';
+import 'package:power_news/models/news_article.dart';
+import 'package:power_news/services/database_service.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();

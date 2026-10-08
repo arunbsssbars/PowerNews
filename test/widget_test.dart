@@ -2,11 +2,11 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
-import 'package:power_news_app/main.dart';
-import 'package:power_news_app/providers/news_provider.dart';
-import 'package:power_news_app/services/database_service.dart';
+import 'package:power_news/main.dart';
+import 'package:power_news/providers/news_provider.dart';
+import 'package:power_news/services/database_service.dart';
 
-import 'package:power_news_app/services/auth_service.dart';
+import 'package:power_news/services/auth_service.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -38,7 +38,7 @@ void main() {
           ChangeNotifierProvider(create: (_) => NewsProvider()),
           ChangeNotifierProvider.value(value: authService),
         ],
-        child: const PowerNewsApp(),
+        child: const PowerNews(showOnboarding: false),
       ),
     );
 

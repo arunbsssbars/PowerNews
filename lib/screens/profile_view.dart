@@ -483,13 +483,17 @@ class _ProfileViewState extends State<ProfileView> {
                     ),
                     child: ClipRRect(
                       borderRadius: BorderRadius.circular(28),
-                      child: user.photoUrl != null && user.photoUrl!.isNotEmpty
-                          ? Image.network(
-                              user.photoUrl!,
-                              fit: BoxFit.cover,
-                              errorBuilder: (_, __, ___) => _buildInitialsAvatar(user.displayName),
-                            )
-                          : _buildInitialsAvatar(user.displayName),
+                      child: Builder(builder: (context) {
+                        final String? userPhoto = user?.photoUrl;
+                        if (userPhoto != null && userPhoto.isNotEmpty) {
+                          return Image.network(
+                            userPhoto,
+                            fit: BoxFit.cover,
+                            errorBuilder: (_, __, ___) => _buildInitialsAvatar(user.displayName),
+                          );
+                        }
+                        return _buildInitialsAvatar(user.displayName);
+                      }),
                     ),
                   ),
                   Container(
