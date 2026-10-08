@@ -1123,8 +1123,7 @@ class _ProfileViewState extends State<ProfileView> {
               onPressed: () async {
                 final scaffold = ScaffoldMessenger.of(context);
                 try {
-                  final db = await DatabaseService().database;
-                  await db.delete('articles', where: 'is_bookmarked = 0');
+                  await DatabaseService().clearUnbookmarkedCache();
                   scaffold.showSnackBar(
                     const SnackBar(
                       content: Text('Offline cache cleared (bookmarked articles preserved).'),

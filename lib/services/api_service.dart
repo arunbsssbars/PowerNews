@@ -14,17 +14,27 @@ class ApiService {
 
   static const String renderCloudHost = 'https://powernewsapp-backend.onrender.com';
 
-  static List<String> get candidateHosts => {
-    AppConfig.apiBaseUrl,
-    'http://172.20.10.11:3000',
-    'http://127.0.0.1:3000',
-    // 1. Production Render Cloud URL (Primary)
-    renderCloudHost,
-    // 2. Localhost fallback (only when user manually runs node server in terminal)
-    'http://localhost:3000',
-    'http://10.0.2.2:3000',
-    'http://100.98.130.99:3000',
-  }.toList(); // Deduplicate in case .env matches one of the hardcoded ones
+  static List<String> get candidateHosts {
+    if (kIsWeb) {
+      final hosts = <String>{};
+      if (AppConfig.apiBaseUrl.startsWith('https://')) {
+        hosts.add(AppConfig.apiBaseUrl);
+      }
+      hosts.add(renderCloudHost);
+      return hosts.toList();
+    }
+    return {
+      AppConfig.apiBaseUrl,
+      'http://172.20.10.11:3000',
+      'http://127.0.0.1:3000',
+      // 1. Production Render Cloud URL (Primary)
+      renderCloudHost,
+      // 2. Localhost fallback (only when user manually runs node server in terminal)
+      'http://localhost:3000',
+      'http://10.0.2.2:3000',
+      'http://100.98.130.99:3000',
+    }.toList(); // Deduplicate in case .env matches one of the hardcoded ones
+  }
 
   String _activeHost = AppConfig.apiBaseUrl;
   int _lastTotalCount = 0;
@@ -37,11 +47,11 @@ class ApiService {
   }
 
   Future<bool> checkAndSelectHost() async {
-    // Probe candidate hosts in parallel (12s for cloud host to allow cold boot, 3s for local)
+    // Probe candidate hosts in parallel (45s for cloud host to allow cold boot)
     final List<Future<String?>> probes = candidateHosts.map((host) async {
       try {
         final uri = Uri.parse('$host${ApiConstants.healthEndpoint}');
-        final timeoutSec = host.contains('onrender') ? 30 : 3;
+        final timeoutSec = host.contains('onrender') ? 45 : (kIsWeb ? 15 : 3);
         final res = await http.get(uri, headers: _headers).timeout(Duration(seconds: timeoutSec));
         if (res.statusCode == 200) {
           try {
@@ -108,7 +118,7 @@ class ApiService {
     for (final host in hostsToTry) {
       try {
         final uri = Uri.parse('$host${ApiConstants.newsEndpoint}').replace(queryParameters: queryParams);
-        final timeoutSec = host.contains('onrender') ? 30 : 3;
+        final timeoutSec = host.contains('onrender') ? 45 : (kIsWeb ? 15 : 3);
         final response = await http.get(uri, headers: _headers).timeout(Duration(seconds: timeoutSec));
 
         if (response.statusCode == 200) {

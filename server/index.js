@@ -117,6 +117,12 @@ const allowedOrigins = process.env.ALLOWED_ORIGINS
   ? process.env.ALLOWED_ORIGINS.split(',').map(s => s.trim().toLowerCase())
   : [];
 
+const defaultAllowedOrigins = [
+  'https://powernews-app-2026.web.app',
+  'https://powernews-app-2026.firebaseapp.com',
+  'https://powernewsapp-backend.onrender.com',
+];
+
 const corsOptions = {
   origin: (origin, callback) => {
     // 1. Allow mobile clients, curl, and server-to-server requests (no Origin header)
@@ -129,7 +135,17 @@ const corsOptions = {
       return callback(null, true);
     }
 
-    // 3. Allow explicitly configured origins in .env (e.g., your production web domain)
+    // 3. Allow Firebase hosting & Render domains
+    if (
+      defaultAllowedOrigins.includes(lowerOrigin) ||
+      /\.web\.app$/.test(lowerOrigin) ||
+      /\.firebaseapp\.com$/.test(lowerOrigin) ||
+      /\.onrender\.com$/.test(lowerOrigin)
+    ) {
+      return callback(null, true);
+    }
+
+    // 4. Allow explicitly configured origins in .env (e.g., your production web domain)
     if (allowedOrigins.includes(lowerOrigin)) {
       return callback(null, true);
     }

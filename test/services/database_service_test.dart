@@ -249,5 +249,37 @@ void main() {
       expect(match.imageUrl, 'https://powerline.net.in/wp-content/uploads/2026/09/pgcil_substation.jpg');
       expect(match.fullText, 'Full article text here');
     });
+
+    test('clearUnbookmarkedCache removes unbookmarked articles while safeguarding bookmarks', () async {
+      final article1 = NewsArticle(
+        id: 'clear-1',
+        title: 'BHEL secures boiler turbine order',
+        summary: 'BHEL wins comprehensive BTG package contract from state utility.',
+        url: 'http://test.com/bhel',
+        source: 'PowerLine',
+        publishedAt: DateTime.now(),
+        categories: ['Generation & Thermal'],
+        state: 'National',
+      );
+      final article2 = NewsArticle(
+        id: 'clear-2',
+        title: 'NTPC commissions battery energy storage project',
+        summary: 'NTPC commissions utility-scale BESS connected to regional transmission grid.',
+        url: 'http://test.com/ntpc-bess',
+        source: 'PowerLine',
+        publishedAt: DateTime.now(),
+        categories: ['Renewables & Green Energy'],
+        state: 'National',
+      );
+
+      await dbService.upsertArticles([article1, article2]);
+      await dbService.toggleBookmark(article2);
+
+      await dbService.clearUnbookmarkedCache();
+
+      final remaining = await dbService.getAllArticles();
+      expect(remaining.length, 1);
+      expect(remaining.first.id, 'clear-2');
+    });
   });
 }

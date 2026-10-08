@@ -15,7 +15,16 @@ class DatabaseService {
   static const int _dbVersion = 2;
   static const String _dbName = 'powernews_offline.db';
 
+  // In-memory fallback stores for Flutter Web (where sqflite is not supported)
+  final Map<String, NewsArticle> _webArticles = {};
+  final Set<String> _webBookmarks = {};
+  final List<String> _webRecentSearches = [];
+  final Map<String, String> _webSyncMeta = {};
+
   Future<Database> get database async {
+    if (kIsWeb) {
+      throw UnsupportedError('SQLite is unsupported on Flutter Web. Use DatabaseService methods directly.');
+    }
     if (_db != null) return _db!;
     _db = await _initDatabase();
     return _db!;
@@ -122,6 +131,14 @@ class DatabaseService {
     }).toList();
     if (validArticles.isEmpty) return 0;
 
+    if (kIsWeb) {
+      for (final a in validArticles) {
+        _webArticles[a.id] = a;
+      }
+      debugPrint('[DatabaseService] Upserted ${validArticles.length} articles in-memory (Web)');
+      return validArticles.length;
+    }
+
     final db = await database;
     final now = DateTime.now().toIso8601String();
     int count = 0;
@@ -164,6 +181,12 @@ class DatabaseService {
 
   /// Retrieve all cached articles within retention window (30 days / 1 month), sorted by published_at DESC
   Future<List<NewsArticle>> getAllArticles({int retentionDays = 30}) async {
+    if (kIsWeb) {
+      final list = _webArticles.values.toList();
+      list.sort((a, b) => b.publishedAt.compareTo(a.publishedAt));
+      return list;
+    }
+
     final db = await database;
     final cutoff = DateTime.now().subtract(Duration(days: retentionDays)).toIso8601String();
 
@@ -185,6 +208,15 @@ class DatabaseService {
 
   /// Delete any legacy non-AI summaries from local SQLite
   Future<int> purgeNonAiSummaries() async {
+    if (kIsWeb) {
+      final before = _webArticles.length;
+      _webArticles.removeWhere((id, a) {
+        final s = a.summary.trim();
+        return s.startsWith('• ') || s.startsWith('- ') || s.startsWith('* ');
+      });
+      return before - _webArticles.length;
+    }
+
     final db = await database;
     final count = await db.delete(
       'articles',
@@ -198,6 +230,10 @@ class DatabaseService {
 
   /// Get only bookmarked articles
   Future<List<NewsArticle>> getBookmarkedArticles() async {
+    if (kIsWeb) {
+      return _webArticles.values.where((a) => _webBookmarks.contains(a.id)).toList();
+    }
+
     final db = await database;
     final rows = await db.query(
       'articles',
@@ -209,6 +245,17 @@ class DatabaseService {
 
   /// Toggle bookmark status for an article
   Future<bool> toggleBookmark(NewsArticle article) async {
+    if (kIsWeb) {
+      if (_webBookmarks.contains(article.id)) {
+        _webBookmarks.remove(article.id);
+        return false;
+      } else {
+        _webBookmarks.add(article.id);
+        _webArticles[article.id] = article;
+        return true;
+      }
+    }
+
     final db = await database;
 
     // Check if article exists
@@ -250,6 +297,10 @@ class DatabaseService {
 
   /// Check if an article is bookmarked
   Future<bool> isBookmarked(String articleId) async {
+    if (kIsWeb) {
+      return _webBookmarks.contains(articleId);
+    }
+
     final db = await database;
     final rows = await db.query(
       'articles',
@@ -263,6 +314,19 @@ class DatabaseService {
 
   /// Get the latest published_at timestamp for incremental sync
   Future<DateTime?> getLatestPublishedAt() async {
+    if (kIsWeb) {
+      if (_webArticles.isEmpty) return null;
+      DateTime? latest;
+      for (final a in _webArticles.values) {
+        if (!_webBookmarks.contains(a.id)) {
+          if (latest == null || a.publishedAt.isAfter(latest)) {
+            latest = a.publishedAt;
+          }
+        }
+      }
+      return latest;
+    }
+
     final db = await database;
     final result = await db.rawQuery(
       'SELECT MAX(published_at) as latest FROM articles WHERE is_bookmarked = 0',
@@ -278,6 +342,15 @@ class DatabaseService {
 
   /// Update the executive summary of an existing article (e.g. newly synthesized AI summary)
   Future<int> updateArticleSummary(String articleId, String summary) async {
+    if (kIsWeb) {
+      final existing = _webArticles[articleId];
+      if (existing != null) {
+        _webArticles[articleId] = existing.copyWith(summary: summary);
+        return 1;
+      }
+      return 0;
+    }
+
     try {
       final db = await database;
       return await db.update(
@@ -294,6 +367,13 @@ class DatabaseService {
 
   /// Purge articles older than retentionDays (30 days / 1 month, preserving bookmarks)
   Future<int> purgeExpired({int retentionDays = 30}) async {
+    if (kIsWeb) {
+      final cutoff = DateTime.now().subtract(Duration(days: retentionDays));
+      final before = _webArticles.length;
+      _webArticles.removeWhere((id, a) => a.publishedAt.isBefore(cutoff) && !_webBookmarks.contains(id));
+      return before - _webArticles.length;
+    }
+
     final db = await database;
     final cutoff = DateTime.now().subtract(Duration(days: retentionDays)).toIso8601String();
     final deleted = await db.delete(
@@ -309,9 +389,24 @@ class DatabaseService {
 
   /// Get total article count
   Future<int> getArticleCount() async {
+    if (kIsWeb) {
+      return _webArticles.length;
+    }
+
     final db = await database;
     final result = await db.rawQuery('SELECT COUNT(*) as cnt FROM articles');
     return Sqflite.firstIntValue(result) ?? 0;
+  }
+
+  /// Clear offline cache while preserving bookmarks
+  Future<void> clearUnbookmarkedCache() async {
+    if (kIsWeb) {
+      _webArticles.removeWhere((id, art) => !_webBookmarks.contains(id));
+      return;
+    }
+
+    final db = await database;
+    await db.delete('articles', where: 'is_bookmarked = 0');
   }
 
   // ──────────── Search History ────────────
@@ -319,6 +414,13 @@ class DatabaseService {
   /// Save a search query
   Future<void> saveSearchQuery(String query) async {
     if (query.trim().isEmpty) return;
+    if (kIsWeb) {
+      final q = query.trim().toLowerCase();
+      _webRecentSearches.remove(q);
+      _webRecentSearches.insert(0, q);
+      return;
+    }
+
     final db = await database;
     final now = DateTime.now().toIso8601String();
     await db.rawInsert('''
@@ -332,6 +434,10 @@ class DatabaseService {
 
   /// Get recent search queries (most recent first, limit 10)
   Future<List<String>> getRecentSearches({int limit = 10}) async {
+    if (kIsWeb) {
+      return List.unmodifiable(_webRecentSearches.take(limit));
+    }
+
     final db = await database;
     final rows = await db.query(
       'search_history',
@@ -344,6 +450,11 @@ class DatabaseService {
 
   /// Clear all search history
   Future<void> clearSearchHistory() async {
+    if (kIsWeb) {
+      _webRecentSearches.clear();
+      return;
+    }
+
     final db = await database;
     await db.delete('search_history');
   }
@@ -351,6 +462,11 @@ class DatabaseService {
   // ──────────── Sync Metadata ────────────
 
   Future<void> setSyncMeta(String key, String value) async {
+    if (kIsWeb) {
+      _webSyncMeta[key] = value;
+      return;
+    }
+
     final db = await database;
     await db.rawInsert(
       'INSERT OR REPLACE INTO sync_meta (key, value) VALUES (?, ?)',
@@ -359,6 +475,10 @@ class DatabaseService {
   }
 
   Future<String?> getSyncMeta(String key) async {
+    if (kIsWeb) {
+      return _webSyncMeta[key];
+    }
+
     final db = await database;
     final rows = await db.query('sync_meta', where: 'key = ?', whereArgs: [key]);
     if (rows.isEmpty) return null;
@@ -426,6 +546,14 @@ class DatabaseService {
 
   /// Close the database and optionally delete it (for testing / cleanup)
   Future<void> close({bool deleteDb = true}) async {
+    if (kIsWeb) {
+      _webArticles.clear();
+      _webBookmarks.clear();
+      _webRecentSearches.clear();
+      _webSyncMeta.clear();
+      return;
+    }
+
     final db = _db;
     if (db != null) {
       final path = db.path;
