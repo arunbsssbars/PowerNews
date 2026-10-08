@@ -408,8 +408,12 @@ cron.schedule('0 4,16 * * *', async () => {
 
 // Server bootstrap
 let server = null;
+let isStarting = false;
 
 async function startServer() {
+  if (isStarting || server) return server;
+  isStarting = true;
+
   server = app.listen(PORT, '0.0.0.0', () => {
     console.log(`[PowerNews Aggregator] Running on port ${PORT} (0.0.0.0) — health checks ready`);
     
@@ -431,10 +435,12 @@ async function startServer() {
       } catch (_) {}
     }, 30000);
   });
+
+  return server;
 }
 
-// Auto-start if run directly
-if (require.main === module) {
+// Auto-start if run directly or through root entrypoint
+if (require.main === module || (require.main && require.main.filename && require.main.filename.includes('news-aggregator.js'))) {
   startServer();
 }
 

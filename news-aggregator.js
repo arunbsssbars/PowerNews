@@ -1,2 +1,3 @@
 // Entrypoint proxy to server/index.js
-require('./server/index.js');
+const { startServer } = require('./server/index.js');
+startServer();
