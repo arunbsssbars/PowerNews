@@ -32,6 +32,7 @@ server/data/*.json
 # -----------------------------------------------------------------------------
 # Flutter & Dart
 # -----------------------------------------------------------------------------
+.firebase/
 .dart_tool/
 .flutter-plugins
 .flutter-plugins-dependencies
