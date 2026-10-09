@@ -1,11 +1,11 @@
 {
-    "name": "power_news_app",
-    "short_name": "power_news_app",
+    "name": "PowerNews - India Power & Energy Intelligence",
+    "short_name": "PowerNews",
     "start_url": ".",
     "display": "standalone",
-    "background_color": "#0175C2",
-    "theme_color": "#0175C2",
-    "description": "A new Flutter project.",
+    "background_color": "#0B1528",
+    "theme_color": "#0B1528",
+    "description": "Executive power and energy news briefings curated by AI.",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [

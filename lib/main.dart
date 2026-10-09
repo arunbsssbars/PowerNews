@@ -19,7 +19,13 @@ void main() async {
   };
 
   try {
-    await dotenv.load(fileName: ".env");
+    try {
+      await dotenv.load(fileName: "assets/client.env");
+    } catch (_) {
+      try {
+        await dotenv.load(fileName: ".env");
+      } catch (_) {}
+    }
   } catch (e) {
     debugPrint('[DotEnv] Notice: .env file could not be loaded ($e). Using default AppConfig.');
   }
