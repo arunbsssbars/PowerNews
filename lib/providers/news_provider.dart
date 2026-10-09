@@ -85,7 +85,7 @@ class NewsProvider extends ChangeNotifier {
   DateTime? _lastNewsFetchTime;
   static const Duration _newsCacheTtl = Duration(minutes: 10);
 
-  FeedSortOrder _sortOrder = FeedSortOrder.earliestFirst;
+  FeedSortOrder _sortOrder = FeedSortOrder.latestFirst;
   FeedSortOrder get sortOrder => _sortOrder;
 
   Future<void> setSortOrder(FeedSortOrder order) async {
@@ -97,9 +97,9 @@ class NewsProvider extends ChangeNotifier {
   }
 
   void toggleSortOrder() {
-    setSortOrder(_sortOrder == FeedSortOrder.earliestFirst
-        ? FeedSortOrder.latestFirst
-        : FeedSortOrder.earliestFirst);
+    setSortOrder(_sortOrder == FeedSortOrder.latestFirst
+        ? FeedSortOrder.earliestFirst
+        : FeedSortOrder.latestFirst);
   }
 
   String _normalizeTitle(String title) {

@@ -302,12 +302,12 @@ class _RegionsViewState extends State<RegionsView> {
                     scrollDirection: Axis.horizontal,
                     physics: const BouncingScrollPhysics(),
                     children: [
-                      _buildGridTab('All Grids', 'All (${allStates.length})', isDark),
-                      _buildGridTab('Northern Grid (NR)', 'NR • North (8)', isDark),
-                      _buildGridTab('Western Grid (WR)', 'WR • West (5)', isDark),
-                      _buildGridTab('Southern Grid (SR)', 'SR • South (5)', isDark),
-                      _buildGridTab('Eastern Grid (ER)', 'ER • East (4)', isDark),
-                      _buildGridTab('North-Eastern Grid (NER)', 'NER • North East (1)', isDark),
+                      _buildGridTab('All Grids', 'All States', isDark),
+                      _buildGridTab('Northern Grid (NR)', 'Northern (NR)', isDark),
+                      _buildGridTab('Western Grid (WR)', 'Western (WR)', isDark),
+                      _buildGridTab('Southern Grid (SR)', 'Southern (SR)', isDark),
+                      _buildGridTab('Eastern Grid (ER)', 'Eastern (ER)', isDark),
+                      _buildGridTab('North-Eastern Grid (NER)', 'North-Eastern (NER)', isDark),
                     ],
                   ),
                 ),
@@ -402,176 +402,164 @@ class _RegionsViewState extends State<RegionsView> {
                       final stateCount = provider.states[state] ?? 0;
                       final isCurrentState = activeState == state && activeDiscom == 'All DISCOMs';
 
-                      return Container(
-                        margin: const EdgeInsets.only(bottom: 12),
-                        decoration: BoxDecoration(
-                          color: isDark ? AppTheme.darkSurface : AppTheme.lightSurface,
-                          borderRadius: BorderRadius.circular(14),
-                          border: Border.all(
-                            color: isCurrentState
-                                ? const Color(0xFF2563EB)
-                                : (isDark ? const Color(0x14FFFFFF) : const Color(0x0F000000)),
-                            width: isCurrentState ? 1.4 : 0.8,
-                          ),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.03),
-                              blurRadius: 6,
-                              offset: const Offset(0, 2),
+                      return Opacity(
+                        opacity: (isCurrentState || stateCount > 0) ? 1.0 : 0.65,
+                        child: Container(
+                          margin: const EdgeInsets.only(bottom: 12),
+                          decoration: BoxDecoration(
+                            color: isDark ? AppTheme.darkSurface : AppTheme.lightSurface,
+                            borderRadius: BorderRadius.circular(14),
+                            border: Border.all(
+                              color: isCurrentState
+                                  ? const Color(0xFF2563EB)
+                                  : (isDark ? const Color(0x14FFFFFF) : const Color(0x0F000000)),
+                              width: isCurrentState ? 1.4 : 0.8,
                             ),
-                          ],
-                        ),
-                        child: Padding(
-                          padding: const EdgeInsets.all(12),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              // State Header Row
-                              Row(
-                                children: [
-                                  Container(
-                                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2.5),
-                                    decoration: BoxDecoration(
-                                      color: const Color(0xFF0284C7).withValues(alpha: isDark ? 0.25 : 0.12),
-                                      borderRadius: BorderRadius.circular(6),
-                                    ),
-                                    child: Text(
-                                      gridTag,
-                                      style: const TextStyle(
-                                        fontSize: 9.5,
-                                        fontWeight: FontWeight.w800,
-                                        color: Color(0xFF0284C7),
-                                      ),
-                                    ),
-                                  ),
-                                  const SizedBox(width: 8),
-                                  Expanded(
-                                    child: Text(
-                                      state,
-                                      style: TextStyle(
-                                        fontSize: 14.5,
-                                        fontWeight: FontWeight.w800,
-                                        color: isDark ? AppTheme.darkTextPrimary : AppTheme.lightTextPrimary,
-                                      ),
-                                    ),
-                                  ),
-                                  // "All State" button
-                                  InkWell(
-                                    borderRadius: BorderRadius.circular(8),
-                                    onTap: () => _selectStateOrDiscom(state, 'All DISCOMs'),
-                                    child: Container(
-                                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                                      decoration: BoxDecoration(
-                                        color: isCurrentState
-                                            ? const Color(0xFF2563EB)
-                                            : (isDark ? const Color(0xFF1E293B) : const Color(0xFFF1F5F9)),
-                                        borderRadius: BorderRadius.circular(8),
-                                      ),
-                                      child: Row(
-                                        mainAxisSize: MainAxisSize.min,
-                                        children: [
-                                          Text(
-                                            stateCount > 0 ? '$stateCount Briefs ➔' : 'View Feed ➔',
-                                            style: TextStyle(
-                                              fontSize: 11,
-                                              fontWeight: FontWeight.w700,
-                                              color: isCurrentState
-                                                  ? Colors.white
-                                                  : (isDark ? const Color(0xFF38BDF8) : const Color(0xFF2563EB)),
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-
-                              const SizedBox(height: 10),
-
-                              // DISCOMs Chips Wrap
-                              Wrap(
-                                spacing: 6,
-                                runSpacing: 6,
-                                children: discoms.map((d) {
-                                  final code = d['code'] ?? '';
-                                  final region = d['region'] ?? '';
-                                  final isThisDiscom = activeState == state && activeDiscom == code;
-                                  final discomCount = provider.discoms[code] ?? 0;
-
-                                  return InkWell(
-                                    borderRadius: BorderRadius.circular(8),
-                                    onTap: () => _selectStateOrDiscom(state, code),
-                                    child: Container(
-                                      padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 5),
-                                      decoration: BoxDecoration(
-                                        color: isThisDiscom
-                                            ? const Color(0xFF7C3AED).withValues(alpha: isDark ? 0.3 : 0.15)
-                                            : (isDark ? const Color(0xFF161E2E) : const Color(0xFFF8FAFC)),
-                                        borderRadius: BorderRadius.circular(8),
-                                        border: Border.all(
-                                          color: isThisDiscom
-                                              ? const Color(0xFF7C3AED)
-                                              : (isDark ? const Color(0xFF263040) : const Color(0xFFE2E8F0)),
-                                          width: isThisDiscom ? 1.2 : 0.8,
-                                        ),
-                                      ),
-                                      child: Row(
-                                        mainAxisSize: MainAxisSize.min,
-                                        children: [
-                                          Icon(
-                                            Icons.electric_meter_rounded,
-                                            size: 12,
-                                            color: isThisDiscom
-                                                ? const Color(0xFF8B5CF6)
-                                                : (isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B)),
-                                          ),
-                                          const SizedBox(width: 4),
-                                          Text(
-                                            code,
-                                            style: TextStyle(
-                                              fontSize: 11,
-                                              fontWeight: isThisDiscom ? FontWeight.w800 : FontWeight.w700,
-                                              color: isThisDiscom
-                                                  ? const Color(0xFF8B5CF6)
-                                                  : (isDark ? AppTheme.darkTextPrimary : AppTheme.lightTextPrimary),
-                                            ),
-                                          ),
-                                          if (region.isNotEmpty) ...[
-                                            const SizedBox(width: 3),
-                                            Text(
-                                              '($region)',
-                                              style: TextStyle(
-                                                fontSize: 9.5,
-                                                color: isDark ? const Color(0xFF64748B) : const Color(0xFF94A3B8),
-                                              ),
-                                            ),
-                                          ],
-                                          if (discomCount > 0) ...[
-                                            const SizedBox(width: 5),
-                                            Container(
-                                              padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
-                                              decoration: BoxDecoration(
-                                                color: const Color(0xFF7C3AED).withValues(alpha: 0.2),
-                                                borderRadius: BorderRadius.circular(4),
-                                              ),
-                                              child: Text(
-                                                '$discomCount',
-                                                style: const TextStyle(
-                                                  fontSize: 9,
-                                                  fontWeight: FontWeight.w800,
-                                                  color: Color(0xFF8B5CF6),
-                                                ),
-                                              ),
-                                            ),
-                                          ],
-                                        ],
-                                      ),
-                                    ),
-                                  );
-                                }).toList(),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.03),
+                                blurRadius: 6,
+                                offset: const Offset(0, 2),
                               ),
                             ],
+                          ),
+                          child: Padding(
+                            padding: const EdgeInsets.all(12),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                // State Header Row
+                                Row(
+                                  children: [
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2.5),
+                                      decoration: BoxDecoration(
+                                        color: const Color(0xFF0284C7).withValues(alpha: isDark ? 0.25 : 0.12),
+                                        borderRadius: BorderRadius.circular(6),
+                                      ),
+                                      child: Text(
+                                        gridTag,
+                                        style: const TextStyle(
+                                          fontSize: 9.5,
+                                          fontWeight: FontWeight.w800,
+                                          color: Color(0xFF0284C7),
+                                        ),
+                                      ),
+                                    ),
+                                    const SizedBox(width: 8),
+                                    Expanded(
+                                      child: Text(
+                                        state,
+                                        style: TextStyle(
+                                          fontSize: 14.5,
+                                          fontWeight: FontWeight.w800,
+                                          color: isDark ? AppTheme.darkTextPrimary : AppTheme.lightTextPrimary,
+                                        ),
+                                      ),
+                                    ),
+                                    // "All State" button
+                                    InkWell(
+                                      borderRadius: BorderRadius.circular(8),
+                                      onTap: () => _selectStateOrDiscom(state, 'All DISCOMs'),
+                                      child: Container(
+                                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                        decoration: BoxDecoration(
+                                          color: isCurrentState
+                                              ? const Color(0xFF2563EB)
+                                              : (isDark ? const Color(0xFF1E293B) : const Color(0xFFF1F5F9)),
+                                          borderRadius: BorderRadius.circular(8),
+                                        ),
+                                        child: Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            Text(
+                                              'View Feed ➔',
+                                              style: TextStyle(
+                                                fontSize: 11,
+                                                fontWeight: FontWeight.w700,
+                                                color: isCurrentState
+                                                    ? Colors.white
+                                                    : (isDark ? const Color(0xFF38BDF8) : const Color(0xFF2563EB)),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+
+                                const SizedBox(height: 10),
+
+                                // DISCOMs Chips Wrap
+                                Wrap(
+                                  spacing: 6,
+                                  runSpacing: 6,
+                                  children: discoms.map((d) {
+                                    final code = d['code'] ?? '';
+                                    final region = d['region'] ?? '';
+                                    final isThisDiscom = activeState == state && activeDiscom == code;
+                                    final discomCount = provider.discoms[code] ?? 0;
+
+                                    return InkWell(
+                                      borderRadius: BorderRadius.circular(8),
+                                      onTap: () => _selectStateOrDiscom(state, code),
+                                      child: Opacity(
+                                        opacity: isThisDiscom ? 1.0 : (discomCount > 0 ? 1.0 : 0.55),
+                                        child: Container(
+                                          padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 5),
+                                          decoration: BoxDecoration(
+                                            color: isThisDiscom
+                                                ? const Color(0xFF7C3AED).withValues(alpha: isDark ? 0.3 : 0.15)
+                                                : (isDark ? const Color(0xFF161E2E) : const Color(0xFFF8FAFC)),
+                                            borderRadius: BorderRadius.circular(8),
+                                            border: Border.all(
+                                              color: isThisDiscom
+                                                  ? const Color(0xFF7C3AED)
+                                                  : (isDark ? const Color(0xFF263040) : const Color(0xFFE2E8F0)),
+                                              width: isThisDiscom ? 1.2 : 0.8,
+                                            ),
+                                          ),
+                                          child: Row(
+                                            mainAxisSize: MainAxisSize.min,
+                                            children: [
+                                              Icon(
+                                                Icons.electric_meter_rounded,
+                                                size: 12,
+                                                color: isThisDiscom
+                                                    ? const Color(0xFF8B5CF6)
+                                                    : (isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B)),
+                                              ),
+                                              const SizedBox(width: 4),
+                                              Text(
+                                                code,
+                                                style: TextStyle(
+                                                  fontSize: 11,
+                                                  fontWeight: isThisDiscom ? FontWeight.w800 : FontWeight.w700,
+                                                  color: isThisDiscom
+                                                      ? const Color(0xFF8B5CF6)
+                                                      : (isDark ? AppTheme.darkTextPrimary : AppTheme.lightTextPrimary),
+                                                ),
+                                              ),
+                                              if (region.isNotEmpty) ...[
+                                                const SizedBox(width: 3),
+                                                Text(
+                                                  '($region)',
+                                                  style: TextStyle(
+                                                    fontSize: 9.5,
+                                                    color: isDark ? const Color(0xFF64748B) : const Color(0xFF94A3B8),
+                                                  ),
+                                                ),
+                                              ],
+                                            ],
+                                          ),
+                                        ),
+                                      ),
+                                    );
+                                  }).toList(),
+                                ),
+                              ],
+                            ),
                           ),
                         ),
                       );

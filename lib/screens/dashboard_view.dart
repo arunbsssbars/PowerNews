@@ -393,6 +393,7 @@ class _DashboardViewState extends State<DashboardView> {
                   final int count = (s['count'] as int?) ?? 0;
                   final double cardWidth = (screenWidth - 28) / 2.25;
 
+                  final bool hasArticles = count > 0;
                   return Container(
                     width: cardWidth,
                     margin: const EdgeInsets.only(right: 8),
@@ -401,85 +402,106 @@ class _DashboardViewState extends State<DashboardView> {
                       child: InkWell(
                         borderRadius: BorderRadius.circular(10),
                         onTap: () {
+                          if (!hasArticles) {
+                            ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                behavior: SnackBarBehavior.floating,
+                                duration: const Duration(seconds: 3),
+                                backgroundColor: isDark ? const Color(0xFF1E293B) : const Color(0xFF0F172A),
+                                content: Row(
+                                  children: [
+                                    const Icon(Icons.info_outline_rounded, color: Color(0xFF38BDF8), size: 18),
+                                    const SizedBox(width: 8),
+                                    Expanded(
+                                      child: Text(
+                                        'No stories currently available for ${s['title']}. Fresh stories are monitored hourly.',
+                                        style: const TextStyle(fontSize: 12.5, color: Colors.white),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                action: SnackBarAction(
+                                  label: 'View Feed',
+                                  textColor: const Color(0xFF38BDF8),
+                                  onPressed: () {
+                                    provider.setCategory(s['category'] as String);
+                                    widget.onNavigateTab(0);
+                                  },
+                                ),
+                              ),
+                            );
+                            return;
+                          }
                           provider.setCategory(s['category'] as String);
                           widget.onNavigateTab(0);
                         },
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6.5),
-                          decoration: BoxDecoration(
-                            color: isDark ? const Color(0xFF161B22) : Colors.white,
-                            borderRadius: BorderRadius.circular(10),
-                            border: Border.all(
-                              color: isDark ? const Color(0xFF263040) : const Color(0xFFE2E8F0),
-                              width: 1,
-                            ),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.03),
-                                blurRadius: 4,
-                                offset: const Offset(0, 1),
+                        child: Opacity(
+                          opacity: hasArticles ? 1.0 : 0.45,
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6.5),
+                            decoration: BoxDecoration(
+                              color: isDark ? const Color(0xFF161B22) : Colors.white,
+                              borderRadius: BorderRadius.circular(10),
+                              border: Border.all(
+                                color: hasArticles
+                                    ? (isDark ? const Color(0xFF263040) : const Color(0xFFE2E8F0))
+                                    : (isDark ? const Color(0x0DFFFFFF) : const Color(0x0A000000)),
+                                width: 1,
                               ),
-                            ],
-                          ),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Row(
-                                children: [
-                                  Container(
-                                    padding: const EdgeInsets.all(3.5),
-                                    decoration: BoxDecoration(
-                                      color: color.withValues(alpha: isDark ? 0.22 : 0.12),
-                                      borderRadius: BorderRadius.circular(5),
+                              boxShadow: hasArticles
+                                  ? [
+                                      BoxShadow(
+                                        color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.03),
+                                        blurRadius: 4,
+                                        offset: const Offset(0, 1),
+                                      ),
+                                    ]
+                                  : [],
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Row(
+                                  children: [
+                                    Container(
+                                      padding: const EdgeInsets.all(3.5),
+                                      decoration: BoxDecoration(
+                                        color: color.withValues(alpha: isDark ? 0.22 : 0.12),
+                                        borderRadius: BorderRadius.circular(5),
+                                      ),
+                                      child: Icon(s['icon'] as IconData, color: color, size: 13),
                                     ),
-                                    child: Icon(s['icon'] as IconData, color: color, size: 13),
-                                  ),
-                                  const SizedBox(width: 5),
-                                  Expanded(
-                                    child: Text(
-                                      s['title'] as String,
-                                      overflow: TextOverflow.ellipsis,
-                                      style: const TextStyle(fontSize: 12.5, fontWeight: FontWeight.w800),
-                                    ),
-                                  ),
-                                  Container(
-                                    padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1.5),
-                                    decoration: BoxDecoration(
-                                      color: count > 0
-                                          ? color.withValues(alpha: isDark ? 0.22 : 0.12)
-                                          : (isDark ? const Color(0xFF1E293B) : const Color(0xFFF1F5F9)),
-                                      borderRadius: BorderRadius.circular(4),
-                                      border: count > 0
-                                          ? null
-                                          : Border.all(
-                                              color: isDark ? const Color(0xFF334155) : const Color(0xFFCBD5E1),
-                                            ),
-                                    ),
-                                    child: Text(
-                                      '$count',
-                                      style: TextStyle(
-                                        fontSize: 10,
-                                        fontWeight: FontWeight.w800,
-                                        color: count > 0
-                                            ? color
-                                            : (isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B)),
+                                    const SizedBox(width: 5),
+                                    Expanded(
+                                      child: Text(
+                                        s['title'] as String,
+                                        overflow: TextOverflow.ellipsis,
+                                        style: const TextStyle(fontSize: 12.5, fontWeight: FontWeight.w800),
                                       ),
                                     ),
-                                  ),
-                                ],
-                              ),
-                              Text(
-                                s['subtitle'] as String,
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                style: TextStyle(
-                                  fontSize: 9.5,
-                                  fontWeight: FontWeight.w500,
-                                  color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                                    Icon(
+                                      Icons.chevron_right_rounded,
+                                      size: 14,
+                                      color: hasArticles
+                                          ? (isDark ? const Color(0xFF64748B) : const Color(0xFF94A3B8))
+                                          : (isDark ? const Color(0xFF334155) : const Color(0xFFCBD5E1)),
+                                    ),
+                                  ],
                                 ),
-                              ),
-                            ],
+                                Text(
+                                  s['subtitle'] as String,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: TextStyle(
+                                    fontSize: 9.5,
+                                    fontWeight: FontWeight.w500,
+                                    color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
                         ),
                       ),
@@ -561,15 +583,26 @@ class _DashboardViewState extends State<DashboardView> {
                       widget.onNavigateTab(0);
                     },
                     child: Opacity(
-                      opacity: count == 0 ? 0.78 : 1.0,
+                      opacity: count > 0 ? 1.0 : 0.45,
                       child: Container(
                         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6.5),
                         decoration: BoxDecoration(
                           color: isDark ? const Color(0xFF161B22) : Colors.white,
                           borderRadius: BorderRadius.circular(10),
                           border: Border.all(
-                            color: isDark ? const Color(0xFF263040) : const Color(0xFFE2E8F0),
+                            color: count > 0
+                                ? (isDark ? const Color(0xFF263040) : const Color(0xFFE2E8F0))
+                                : (isDark ? const Color(0x0DFFFFFF) : const Color(0x0A000000)),
                           ),
+                          boxShadow: count > 0
+                              ? [
+                                  BoxShadow(
+                                    color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.03),
+                                    blurRadius: 4,
+                                    offset: const Offset(0, 1),
+                                  ),
+                                ]
+                              : [],
                         ),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -593,29 +626,12 @@ class _DashboardViewState extends State<DashboardView> {
                                     style: const TextStyle(fontSize: 12.5, fontWeight: FontWeight.w800),
                                   ),
                                 ),
-                                Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1.5),
-                                  decoration: BoxDecoration(
-                                    color: count > 0
-                                        ? color.withValues(alpha: isDark ? 0.22 : 0.12)
-                                        : (isDark ? const Color(0xFF1E293B) : const Color(0xFFF1F5F9)),
-                                    borderRadius: BorderRadius.circular(4),
-                                    border: count > 0
-                                        ? null
-                                        : Border.all(
-                                            color: isDark ? const Color(0xFF334155) : const Color(0xFFCBD5E1),
-                                          ),
-                                  ),
-                                  child: Text(
-                                    '$count',
-                                    style: TextStyle(
-                                      fontSize: 10,
-                                      fontWeight: FontWeight.w800,
-                                      color: count > 0
-                                          ? color
-                                          : (isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B)),
-                                    ),
-                                  ),
+                                Icon(
+                                  Icons.chevron_right_rounded,
+                                  size: 14,
+                                  color: count > 0
+                                      ? (isDark ? const Color(0xFF64748B) : const Color(0xFF94A3B8))
+                                      : (isDark ? const Color(0xFF334155) : const Color(0xFFCBD5E1)),
                                 ),
                               ],
                             ),
@@ -710,15 +726,26 @@ class _DashboardViewState extends State<DashboardView> {
                       widget.onNavigateTab(0);
                     },
                     child: Opacity(
-                      opacity: count == 0 ? 0.78 : 1.0,
+                      opacity: count > 0 ? 1.0 : 0.45,
                       child: Container(
                         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6.5),
                         decoration: BoxDecoration(
                           color: isDark ? const Color(0xFF161B22) : Colors.white,
                           borderRadius: BorderRadius.circular(10),
                           border: Border.all(
-                            color: isDark ? const Color(0xFF263040) : const Color(0xFFE2E8F0),
+                            color: count > 0
+                                ? (isDark ? const Color(0xFF263040) : const Color(0xFFE2E8F0))
+                                : (isDark ? const Color(0x0DFFFFFF) : const Color(0x0A000000)),
                           ),
+                          boxShadow: count > 0
+                              ? [
+                                  BoxShadow(
+                                    color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.03),
+                                    blurRadius: 4,
+                                    offset: const Offset(0, 1),
+                                  ),
+                                ]
+                              : [],
                         ),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -742,29 +769,12 @@ class _DashboardViewState extends State<DashboardView> {
                                     style: const TextStyle(fontSize: 12.5, fontWeight: FontWeight.w800),
                                   ),
                                 ),
-                                Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1.5),
-                                  decoration: BoxDecoration(
-                                    color: count > 0
-                                        ? color.withValues(alpha: isDark ? 0.22 : 0.12)
-                                        : (isDark ? const Color(0xFF1E293B) : const Color(0xFFF1F5F9)),
-                                    borderRadius: BorderRadius.circular(4),
-                                    border: count > 0
-                                        ? null
-                                        : Border.all(
-                                            color: isDark ? const Color(0xFF334155) : const Color(0xFFCBD5E1),
-                                          ),
-                                  ),
-                                  child: Text(
-                                    '$count',
-                                    style: TextStyle(
-                                      fontSize: 10,
-                                      fontWeight: FontWeight.w800,
-                                      color: count > 0
-                                          ? color
-                                          : (isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B)),
-                                    ),
-                                  ),
+                                Icon(
+                                  Icons.chevron_right_rounded,
+                                  size: 14,
+                                  color: count > 0
+                                      ? (isDark ? const Color(0xFF64748B) : const Color(0xFF94A3B8))
+                                      : (isDark ? const Color(0xFF334155) : const Color(0xFFCBD5E1)),
                                 ),
                               ],
                             ),

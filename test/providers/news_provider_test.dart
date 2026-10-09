@@ -114,14 +114,14 @@ void main() {
       expect(provider.notificationArticles, isEmpty);
     });
 
-    test('sortOrder defaults to earliestFirst and toggles properly', () {
-      expect(provider.sortOrder, FeedSortOrder.earliestFirst);
-
-      provider.toggleSortOrder();
+    test('sortOrder defaults to latestFirst and toggles properly', () {
       expect(provider.sortOrder, FeedSortOrder.latestFirst);
 
       provider.toggleSortOrder();
       expect(provider.sortOrder, FeedSortOrder.earliestFirst);
+
+      provider.toggleSortOrder();
+      expect(provider.sortOrder, FeedSortOrder.latestFirst);
     });
   });
 }

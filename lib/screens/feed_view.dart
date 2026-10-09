@@ -413,6 +413,32 @@ class _FeedViewState extends State<FeedView> {
   }
 
   Widget _buildEmptyState(BuildContext context, NewsProvider provider, bool isDark) {
+    String title = 'No Executive Briefings Found';
+    String subtitle = 'Feed is refreshing or no briefings available in retention period.';
+
+    if (provider.isFiltered) {
+      if (provider.searchQuery.trim().isNotEmpty) {
+        title = 'No Stories for "${provider.searchQuery.trim()}"';
+        subtitle = 'Try refining your search terms or resetting filters to browse all sector intelligence.';
+      } else if (provider.selectedCategory != 'All' && provider.selectedCategory.isNotEmpty) {
+        final catName = provider.selectedCategory[0].toUpperCase() + provider.selectedCategory.substring(1);
+        title = 'No Articles in "$catName"';
+        subtitle = 'No fresh stories indexed for $catName in this news cycle. PowerNews updates continuously throughout the day.';
+      } else if (provider.selectedPlayer != 'All Players' && provider.selectedPlayer != 'All') {
+        title = 'No Recent News for "${provider.selectedPlayer}"';
+        subtitle = 'No recent updates detected for ${provider.selectedPlayer} in the current news cycle. Check back soon or reset filters.';
+      } else if (provider.selectedDiscom != 'All DISCOMs') {
+        title = 'No Updates for "${provider.selectedDiscom}"';
+        subtitle = 'No distribution updates currently indexed for ${provider.selectedDiscom}. Tap below to browse all power news.';
+      } else if (provider.selectedState != 'All States') {
+        title = 'No Stories for "${provider.selectedState}"';
+        subtitle = 'No state grid updates currently indexed for ${provider.selectedState}. Tap below to view national news.';
+      } else {
+        title = 'No Articles Match Filter';
+        subtitle = 'No stories match the active filter criteria. Tap below to reset and view all sector intelligence.';
+      }
+    }
+
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(28),
@@ -427,14 +453,15 @@ class _FeedViewState extends State<FeedView> {
                 shape: BoxShape.circle,
               ),
               child: Icon(
-                Icons.auto_stories_outlined,
+                provider.isFiltered ? Icons.filter_alt_off_rounded : Icons.auto_stories_outlined,
                 size: 30,
                 color: isDark ? AppTheme.darkPrimary : AppTheme.lightPrimary,
               ),
             ),
             const SizedBox(height: 18),
             Text(
-              'No Executive Briefings Found',
+              title,
+              textAlign: TextAlign.center,
               style: TextStyle(
                 fontSize: 17,
                 fontWeight: FontWeight.w800,
@@ -443,9 +470,7 @@ class _FeedViewState extends State<FeedView> {
             ),
             const SizedBox(height: 8),
             Text(
-              provider.isFiltered
-                  ? 'No stories match the active filter. Tap below to reset and view all sector intelligence.'
-                  : 'Feed is refreshing or no briefings available in retention period.',
+              subtitle,
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontSize: 13.5,
@@ -460,7 +485,7 @@ class _FeedViewState extends State<FeedView> {
                   provider.resetFiltersInMemory();
                 },
                 icon: const Icon(Icons.refresh_rounded, size: 16),
-                label: const Text('Reset All Filters'),
+                label: const Text('Reset to All News'),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: isDark ? AppTheme.darkPrimary : AppTheme.lightPrimary,
                   foregroundColor: Colors.white,
