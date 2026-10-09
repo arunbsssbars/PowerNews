@@ -46,3 +46,4 @@
 # Don't warn on missing optional references
 -dontwarn javax.annotation.**
 -dontwarn kotlin.Unit
+-dontwarn com.google.android.play.core.**
