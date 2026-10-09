@@ -173,7 +173,23 @@ class AuthService extends ChangeNotifier {
     notifyListeners();
 
     try {
-      final account = await _googleSignIn.signIn();
+      GoogleSignInAccount? account;
+      try {
+        account = await _googleSignIn.signIn();
+      } catch (primaryErr) {
+        final errStr = primaryErr.toString();
+        if (!kIsWeb && defaultTargetPlatform == TargetPlatform.android &&
+            (errStr.contains('10') || errStr.contains('DEVELOPER_ERROR') || errStr.contains('BadAuthentication'))) {
+          debugPrint('[AuthService] Code 10 / DEVELOPER_ERROR encountered with serverClientId. Retrying with client-only fallback...');
+          final fallbackSignIn = GoogleSignIn(
+            scopes: const ['email', 'profile'],
+          );
+          account = await fallbackSignIn.signIn();
+        } else {
+          rethrow;
+        }
+      }
+
       if (account == null) {
         _isLoading = false;
         notifyListeners();
@@ -219,7 +235,7 @@ class AuthService extends ChangeNotifier {
       } else if (errStr.contains('network') || errStr.contains('7')) {
         _errorMessage = 'Network connection failed during Google authentication.';
       } else if (kIsWeb && (errStr.contains('origin') || errStr.contains('idpiframe_initialization_failed'))) {
-        _errorMessage = 'Web domain not authorized in Google Cloud Console. Add https://powernewsapp-backend.onrender.com to Authorized JavaScript Origins.';
+        _errorMessage = 'Web domain not authorized in Google Cloud Console. Add https://powernews-app-2026.web.app to Authorized JavaScript Origins.';
       } else {
         _errorMessage = 'Google Sign-In failed: $errStr';
       }
