@@ -1,0 +1,30 @@
+name: Keep Render Backend Awake
+
+on:
+  schedule:
+    # Runs every 14 minutes (Render free tier spins down after 15 minutes of inactivity)
+    - cron: '*/14 * * * *'
+  workflow_dispatch:
+
+concurrency:
+  group: keep-render-awake
+  cancel-in-progress: true
+
+jobs:
+  ping-health:
+    name: Ping Render Health Endpoint
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Ping Health Endpoint
+        run: |
+          echo "Pinging PowerNews Render backend..."
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" --max-time 30 "https://powernewsapp-backend.onrender.com/api/health")
+          echo "Render Health HTTP Status: $STATUS"
+          if [ "$STATUS" -eq 200 ]; then
+            echo "Success: Render backend is awake and healthy."
+          else
+            echo "Warning: Render backend returned HTTP $STATUS."
+            exit 1
+          fi
