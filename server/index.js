@@ -135,13 +135,8 @@ const corsOptions = {
       return callback(null, true);
     }
 
-    // 3. Allow Firebase hosting & Render domains
-    if (
-      defaultAllowedOrigins.includes(lowerOrigin) ||
-      /\.web\.app$/.test(lowerOrigin) ||
-      /\.firebaseapp\.com$/.test(lowerOrigin) ||
-      /\.onrender\.com$/.test(lowerOrigin)
-    ) {
+    // 3. Allow verified PowerNews hosting & Render domains
+    if (defaultAllowedOrigins.includes(lowerOrigin)) {
       return callback(null, true);
     }
 

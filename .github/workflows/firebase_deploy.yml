@@ -1,0 +1,77 @@
+name: Firebase Web Hosting Deploy
+
+on:
+  push:
+    branches: [ main, master ]
+    paths:
+      - 'lib/**'
+      - 'web/**'
+      - 'assets/**'
+      - 'pubspec.yaml'
+      - 'firebase.json'
+      - '.github/workflows/firebase_deploy.yml'
+  workflow_dispatch:
+
+concurrency:
+  group: firebase-deploy-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-and-deploy:
+    name: Build Web & Deploy Hosting
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+          cache: true
+
+      - name: Install Dependencies
+        run: flutter pub get
+
+      - name: Build Web Release
+        run: flutter build web --release --base-href /
+
+      - name: Sync to public/web
+        run: |
+          mkdir -p public/web
+          cp -r build/web/* public/web/
+
+      - name: Verify No Leaked Secrets in Public Assets
+        run: |
+          if [ -f public/web/assets/.env ]; then
+            echo "ERROR: Leaked root .env found in public web assets!"
+            exit 1
+          fi
+          echo "Verified: No private server .env in public assets."
+
+      - name: Install Firebase CLI
+        run: npm install -g firebase-tools
+
+      - name: Deploy to Firebase Hosting
+        if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
+        run: |
+          if [ -n "${{ secrets.FIREBASE_TOKEN }}" ]; then
+            echo "Deploying to Firebase Hosting via FIREBASE_TOKEN..."
+            firebase deploy --only hosting --token "${{ secrets.FIREBASE_TOKEN }}" --non-interactive
+          elif [ -n "${{ secrets.FIREBASE_SERVICE_ACCOUNT }}" ]; then
+            echo "Deploying to Firebase Hosting via Service Account..."
+            echo "${{ secrets.FIREBASE_SERVICE_ACCOUNT }}" > gcp-key.json
+            export GOOGLE_APPLICATION_CREDENTIALS=gcp-key.json
+            firebase deploy --only hosting --non-interactive
+            rm -f gcp-key.json
+          else
+            echo "NOTICE: FIREBASE_TOKEN or FIREBASE_SERVICE_ACCOUNT secret is not configured in GitHub Secrets."
+            echo "Web build validated successfully in dry-run mode."
+          fi

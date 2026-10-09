@@ -43,7 +43,9 @@ const globalLimiter = rateLimit({
   message: { error: 'Too many requests from this IP, please try again after 15 minutes' }
 });
 
+let isSyncInProgress = false;
 let lastFeedSyncTime = 0;
+const SYNC_COOLDOWN_MS = 5 * 60 * 1000; // 5-minute debounce to prevent scraper flood
 
 const qnaLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
@@ -113,6 +115,57 @@ async function requireApiKey(req, res, next) {
   } catch (error) {
     console.error('[Admin Auth] Token verification error:', error.message);
     return res.status(401).json({ error: 'Unauthorized: Invalid token', details: error.message });
+  }
+}
+
+// Strict Admin-Only Role Guard (requires verified Firebase ID Token with admin email)
+async function requireAdminRole(req, res, next) {
+  const authHeader = req.headers['authorization'] || req.headers['x-api-key'] || req.query.key;
+  if (!authHeader) {
+    return res.status(401).json({ error: 'Admin authorization required' });
+  }
+
+  // Allow secret in local non-production development for test automation
+  const expectedSecret = process.env.APP_CLIENT_SECRET;
+  if (process.env.NODE_ENV !== 'production' && (authHeader === expectedSecret || authHeader === `Bearer ${expectedSecret}`)) {
+    return next();
+  }
+
+  const token = authHeader.replace(/^Bearer\s+/, '');
+  try {
+    const { getApps, initializeApp, cert } = require('firebase-admin/app');
+    const { getAuth } = require('firebase-admin/auth');
+    if (getApps().length === 0) {
+      let serviceAccount = null;
+      if (process.env.FIREBASE_SERVICE_ACCOUNT) {
+        try { serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT); }
+        catch (_) {
+          try { serviceAccount = JSON.parse(Buffer.from(process.env.FIREBASE_SERVICE_ACCOUNT, 'base64').toString('utf8')); }
+          catch (_) {}
+        }
+      }
+      if (!serviceAccount) {
+        const fs = require('fs');
+        const path = require('path');
+        const localKeyPath = path.join(__dirname, '..', 'config', 'serviceAccountKey.json');
+        if (fs.existsSync(localKeyPath)) serviceAccount = JSON.parse(fs.readFileSync(localKeyPath, 'utf8'));
+      }
+      if (serviceAccount) {
+        initializeApp({ credential: cert(serviceAccount) });
+      } else {
+        initializeApp({ projectId: 'powernews-app-2026' });
+      }
+    }
+    const decodedToken = await getAuth().verifyIdToken(token);
+    const userEmail = (decodedToken.email || '').toLowerCase().trim();
+    if (userEmail !== 'arunbsssbars@gmail.com') {
+      console.warn(`[Admin Security] Unauthorized admin attempt by: ${userEmail}`);
+      return res.status(403).json({ error: 'Forbidden: Admin access strictly required' });
+    }
+    req.user = decodedToken;
+    return next();
+  } catch (err) {
+    return res.status(401).json({ error: 'Unauthorized: Invalid admin credentials', details: err.message });
   }
 }
 
@@ -193,10 +246,37 @@ router.get('/memory', (req, res) => {
 });
 
 router.get('/refresh', async (req, res) => {
+  if (isSyncInProgress) {
+    return res.status(429).json({
+      success: false,
+      message: 'Feed synchronization is already in progress. Please wait for completion.',
+      busy: true,
+    });
+  }
+
+  const timeSinceLastSync = Date.now() - lastFeedSyncTime;
+  if (lastFeedSyncTime > 0 && timeSinceLastSync < SYNC_COOLDOWN_MS) {
+    const waitSec = Math.ceil((SYNC_COOLDOWN_MS - timeSinceLastSync) / 1000);
+    return res.json({
+      success: true,
+      message: `Feeds are already fresh (synced ${Math.round(timeSinceLastSync / 1000)}s ago). Next sync permitted in ${waitSec}s.`,
+      count: articleStore.getArticles().length,
+      cooldown: true,
+    });
+  }
+
+  isSyncInProgress = true;
   lastFeedSyncTime = Date.now();
-  const freshArticles = await syncFeeds(articleStore.getArticles(), articleStore);
-  articleStore.setArticles(freshArticles);
-  res.json({ success: true, count: freshArticles.length });
+  try {
+    const freshArticles = await syncFeeds(articleStore.getArticles(), articleStore);
+    articleStore.setArticles(freshArticles);
+    res.json({ success: true, count: freshArticles.length });
+  } catch (err) {
+    console.error('[FeedSync Error]', err.message);
+    res.status(500).json({ success: false, error: err.message });
+  } finally {
+    isSyncInProgress = false;
+  }
 });
 
 // ----------------------------------------------------------------------------
@@ -577,8 +657,10 @@ router.get('/sources', (req, res) => {
 });
 
 // ----------------------------------------------------------------------------
-// Intelligence Features: Keywords Automation, ML Data, Status & Digest
+// Intelligence Features: Keywords Automation, ML Data, Status & Digest (Admin Only)
 // ----------------------------------------------------------------------------
+router.use('/admin', requireAdminRole);
+
 router.get('/admin/keywords', (req, res) => {
   res.json({
     success: true,
@@ -747,11 +829,14 @@ router.post('/ask-gemini', qnaLimiter, async (req, res) => {
   if (!question || typeof question !== 'string' || question.trim().length < 3) {
     return res.status(400).json({ success: false, message: 'A valid question is required.' });
   }
-  const result = await askGeminiQnA(question, persona, articleStore.getArticles());
+  if (question.trim().length > 500) {
+    return res.status(400).json({ success: false, message: 'Question exceeds maximum allowed length of 500 characters.' });
+  }
+  const result = await askGeminiQnA(question.trim(), persona, articleStore.getArticles());
   return res.json(result);
 });
 
-router.get('/summarize-all', async (req, res) => {
+router.get('/summarize-all', requireAdminRole, async (req, res) => {
   if (!ai) {
     return res.status(503).json({ success: false, message: 'Gemini AI not initialized. Check GEMINI_API_KEY in .env' });
   }
@@ -780,7 +865,7 @@ router.post('/feedbacks', async (req, res) => {
   }
 });
 
-router.get('/feedbacks', async (req, res) => {
+router.get('/feedbacks', requireAdminRole, async (req, res) => {
   try {
     const feedbacks = await getFeedbacks();
     res.json(feedbacks);
