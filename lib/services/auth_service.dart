@@ -86,7 +86,7 @@ class AuthService extends ChangeNotifier {
             ? AppConfig.googleIosClientId
             : null),
     serverClientId: kIsWeb ? null : AppConfig.googleWebClientId,
-    scopes: const ['email', 'profile'],
+    scopes: const ['email'],
   );
 
   AppUser? _currentUser;
@@ -182,7 +182,7 @@ class AuthService extends ChangeNotifier {
             (errStr.contains('10') || errStr.contains('DEVELOPER_ERROR') || errStr.contains('BadAuthentication'))) {
           debugPrint('[AuthService] Code 10 / DEVELOPER_ERROR encountered with serverClientId. Retrying with client-only fallback...');
           final fallbackSignIn = GoogleSignIn(
-            scopes: const ['email', 'profile'],
+            scopes: const ['email'],
           );
           account = await fallbackSignIn.signIn();
         } else {
@@ -231,7 +231,7 @@ class AuthService extends ChangeNotifier {
       } else if (errStr.contains('GIDClientID') || errStr.contains('No active configuration')) {
         _errorMessage = 'Google OAuth configuration missing on iOS. Please verify GIDClientID in Info.plist.';
       } else if (errStr.contains('10') || errStr.contains('DEVELOPER_ERROR') || errStr.contains('BadAuthentication')) {
-        _errorMessage = 'Google Services OAuth configuration mismatch. Please check SHA-1 in Firebase Console or use Email Sign-In.';
+        _errorMessage = 'Google Services OAuth mismatch (Code 10: DEVELOPER_ERROR). Please ensure Support Email & OAuth consent screen are configured, or use Email Sign-In.';
       } else if (errStr.contains('network') || errStr.contains('7')) {
         _errorMessage = 'Network connection failed during Google authentication.';
       } else if (kIsWeb && (errStr.contains('origin') || errStr.contains('idpiframe_initialization_failed'))) {
