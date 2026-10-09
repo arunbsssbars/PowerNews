@@ -109,6 +109,23 @@ class NewsProvider extends ChangeNotifier {
         .replaceAll(RegExp(r'[^a-z0-9]'), '');
   }
 
+  List<NewsArticle> _deduplicateArticles(Iterable<NewsArticle> incoming, {Iterable<NewsArticle>? against}) {
+    final seenIds = against?.map((a) => a.id).toSet() ?? <String>{};
+    final seenTitles = against?.map((a) => _normalizeTitle(a.title)).toSet() ?? <String>{};
+    final deduplicated = <NewsArticle>[];
+    for (final a in incoming) {
+      final norm = _normalizeTitle(a.title);
+      if (!seenIds.contains(a.id) && !seenTitles.contains(norm)) {
+        seenIds.add(a.id);
+        seenTitles.add(norm);
+        deduplicated.add(a);
+      }
+    }
+    return deduplicated;
+  }
+
+  int _sumMapValues(Map<String, int> map) => map.values.fold(0, (sum, count) => sum + count);
+
   // Getters
   int get currentNavIndex => _currentNavIndex;
   List<NewsArticle> get articles => _articles;
@@ -128,7 +145,7 @@ class NewsProvider extends ChangeNotifier {
       maxCount = _cachedFullList.length;
     }
     if (_categories.isNotEmpty) {
-      final catSum = _categories.values.fold(0, (s, c) => s + c);
+      final catSum = _sumMapValues(_categories);
       if (catSum > maxCount) {
         maxCount = catSum;
       }
@@ -141,7 +158,7 @@ class NewsProvider extends ChangeNotifier {
 
   int get totalStateNewsCount {
     if (_states.isNotEmpty) {
-      final total = _states.values.fold(0, (sum, count) => sum + count);
+      final total = _sumMapValues(_states);
       if (total > 0) return total;
     }
     return totalNewsCount;
@@ -149,7 +166,7 @@ class NewsProvider extends ChangeNotifier {
 
   int get totalDiscomNewsCount {
     if (_discoms.isNotEmpty) {
-      final total = _discoms.values.fold(0, (sum, count) => sum + count);
+      final total = _sumMapValues(_discoms);
       if (total > 0) return total;
     }
     return totalNewsCount;
@@ -157,7 +174,7 @@ class NewsProvider extends ChangeNotifier {
 
   int get totalPlayerNewsCount {
     if (_players.isNotEmpty) {
-      final total = _players.values.fold(0, (sum, count) => sum + count);
+      final total = _sumMapValues(_players);
       if (total > 0) return total;
     }
     return totalNewsCount;
@@ -1152,29 +1169,9 @@ class NewsProvider extends ChangeNotifier {
         }).toList();
 
         if (isRefresh) {
-          final seenIds = <String>{};
-          final seenTitles = <String>{};
-          final deduplicated = <NewsArticle>[];
-          for (final a in filteredList) {
-            final norm = _normalizeTitle(a.title);
-            if (!seenIds.contains(a.id) && !seenTitles.contains(norm)) {
-              seenIds.add(a.id);
-              seenTitles.add(norm);
-              deduplicated.add(a);
-            }
-          }
-          _articles = deduplicated;
+          _articles = _deduplicateArticles(filteredList);
         } else {
-          final existingIds = _articles.map((a) => a.id).toSet();
-          final existingTitles = _articles.map((a) => _normalizeTitle(a.title)).toSet();
-          for (final a in filteredList) {
-            final norm = _normalizeTitle(a.title);
-            if (!existingIds.contains(a.id) && !existingTitles.contains(norm)) {
-              existingIds.add(a.id);
-              existingTitles.add(norm);
-              _articles.add(a);
-            }
-          }
+          _articles.addAll(_deduplicateArticles(filteredList, against: _articles));
         }
         _hasMore = news.length == _pageSize;
         // Strictly persist ONLY verified AI-summarized articles into local cache
@@ -1264,16 +1261,7 @@ class NewsProvider extends ChangeNotifier {
         final nextBatch = _cachedFullList.skip(startIndex).take(_pageSize).toList();
         _currentPage++;
         if (nextBatch.isNotEmpty) {
-          final existingIds = _articles.map((a) => a.id).toSet();
-          final existingTitles = _articles.map((a) => _normalizeTitle(a.title)).toSet();
-          for (final a in nextBatch) {
-            final norm = _normalizeTitle(a.title);
-            if (!existingIds.contains(a.id) && !existingTitles.contains(norm)) {
-              existingIds.add(a.id);
-              existingTitles.add(norm);
-              _articles.add(a);
-            }
-          }
+          _articles.addAll(_deduplicateArticles(nextBatch, against: _articles));
         }
         _hasMore = _cachedFullList.length > _currentPage * _pageSize;
         _isLoadingMore = false;
@@ -1305,18 +1293,7 @@ class NewsProvider extends ChangeNotifier {
       final cleanMore = moreNews.where((a) => a.summary.trim().length >= 50).toList();
       final filteredMore = _applyFiltersTo(cleanMore);
 
-      final existingIds = _articles.map((a) => a.id).toSet();
-      final existingTitles = _articles.map((a) => _normalizeTitle(a.title)).toSet();
-      final added = <NewsArticle>[];
-
-      for (final a in filteredMore) {
-        final norm = _normalizeTitle(a.title);
-        if (!existingIds.contains(a.id) && !existingTitles.contains(norm)) {
-          existingIds.add(a.id);
-          existingTitles.add(norm);
-          added.add(a);
-        }
-      }
+      final added = _deduplicateArticles(filteredMore, against: _articles);
 
       if (added.isNotEmpty) {
         _articles.addAll(added);
@@ -1326,30 +1303,14 @@ class NewsProvider extends ChangeNotifier {
       // If online batch was small/empty, check if local cache has more unshown items
       if (added.isEmpty && _cachedFullList.length > _articles.length) {
         final nextBatch = _cachedFullList.skip(_articles.length).take(_pageSize).toList();
-        for (final a in nextBatch) {
-          final norm = _normalizeTitle(a.title);
-          if (!existingIds.contains(a.id) && !existingTitles.contains(norm)) {
-            existingIds.add(a.id);
-            existingTitles.add(norm);
-            _articles.add(a);
-          }
-        }
+        _articles.addAll(_deduplicateArticles(nextBatch, against: _articles));
       }
 
       _hasMore = moreNews.length >= _pageSize || _cachedFullList.length > _articles.length;
     } catch (e) {
       if (_cachedFullList.length > _articles.length) {
-        final existingIds = _articles.map((a) => a.id).toSet();
-        final existingTitles = _articles.map((a) => _normalizeTitle(a.title)).toSet();
         final nextBatch = _cachedFullList.skip(_articles.length).take(_pageSize).toList();
-        for (final a in nextBatch) {
-          final norm = _normalizeTitle(a.title);
-          if (!existingIds.contains(a.id) && !existingTitles.contains(norm)) {
-            existingIds.add(a.id);
-            existingTitles.add(norm);
-            _articles.add(a);
-          }
-        }
+        _articles.addAll(_deduplicateArticles(nextBatch, against: _articles));
         _hasMore = _cachedFullList.length > _articles.length;
       } else {
         _noInternetOnScroll = true;

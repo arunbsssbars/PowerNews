@@ -1,3 +1,5 @@
+// ignore_for_file: avoid_print
+
 import 'dart:io';
 import 'package:aqil_core/src/aqil_code_healer.dart';
 import 'package:aqil_core/src/aqil_test_generator.dart';

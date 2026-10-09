@@ -528,130 +528,12 @@ class _DashboardViewState extends State<DashboardView> {
               ],
             ),
             const SizedBox(height: 8),
-            GridView.builder(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              itemCount: utilities.length,
-              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 2,
-                crossAxisSpacing: 8,
-                mainAxisSpacing: 8,
-                childAspectRatio: playerRatio,
-              ),
-              itemBuilder: (context, index) {
-                final u = utilities[index];
-                final color = u['color'] as Color;
-                final count = provider.players[u['name']] ?? 0;
-
-                return Material(
-                  color: Colors.transparent,
-                  child: InkWell(
-                    borderRadius: BorderRadius.circular(10),
-                    onTap: () {
-                      if (count == 0) {
-                        ScaffoldMessenger.of(context).hideCurrentSnackBar();
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            behavior: SnackBarBehavior.floating,
-                            duration: const Duration(seconds: 3),
-                            backgroundColor: isDark ? const Color(0xFF1E293B) : const Color(0xFF0F172A),
-                            content: Row(
-                              children: [
-                                const Icon(Icons.info_outline_rounded, color: Color(0xFF38BDF8), size: 18),
-                                const SizedBox(width: 8),
-                                Expanded(
-                                  child: Text(
-                                    'No recent news for ${u['name']} in the past 7 days.',
-                                    style: const TextStyle(fontSize: 12.5, color: Colors.white),
-                                  ),
-                                ),
-                              ],
-                            ),
-                            action: SnackBarAction(
-                              label: 'View Feed',
-                              textColor: const Color(0xFF38BDF8),
-                              onPressed: () {
-                                provider.setPlayerFilter(u['name'] as String);
-                                widget.onNavigateTab(0);
-                              },
-                            ),
-                          ),
-                        );
-                        return;
-                      }
-                      provider.setPlayerFilter(u['name'] as String);
-                      widget.onNavigateTab(0);
-                    },
-                    child: Opacity(
-                      opacity: count > 0 ? 1.0 : 0.45,
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6.5),
-                        decoration: BoxDecoration(
-                          color: isDark ? const Color(0xFF161B22) : Colors.white,
-                          borderRadius: BorderRadius.circular(10),
-                          border: Border.all(
-                            color: count > 0
-                                ? (isDark ? const Color(0xFF263040) : const Color(0xFFE2E8F0))
-                                : (isDark ? const Color(0x0DFFFFFF) : const Color(0x0A000000)),
-                          ),
-                          boxShadow: count > 0
-                              ? [
-                                  BoxShadow(
-                                    color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.03),
-                                    blurRadius: 4,
-                                    offset: const Offset(0, 1),
-                                  ),
-                                ]
-                              : [],
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Row(
-                              children: [
-                                Container(
-                                  padding: const EdgeInsets.all(3.5),
-                                  decoration: BoxDecoration(
-                                    color: color.withValues(alpha: isDark ? 0.22 : 0.12),
-                                    borderRadius: BorderRadius.circular(5),
-                                  ),
-                                  child: Icon(u['icon'] as IconData, color: color, size: 13),
-                                ),
-                                const SizedBox(width: 5),
-                                Expanded(
-                                  child: Text(
-                                    u['name'] as String,
-                                    overflow: TextOverflow.ellipsis,
-                                    style: const TextStyle(fontSize: 12.5, fontWeight: FontWeight.w800),
-                                  ),
-                                ),
-                                Icon(
-                                  Icons.chevron_right_rounded,
-                                  size: 14,
-                                  color: count > 0
-                                      ? (isDark ? const Color(0xFF64748B) : const Color(0xFF94A3B8))
-                                      : (isDark ? const Color(0xFF334155) : const Color(0xFFCBD5E1)),
-                                ),
-                              ],
-                            ),
-                          Text(
-                            u['desc'] as String,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: TextStyle(
-                              fontSize: 9.5,
-                              fontWeight: FontWeight.w500,
-                              color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-              );
-              },
+            _buildPlayerGrid(
+              context: context,
+              items: utilities,
+              provider: provider,
+              isDark: isDark,
+              playerRatio: playerRatio,
             ),
 
             const SizedBox(height: 16),
@@ -671,130 +553,12 @@ class _DashboardViewState extends State<DashboardView> {
               ],
             ),
             const SizedBox(height: 8),
-            GridView.builder(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              itemCount: oems.length,
-              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 2,
-                crossAxisSpacing: 8,
-                mainAxisSpacing: 8,
-                childAspectRatio: playerRatio,
-              ),
-              itemBuilder: (context, index) {
-                final o = oems[index];
-                final color = o['color'] as Color;
-                final count = provider.players[o['name']] ?? 0;
-
-                return Material(
-                  color: Colors.transparent,
-                  child: InkWell(
-                    borderRadius: BorderRadius.circular(10),
-                    onTap: () {
-                      if (count == 0) {
-                        ScaffoldMessenger.of(context).hideCurrentSnackBar();
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            behavior: SnackBarBehavior.floating,
-                            duration: const Duration(seconds: 3),
-                            backgroundColor: isDark ? const Color(0xFF1E293B) : const Color(0xFF0F172A),
-                            content: Row(
-                              children: [
-                                const Icon(Icons.info_outline_rounded, color: Color(0xFF38BDF8), size: 18),
-                                const SizedBox(width: 8),
-                                Expanded(
-                                  child: Text(
-                                    'No recent news for ${o['name']} in the past 7 days.',
-                                    style: const TextStyle(fontSize: 12.5, color: Colors.white),
-                                  ),
-                                ),
-                              ],
-                            ),
-                            action: SnackBarAction(
-                              label: 'View Feed',
-                              textColor: const Color(0xFF38BDF8),
-                              onPressed: () {
-                                provider.setPlayerFilter(o['name'] as String);
-                                widget.onNavigateTab(0);
-                              },
-                            ),
-                          ),
-                        );
-                        return;
-                      }
-                      provider.setPlayerFilter(o['name'] as String);
-                      widget.onNavigateTab(0);
-                    },
-                    child: Opacity(
-                      opacity: count > 0 ? 1.0 : 0.45,
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6.5),
-                        decoration: BoxDecoration(
-                          color: isDark ? const Color(0xFF161B22) : Colors.white,
-                          borderRadius: BorderRadius.circular(10),
-                          border: Border.all(
-                            color: count > 0
-                                ? (isDark ? const Color(0xFF263040) : const Color(0xFFE2E8F0))
-                                : (isDark ? const Color(0x0DFFFFFF) : const Color(0x0A000000)),
-                          ),
-                          boxShadow: count > 0
-                              ? [
-                                  BoxShadow(
-                                    color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.03),
-                                    blurRadius: 4,
-                                    offset: const Offset(0, 1),
-                                  ),
-                                ]
-                              : [],
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Row(
-                              children: [
-                                Container(
-                                  padding: const EdgeInsets.all(3.5),
-                                  decoration: BoxDecoration(
-                                    color: color.withValues(alpha: isDark ? 0.22 : 0.12),
-                                    borderRadius: BorderRadius.circular(5),
-                                  ),
-                                  child: Icon(o['icon'] as IconData, color: color, size: 13),
-                                ),
-                                const SizedBox(width: 5),
-                                Expanded(
-                                  child: Text(
-                                    o['name'] as String,
-                                    overflow: TextOverflow.ellipsis,
-                                    style: const TextStyle(fontSize: 12.5, fontWeight: FontWeight.w800),
-                                  ),
-                                ),
-                                Icon(
-                                  Icons.chevron_right_rounded,
-                                  size: 14,
-                                  color: count > 0
-                                      ? (isDark ? const Color(0xFF64748B) : const Color(0xFF94A3B8))
-                                      : (isDark ? const Color(0xFF334155) : const Color(0xFFCBD5E1)),
-                                ),
-                              ],
-                            ),
-                          Text(
-                            o['desc'] as String,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: TextStyle(
-                              fontSize: 9.5,
-                              fontWeight: FontWeight.w500,
-                              color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-              );
-              },
+            _buildPlayerGrid(
+              context: context,
+              items: oems,
+              provider: provider,
+              isDark: isDark,
+              playerRatio: playerRatio,
             ),
 
             const SizedBox(height: 16),
@@ -890,5 +654,140 @@ class _DashboardViewState extends State<DashboardView> {
     );
   }
 
+  Widget _buildPlayerGrid({
+    required BuildContext context,
+    required List<Map<String, dynamic>> items,
+    required NewsProvider provider,
+    required bool isDark,
+    required double playerRatio,
+  }) {
+    return GridView.builder(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      itemCount: items.length,
+      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 2,
+        crossAxisSpacing: 8,
+        mainAxisSpacing: 8,
+        childAspectRatio: playerRatio,
+      ),
+      itemBuilder: (context, index) {
+        final item = items[index];
+        final color = item['color'] as Color;
+        final name = item['name'] as String;
+        final desc = item['desc'] as String;
+        final icon = item['icon'] as IconData;
+        final count = provider.players[name] ?? 0;
 
+        return Material(
+          color: Colors.transparent,
+          child: InkWell(
+            borderRadius: BorderRadius.circular(10),
+            onTap: () {
+              if (count == 0) {
+                ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    behavior: SnackBarBehavior.floating,
+                    duration: const Duration(seconds: 3),
+                    backgroundColor: isDark ? const Color(0xFF1E293B) : const Color(0xFF0F172A),
+                    content: Row(
+                      children: [
+                        const Icon(Icons.info_outline_rounded, color: Color(0xFF38BDF8), size: 18),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            'No recent news for $name in the past 7 days.',
+                            style: const TextStyle(fontSize: 12.5, color: Colors.white),
+                          ),
+                        ),
+                      ],
+                    ),
+                    action: SnackBarAction(
+                      label: 'View Feed',
+                      textColor: const Color(0xFF38BDF8),
+                      onPressed: () {
+                        provider.setPlayerFilter(name);
+                        widget.onNavigateTab(0);
+                      },
+                    ),
+                  ),
+                );
+                return;
+              }
+              provider.setPlayerFilter(name);
+              widget.onNavigateTab(0);
+            },
+            child: Opacity(
+              opacity: count > 0 ? 1.0 : 0.45,
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6.5),
+                decoration: BoxDecoration(
+                  color: isDark ? const Color(0xFF161B22) : Colors.white,
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(
+                    color: count > 0
+                        ? (isDark ? const Color(0xFF263040) : const Color(0xFFE2E8F0))
+                        : (isDark ? const Color(0x0DFFFFFF) : const Color(0x0A000000)),
+                  ),
+                  boxShadow: count > 0
+                      ? [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.03),
+                            blurRadius: 4,
+                            offset: const Offset(0, 1),
+                          ),
+                        ]
+                      : [],
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(3.5),
+                          decoration: BoxDecoration(
+                            color: color.withValues(alpha: isDark ? 0.22 : 0.12),
+                            borderRadius: BorderRadius.circular(5),
+                          ),
+                          child: Icon(icon, color: color, size: 13),
+                        ),
+                        const SizedBox(width: 5),
+                        Expanded(
+                          child: Text(
+                            name,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(fontSize: 12.5, fontWeight: FontWeight.w800),
+                          ),
+                        ),
+                        Icon(
+                          Icons.chevron_right_rounded,
+                          size: 14,
+                          color: count > 0
+                              ? (isDark ? const Color(0xFF64748B) : const Color(0xFF94A3B8))
+                              : (isDark ? const Color(0xFF334155) : const Color(0xFFCBD5E1)),
+                        ),
+                      ],
+                    ),
+                    Text(
+                      desc,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        fontSize: 9.5,
+                        fontWeight: FontWeight.w500,
+                        color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
 }

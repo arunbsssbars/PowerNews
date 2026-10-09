@@ -20,7 +20,9 @@ void main() {
   });
 
   tearDownAll(() async {
-    await DatabaseService().close(deleteDb: false);
+    try {
+      await DatabaseService().close(deleteDb: false).timeout(const Duration(seconds: 2));
+    } catch (_) {}
   });
 
   const viewports = <String, Size>{

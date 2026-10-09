@@ -145,89 +145,26 @@ class ApiService {
   }
 
 
-  Future<Map<String, int>> getPlayers() async {
+  Future<Map<String, int>> _fetchCountMap(String endpoint, String label) async {
     try {
-      final uri = Uri.parse('$_activeHost${ApiConstants.playersEndpoint}');
+      final uri = Uri.parse('$_activeHost$endpoint');
       final response = await http.get(uri, headers: _headers).timeout(const Duration(seconds: 4));
       if (response.statusCode == 200) {
         final Map<String, dynamic> data = json.decode(utf8.decode(response.bodyBytes));
-        return data.map((key, value) => MapEntry(key, value as int));
+        return data.map((key, value) => MapEntry(key, (value as num).toInt()));
       }
     } catch (e) {
-      debugPrint('[ApiService] Error fetching players: $e');
+      debugPrint('[ApiService] Error fetching $label: $e');
     }
     return {};
   }
 
-  Future<Map<String, int>> getCities() async {
-    try {
-      final uri = Uri.parse('$_activeHost${ApiConstants.citiesEndpoint}');
-      final response = await http.get(uri, headers: _headers).timeout(const Duration(seconds: 4));
-      if (response.statusCode == 200) {
-        final Map<String, dynamic> data = json.decode(utf8.decode(response.bodyBytes));
-        return data.map((key, value) => MapEntry(key, value as int));
-      }
-    } catch (e) {
-      debugPrint('[ApiService] Error fetching cities: $e');
-    }
-    return {};
-  }
-
-  Future<Map<String, int>> getCategories() async {
-    try {
-      final uri = Uri.parse('$_activeHost${ApiConstants.categoriesEndpoint}');
-      final response = await http.get(uri, headers: _headers).timeout(const Duration(seconds: 4));
-      if (response.statusCode == 200) {
-        final Map<String, dynamic> data = json.decode(utf8.decode(response.bodyBytes));
-        return data.map((key, value) => MapEntry(key, value as int));
-      }
-    } catch (e) {
-      debugPrint('[ApiService] Error fetching categories: $e');
-    }
-    return {};
-  }
-
-  Future<Map<String, int>> getStates() async {
-    try {
-      final uri = Uri.parse('$_activeHost${ApiConstants.statesEndpoint}');
-      final response = await http.get(uri, headers: _headers).timeout(const Duration(seconds: 4));
-      if (response.statusCode == 200) {
-        final Map<String, dynamic> data = json.decode(utf8.decode(response.bodyBytes));
-        return data.map((key, value) => MapEntry(key, value as int));
-      }
-    } catch (e) {
-      debugPrint('[ApiService] Error fetching states: $e');
-    }
-    return {};
-  }
-
-  Future<Map<String, int>> getDiscoms() async {
-    try {
-      final uri = Uri.parse('$_activeHost${ApiConstants.discomsEndpoint}');
-      final response = await http.get(uri, headers: _headers).timeout(const Duration(seconds: 4));
-      if (response.statusCode == 200) {
-        final Map<String, dynamic> data = json.decode(utf8.decode(response.bodyBytes));
-        return data.map((key, value) => MapEntry(key, value as int));
-      }
-    } catch (e) {
-      debugPrint('[ApiService] Error fetching discoms: $e');
-    }
-    return {};
-  }
-
-  Future<Map<String, int>> getSources() async {
-    try {
-      final uri = Uri.parse('$_activeHost${ApiConstants.sourcesEndpoint}');
-      final response = await http.get(uri, headers: _headers).timeout(const Duration(seconds: 4));
-      if (response.statusCode == 200) {
-        final Map<String, dynamic> data = json.decode(utf8.decode(response.bodyBytes));
-        return data.map((key, value) => MapEntry(key, value as int));
-      }
-    } catch (e) {
-      debugPrint('[ApiService] Error fetching sources: $e');
-    }
-    return {};
-  }
+  Future<Map<String, int>> getPlayers() => _fetchCountMap(ApiConstants.playersEndpoint, 'players');
+  Future<Map<String, int>> getCities() => _fetchCountMap(ApiConstants.citiesEndpoint, 'cities');
+  Future<Map<String, int>> getCategories() => _fetchCountMap(ApiConstants.categoriesEndpoint, 'categories');
+  Future<Map<String, int>> getStates() => _fetchCountMap(ApiConstants.statesEndpoint, 'states');
+  Future<Map<String, int>> getDiscoms() => _fetchCountMap(ApiConstants.discomsEndpoint, 'discoms');
+  Future<Map<String, int>> getSources() => _fetchCountMap(ApiConstants.sourcesEndpoint, 'sources');
 
   Future<Map<String, String>?> fetchArticleFullContent(String url, [String? articleId]) async {
     if (url.isEmpty || !url.startsWith('http')) return null;
