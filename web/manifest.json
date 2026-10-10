@@ -3,7 +3,7 @@
     "short_name": "PowerNews",
     "start_url": ".",
     "display": "standalone",
-    "background_color": "#0B1528",
+    "background_color": "#FFFFFF",
     "theme_color": "#0B1528",
     "description": "Executive power and energy news briefings curated by AI.",
     "orientation": "portrait-primary",
