@@ -2,6 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:power_news/providers/news_provider.dart';
+import 'package:power_news/models/news_article.dart';
 import 'package:power_news/models/grid_persona.dart';
 import 'package:power_news/services/database_service.dart';
 
@@ -122,6 +123,59 @@ void main() {
 
       provider.toggleSortOrder();
       expect(provider.sortOrder, FeedSortOrder.latestFirst);
+    });
+
+    test('matchesPlayer correctly distinguishes Secure Meters from generic verb secures and Premier Energies', () {
+      final premierArticle = NewsArticle(
+        id: 'prem-1',
+        title: 'Premier Energies secures 2.308 GW Solar cell and module orders - Solarbytes',
+        summary: 'Premier Energies has secured multiple solar module manufacturing orders across India.',
+        url: 'https://example.com/premier',
+        source: 'Solarbytes',
+        publishedAt: DateTime.now(),
+        categories: ['renewables'],
+        player: 'Premier Energies',
+        state: 'Telangana',
+      );
+
+      final tataArticle = NewsArticle(
+        id: 'tata-1',
+        title: 'Tata Power secures 500 MW solar auction bid',
+        summary: 'Tata Power Renewable Energy secures letter of award from SECI.',
+        url: 'https://example.com/tata',
+        source: 'ET EnergyWorld',
+        publishedAt: DateTime.now(),
+        categories: ['renewables'],
+        player: 'Tata Power',
+        state: 'National / Pan-India',
+      );
+
+      final secureMetersArticle = NewsArticle(
+        id: 'sec-1',
+        title: 'Secure Meters deploys 200,000 smart meters in UP',
+        summary: 'Secure Meters Limited announced completion of its advanced metering rollout for DISCOMs.',
+        url: 'https://example.com/secure',
+        source: 'Power Line Magazine',
+        publishedAt: DateTime.now(),
+        categories: ['distribution'],
+        player: 'Secure Meters',
+        state: 'Uttar Pradesh',
+      );
+
+      // 1. Premier Energies article must NOT match Secure Meters
+      expect(NewsProvider.matchesPlayer(premierArticle, 'Secure Meters'), isFalse);
+      // 2. Premier Energies article must match Premier Energies
+      expect(NewsProvider.matchesPlayer(premierArticle, 'Premier Energies'), isTrue);
+
+      // 3. Tata Power article with 'secures' must NOT match Secure Meters
+      expect(NewsProvider.matchesPlayer(tataArticle, 'Secure Meters'), isFalse);
+      // 4. Tata Power article must match Tata Power
+      expect(NewsProvider.matchesPlayer(tataArticle, 'Tata Power'), isTrue);
+
+      // 5. Genuine Secure Meters article must match Secure Meters
+      expect(NewsProvider.matchesPlayer(secureMetersArticle, 'Secure Meters'), isTrue);
+      // 6. Genuine Secure Meters article must NOT match Premier Energies
+      expect(NewsProvider.matchesPlayer(secureMetersArticle, 'Premier Energies'), isFalse);
     });
   });
 }

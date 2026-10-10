@@ -329,9 +329,17 @@ router.get('/news', async (req, res) => {
 
     filtered = filtered.filter((a) => {
       if (a.player === player || (a.player && a.player.toLowerCase().includes(pLower))) return true;
+      // If the article is already verified for a different recognized player, prevent keyword bleed
+      if (a.player && a.player !== 'Power Sector Stakeholder' && a.player.toLowerCase() !== pLower) return false;
       const titleLower = (a.title || '').toLowerCase();
       const summaryLower = (a.summary || '').toLowerCase();
-      return keywords.some((k) => titleLower.includes(k) || summaryLower.includes(k));
+      return keywords.some((k) => {
+        if (k.length <= 4) {
+          const escaped = k.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, '\\$&');
+          return new RegExp('\\b' + escaped + '\\b', 'i').test(titleLower) || new RegExp('\\b' + escaped + '\\b', 'i').test(summaryLower);
+        }
+        return titleLower.includes(k) || summaryLower.includes(k);
+      });
     });
   }
 

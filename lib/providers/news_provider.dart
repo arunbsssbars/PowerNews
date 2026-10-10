@@ -895,9 +895,10 @@ class NewsProvider extends ChangeNotifier {
     'KEC International': ['kec international', 'kec transmission', 'rpg group kec', 'kec'],
     'Kalpataru (KPIL)': ['kalpataru projects', 'kpil', 'kalpataru power transmission', 'kalpataru'],
     'Sterlite Power': ['sterlite power', 'sterlite grid', 'sterlite transmission', 'sterlite'],
-    'Secure Meters': ['secure meters', 'secure smart meter', 'secure meter', 'secure'],
-    'Genus Power': ['genus power infrastructures', 'genus smart meter', 'genus power', 'genus'],
+    'Secure Meters': ['secure meters', 'secure smart meter', 'secure meter', 'secure meters limited', 'secure meters ltd'],
+    'Genus Power': ['genus power infrastructures', 'genus smart meter', 'genus power', 'genus meter'],
     'Waaree Energies': ['waaree energies', 'waaree solar', 'waaree module', 'waaree'],
+    'Premier Energies': ['premier energies', 'premier solar', 'premier energies limited', 'premier energies ltd'],
     'Reliance Power': ['reliance power', 'reliance infra', 'reliance new energy', 'rpower'],
     'SECI': ['solar energy corporation of india', 'seci'],
     'JSW Energy': ['jsw energy', 'jsw neo'],
@@ -907,16 +908,30 @@ class NewsProvider extends ChangeNotifier {
 
   static bool matchesPlayer(NewsArticle a, String player) {
     if (player == 'All' || player == 'All Players') return true;
-    if (a.player != null && a.player!.toLowerCase() == player.toLowerCase()) return true;
-    final pLower = player.toLowerCase();
+    final pLower = player.toLowerCase().trim();
     final aliases = _playerAliases[player] ?? [pLower];
-    final titleLower = a.title.toLowerCase();
-    final summaryLower = a.summary.toLowerCase();
-    return aliases.any((alias) =>
-      (a.player != null && a.player!.toLowerCase().contains(alias)) ||
-      titleLower.contains(alias) ||
-      summaryLower.contains(alias)
-    );
+
+    // 1. Direct verified player attribute check with conflict guard
+    if (a.player != null && a.player!.trim().isNotEmpty) {
+      final artPlayerLower = a.player!.toLowerCase().trim();
+      if (artPlayerLower == pLower || aliases.any((al) => artPlayerLower == al)) {
+        return true;
+      }
+      // If the article is already verified for a different entity, do not let loose text matching hijack it
+      if (artPlayerLower != 'power sector stakeholder' && artPlayerLower != 'national / pan-india') {
+        return false;
+      }
+    }
+
+    // 2. Strict whole-word boundary search (only for unassigned or generic articles)
+    final title = a.title;
+    final summary = a.summary;
+
+    return aliases.any((alias) {
+      final escaped = RegExp.escape(alias);
+      final pattern = RegExp(r'\b' + escaped + r'\b', caseSensitive: false);
+      return pattern.hasMatch(title) || pattern.hasMatch(summary);
+    });
   }
 
   void _recomputeCountsFromLocalCache(List<NewsArticle> cachedArticles) {
@@ -932,6 +947,7 @@ class NewsProvider extends ChangeNotifier {
       'Siemens', 'ABB', 'Schneider', 'Hitachi Energy', 'BHEL', 'L&T Power',
       'GE Vernova', 'CG Power', 'KEC International', 'Kalpataru (KPIL)',
       'Sterlite Power', 'Secure Meters', 'Genus Power', 'Waaree Energies',
+      'Premier Energies',
       'UPPCL', 'POWERGRID', 'NTPC', 'Tata Power', 'Adani Power', 'Reliance Power',
       'SECI', 'NHPC', 'JSW Energy', 'Torrent Power',
       ...mergedPlayers.keys

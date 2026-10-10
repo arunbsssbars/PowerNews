@@ -122,6 +122,7 @@ class _DashboardViewState extends State<DashboardView> {
       {'name': 'Secure Meters', 'desc': 'Smart Metering & Telemetry', 'icon': Icons.speed_rounded, 'color': const Color(0xFF16A34A)},
       {'name': 'Genus Power', 'desc': 'Smart Electricity Meters', 'icon': Icons.electric_meter_rounded, 'color': const Color(0xFF7C3AED)},
       {'name': 'Waaree Energies', 'desc': 'Solar PV Modules & EPC', 'icon': Icons.solar_power_rounded, 'color': const Color(0xFFF59E0B)},
+      {'name': 'Premier Energies', 'desc': 'Solar PV Cells & Modules', 'icon': Icons.solar_power_rounded, 'color': const Color(0xFF059669)},
     ];
 
     final int totalMonitoredPlayers = provider.players.isNotEmpty ? provider.players.length : 24;
