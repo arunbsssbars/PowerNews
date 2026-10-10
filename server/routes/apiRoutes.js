@@ -210,8 +210,12 @@ function getReadableRefreshTime(isoDateString) {
 function getActiveArticles() {
   const cachedArticles = articleStore.getArticles();
   const retained = filterArticlesRetention30Days(cachedArticles);
-  // Only serve articles that have successfully completed the 60-word Gemini pipeline
-  return retained.filter(a => Boolean(a.id && aiSummaryCache[a.id] && aiSummaryCache[a.id].length >= 50));
+  // Serve articles that have a valid summary from Gemini or Exa/publisher fallback
+  return retained.filter(a => {
+    if (!a || !a.id || a.isRejected) return false;
+    const summaryText = aiSummaryCache[a.id] || a.summary || '';
+    return summaryText.length >= 30;
+  });
 }
 
 router.get('/health', (req, res) => {

@@ -19,10 +19,6 @@ void main() {
   group('BookmarkService Tests', () {
     late BookmarkService bookmarkService;
 
-    setUp(() {
-      bookmarkService = BookmarkService();
-    });
-
     final testArticle = NewsArticle(
       id: 'bm-1',
       title: 'Siemens Energy wins HVDC contract',
@@ -34,6 +30,15 @@ void main() {
       player: 'Siemens',
       state: 'National / Pan-India',
     );
+
+    setUp(() async {
+      bookmarkService = BookmarkService();
+      await DatabaseService().clearUnbookmarkedCache();
+      final existing = await bookmarkService.isBookmarked('bm-1');
+      if (existing) {
+        await bookmarkService.toggleBookmark(testArticle);
+      }
+    });
 
     test('Toggling adds and removes bookmark', () async {
       expect(await bookmarkService.isBookmarked('bm-1'), false);

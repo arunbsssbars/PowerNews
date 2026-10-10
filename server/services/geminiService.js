@@ -355,46 +355,38 @@ ${sourceTextForAi.slice(0, 4000)}
     geminiCoolingDownUntil = Date.now() + 20000;
   }
 
-  // Step 3: Pure Content-Grounded Heuristic Fallback (Ephemeral only — NEVER saved to DB or AI Cache)
-  const fallbackBullets = [];
+  // Step 3: Pure Content-Grounded Heuristic Fallback (Exa / Publisher Grounded)
+  let fallbackText = '';
   if (articleContent && articleContent.length > 80) {
-    const paras = articleContent
-      .split('\n\n')
-      .map(p => p.trim())
-      .filter(p => p.length > 35 && !p.toLowerCase().startsWith(cleanTitle.toLowerCase().slice(0, 25)));
+    const sentences = articleContent
+      .split(/(?<=[.!?])\s+/)
+      .map(s => s.trim())
+      .filter(s => s.length > 25 && !s.toLowerCase().startsWith(cleanTitle.toLowerCase().slice(0, 20)));
 
-    for (const p of paras) {
-      if (fallbackBullets.length >= 3) break;
-      const firstSentence = p.split(/[.!?]\s+/)[0].trim();
-      if (firstSentence.length > 25) {
-        const words = firstSentence.split(/\s+/);
-        const shortSentence = words.length > 20 ? words.slice(0, 18).join(' ') + '...' : firstSentence;
-        fallbackBullets.push(`• ${shortSentence.endsWith('.') ? shortSentence : shortSentence + '.'}`);
-      }
+    if (sentences.length >= 2) {
+      fallbackText = `${sentences[0]} ${sentences[1]}`;
+    } else if (sentences.length === 1) {
+      fallbackText = sentences[0];
     }
   }
 
-  if (fallbackBullets.length < 3 && snippet) {
-    const clauses = snippet
-      .split(/[.;]\s+/)
-      .map(c => c.trim())
-      .filter(c => c.length > 20 && !cleanTitle.toLowerCase().includes(c.toLowerCase().slice(0, 20)));
-
-    for (const c of clauses) {
-      if (fallbackBullets.length >= 3) break;
-      const words = c.split(/\s+/);
-      const shortClause = words.length > 20 ? words.slice(0, 18).join(' ') + '...' : c;
-      fallbackBullets.push(`• ${shortClause.endsWith('.') ? shortClause : shortClause + '.'}`);
+  if (!fallbackText || fallbackText.length < 35) {
+    if (snippet && snippet.length >= 35) {
+      fallbackText = `${cleanTitle}. ${snippet.trim()}`;
+    } else {
+      fallbackText = `${cleanTitle}. Official dispatch from ${primarySource}.`;
     }
   }
 
-  if (fallbackBullets.length === 0) {
-    fallbackBullets.push(`• ${cleanTitle}.`);
+  const result = cleanSummaryOutput(fallbackText);
+  if (articleId && result && result.length >= 30) {
+    aiSummaryCache[articleId] = result;
+    if (fullArticle) {
+      fullArticle.summary = result;
+      if (articleContent) fullArticle.fullText = articleContent;
+      if (articleImageUrl && !fullArticle.imageUrl) fullArticle.imageUrl = articleImageUrl;
+    }
   }
-
-  const result = cleanSummaryOutput(fallbackBullets.join('\n'));
-  // Note: Fallbacks are NOT saved to Firestore or aiSummaryCache.
-  // The curated feed and database only take genuine Gemini AI summaries.
   return result;
 }
 
