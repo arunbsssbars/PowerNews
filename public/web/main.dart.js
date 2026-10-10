@@ -107127,7 +107127,7 @@ d=J.b9(f)
 A.bY().$1("[AuthService] Google Sign-In error: "+A.j(d)+"\n"+A.j(e))
 if(J.dI(d,"canceled")||J.dI(d,"cancelled")||J.dI(d,"sign_in_canceled")||J.dI(d,"popup_closed_by_user"))n.d="Sign-in was cancelled."
 else if(J.dI(d,"GIDClientID")||J.dI(d,"No active configuration"))n.d="Google OAuth configuration missing on iOS. Please verify GIDClientID in Info.plist."
-else if(J.dI(d,"10")||J.dI(d,"DEVELOPER_ERROR")||J.dI(d,"BadAuthentication"))n.d="Google Services OAuth configuration mismatch. Please check SHA-1 in Firebase Console or use Email Sign-In."
+else if(J.dI(d,"10")||J.dI(d,"DEVELOPER_ERROR")||J.dI(d,"BadAuthentication"))n.d="Google Services OAuth mismatch (Code 10: DEVELOPER_ERROR). Please ensure Support Email & OAuth consent screen are configured, or use Email Sign-In."
 else if(J.dI(d,"network")||J.dI(d,"7"))n.d="Network connection failed during Google authentication."
 else{b=J.dI(d,"origin")||J.dI(d,"idpiframe_initialization_failed")
 if(b)n.d="Web domain not authorized in Google Cloud Console. Add https://powernews-app-2026.web.app to Authorized JavaScript Origins."
@@ -114550,7 +114550,7 @@ B.GY=new A.vm()
 B.jV=new A.U2(1,"page")
 B.jW=new A.fn(B.bM,B.jV)
 B.Tf=s([B.GY,B.jW],A.aB("J<br>"))
-B.Ti=s(["email","profile"],t.s)
+B.Ti=s(["email"],t.s)
 B.Tu=s([],t.QP)
 B.To=s([],t.V)
 B.Tq=s([],t.Ug)
