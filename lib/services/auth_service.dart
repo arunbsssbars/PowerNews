@@ -85,21 +85,18 @@ class AuthService extends ChangeNotifier {
         : (defaultTargetPlatform == TargetPlatform.iOS
             ? AppConfig.googleIosClientId
             : null),
-    serverClientId: null,
     scopes: const ['email'],
   );
 
   AppUser? _currentUser;
   bool _isLoading = false;
   String? _errorMessage;
-  
 
   AppUser? get currentUser => _currentUser;
   bool get isAuthenticated => _currentUser != null;
   bool get isAdmin => _currentUser?.isAdmin == true;
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
-  
 
   String get _fbApiKey => AppConfig.firebaseApiKey;
 
@@ -114,7 +111,6 @@ class AuthService extends ChangeNotifier {
       final verified = prefs.getBool('auth_user_verified') ?? false;
       final created = prefs.getString('auth_user_created');
       final provider = prefs.getString('auth_user_provider') ?? 'google';
-      
 
       if (email != null && id != null) {
         _currentUser = AppUser(
@@ -135,61 +131,53 @@ class AuthService extends ChangeNotifier {
         }
       }
 
-      // Listen to external/web authentication events
-      _googleSignIn.onCurrentUserChanged.listen((account) async {
+      // Listen to external/web Google authentication events
+      _googleSignIn.onCurrentUserChanged.listen((account) {
         if (account != null && _currentUser?.id != account.id) {
-          String? idToken;
-          try {
-            final auth = await account.authentication;
-            idToken = auth.idToken;
-          } catch (_) {}
-          final email = account.email;
-          final user = AppUser(
-            id: account.id,
-            email: email,
-            displayName: account.displayName ?? (email.isNotEmpty ? email.split('@').first : 'Executive'),
-            photoUrl: account.photoUrl,
-            idToken: idToken,
-            isEmailVerified: true,
-            createdAt: _currentUser?.createdAt ?? DateTime.now().toIso8601String(),
-            authProvider: 'google',
-          );
-          _currentUser = user;
-          await _saveUserToPrefs(user);
-          _isLoading = false;
-          notifyListeners();
+          _handleGoogleAccount(account);
         }
       });
 
       // Silent Google refresh if previously signed in with Google
       if (provider == 'google') {
-        _googleSignIn.signInSilently().then((account) async {
+        _googleSignIn.signInSilently().then((account) {
           if (account != null) {
-            String? idToken;
-            try {
-              final auth = await account.authentication;
-              idToken = auth.idToken;
-            } catch (_) {}
-            final email = account.email;
-            final user = AppUser(
-              id: account.id,
-              email: email,
-              displayName: account.displayName ?? (email.isNotEmpty ? email.split('@').first : 'Executive'),
-              photoUrl: account.photoUrl,
-              idToken: idToken,
-              isEmailVerified: true,
-              createdAt: _currentUser?.createdAt ?? DateTime.now().toIso8601String(),
-              authProvider: 'google',
-            );
-            _currentUser = user;
-            await _saveUserToPrefs(user);
-            notifyListeners();
+            _handleGoogleAccount(account);
           }
         }).catchError((_) {});
       }
     } catch (e) {
       debugPrint('[AuthService] Init error: $e');
     }
+  }
+
+  /// Unified internal handler to extract credentials, persist session, and notify listeners.
+  Future<AppUser> _handleGoogleAccount(GoogleSignInAccount account) async {
+    String? idToken;
+    try {
+      final auth = await account.authentication;
+      idToken = auth.idToken;
+    } catch (e) {
+      debugPrint('[AuthService] Could not retrieve Google idToken: $e');
+    }
+
+    final email = account.email;
+    final user = AppUser(
+      id: account.id,
+      email: email,
+      displayName: account.displayName ?? (email.isNotEmpty ? email.split('@').first : 'Executive'),
+      photoUrl: account.photoUrl,
+      idToken: idToken,
+      isEmailVerified: true,
+      createdAt: _currentUser?.createdAt ?? DateTime.now().toIso8601String(),
+      authProvider: 'google',
+    );
+
+    _currentUser = user;
+    await _saveUserToPrefs(user);
+    _isLoading = false;
+    notifyListeners();
+    return user;
   }
 
   // --- 1. Google Sign-In ---
@@ -199,83 +187,62 @@ class AuthService extends ChangeNotifier {
     notifyListeners();
 
     try {
-      GoogleSignInAccount? account;
-      try {
-        account = await _googleSignIn.signIn();
-      } catch (primaryErr) {
-        final errStr = primaryErr.toString();
-        debugPrint('[AuthService] Primary Google Sign-In encountered: $errStr');
-        if (!kIsWeb && defaultTargetPlatform == TargetPlatform.android &&
-            (errStr.contains('10') || errStr.contains('DEVELOPER_ERROR') || errStr.contains('BadAuthentication'))) {
-          debugPrint('[AuthService] Retrying with clean standalone GoogleSignIn client...');
-          final fallbackSignIn = GoogleSignIn(
-            scopes: const ['email'],
-          );
-          account = await fallbackSignIn.signIn();
-        } else {
-          rethrow;
-        }
-      }
-
+      final account = await _googleSignIn.signIn();
       if (account == null) {
         _isLoading = false;
         notifyListeners();
         return false;
       }
 
-      String? idToken;
-      try {
-        final auth = await account.authentication;
-        idToken = auth.idToken;
-      } catch (authErr) {
-        debugPrint('[AuthService] Could not retrieve Google idToken: $authErr');
-      }
-
-      final email = account.email;
-      final user = AppUser(
-        id: account.id,
-        email: email,
-        displayName: account.displayName ?? (email.isNotEmpty ? email.split('@').first : 'Executive'),
-        photoUrl: account.photoUrl,
-        idToken: idToken,
-        isEmailVerified: true,
-        createdAt: DateTime.now().toIso8601String(),
-        authProvider: 'google',
-      );
-
-      _currentUser = user;
-      await _saveUserToPrefs(user);
-      _isLoading = false;
-      notifyListeners();
+      await _handleGoogleAccount(account);
       return true;
     } catch (e, stack) {
       _isLoading = false;
       final errStr = e.toString();
       debugPrint('[AuthService] Google Sign-In error: $errStr\n$stack');
-
-      if (errStr.contains('canceled') || errStr.contains('cancelled') || errStr.contains('sign_in_canceled') || errStr.contains('popup_closed_by_user')) {
-        _errorMessage = 'Sign-in was cancelled.';
-      } else if (errStr.contains('GIDClientID') || errStr.contains('No active configuration')) {
-        _errorMessage = 'Google OAuth configuration missing on iOS. Please verify GIDClientID in Info.plist.';
-      } else if (kIsWeb) {
-        if (errStr.contains('origin') || errStr.contains('idpiframe_initialization_failed') || errStr.contains('unregistered_origin')) {
-          _errorMessage = 'Web domain not authorized in Google Cloud Console. Ensure https://powernews-app-2026.firebaseapp.com and https://powernews-app-2026.web.app are added to Authorized JavaScript Origins.';
-        } else if (errStr.contains('popup_blocked')) {
-          _errorMessage = 'Pop-up was blocked by browser. Please allow pop-ups for this site to sign in.';
-        } else {
-          _errorMessage = 'Google Sign-In failed on Web. Ensure both https://powernews-app-2026.web.app and https://powernews-app-2026.firebaseapp.com are in Authorized JavaScript Origins.';
-        }
-      } else if (!kIsWeb && (errStr.contains('ApiException: 10') || errStr.contains('DEVELOPER_ERROR') || errStr.contains('BadAuthentication'))) {
-        _errorMessage = 'Google Services OAuth mismatch on Android (Code 10: DEVELOPER_ERROR). Please ensure keystore and app signature are registered in Firebase.';
-      } else if (errStr.contains('network') || errStr.contains('7')) {
-        _errorMessage = 'Network connection failed during Google authentication.';
-      } else {
-        _errorMessage = 'Google Sign-In failed: $errStr';
-      }
-
+      _errorMessage = _parseGoogleAuthError(errStr);
       notifyListeners();
       return false;
     }
+  }
+
+  String _parseGoogleAuthError(String errStr) {
+    if (errStr.contains('canceled') ||
+        errStr.contains('cancelled') ||
+        errStr.contains('sign_in_canceled') ||
+        errStr.contains('popup_closed_by_user')) {
+      return 'Sign-in was cancelled.';
+    }
+    if (kIsWeb) {
+      if (errStr.contains('origin') ||
+          errStr.contains('idpiframe_initialization_failed') ||
+          errStr.contains('unregistered_origin')) {
+        return 'Web domain not authorized in Google Cloud Console. Ensure https://powernews-app-2026.web.app is added to Authorized JavaScript Origins.';
+      }
+      if (errStr.contains('popup_blocked')) {
+        return 'Pop-up was blocked by browser. Please allow pop-ups for this site to sign in.';
+      }
+      return 'Google Sign-In failed on Web. Ensure Authorized JavaScript Origins are configured.';
+    }
+    if (defaultTargetPlatform == TargetPlatform.iOS) {
+      if (errStr.contains('GIDClientID') ||
+          errStr.contains('No active configuration')) {
+        return 'Google OAuth configuration missing on iOS. Please verify GIDClientID in Info.plist.';
+      }
+      return 'Google Sign-In failed on iOS. Please verify OAuth client configuration.';
+    }
+    if (defaultTargetPlatform == TargetPlatform.android) {
+      if (errStr.contains('DEVELOPER_ERROR') ||
+          errStr.contains('ApiException: 10') ||
+          errStr.contains('BadAuthentication')) {
+        return 'Google Services OAuth configuration mismatch on Android (DEVELOPER_ERROR 10). Please verify SHA-1 in Firebase Console.';
+      }
+      return 'Google Sign-In failed on Android. Please check your Google Play Services configuration.';
+    }
+    if (errStr.contains('network') || errStr.contains('7')) {
+      return 'Network connection failed during Google authentication.';
+    }
+    return 'Google Sign-In failed: $errStr';
   }
 
   // --- 2. Minimal Email & Password Sign-Up ---
