@@ -66,8 +66,8 @@ function clusterArticles(articles, aiSummaryCache = {}) {
   return clusters.map(c => {
     // Utmost priority: if cluster contains an article from Power Line or PIB, elevate it to master
     const authoritative = c.articles.find(a =>
-      (a.source && /power line|pib ministry/i.test(a.source)) ||
-      (a.url && a.url.includes('powerline.net.in'))
+      (a.source && /power\s*line|pib\s+ministry/i.test(a.source)) ||
+      (a.url && (a.url.includes('powerline.net.in') || a.url.includes('pib.gov.in')))
     );
     const primaryArticle = authoritative || c.primary;
     const master = { ...primaryArticle };

@@ -230,32 +230,48 @@ class ExecutiveCardView extends StatelessWidget {
             ),
           ),
 
-          // Top Right: Publisher Source Tag
+          // Top Right: Publisher Source Tag (Authoritative Premier Highlights for Power Line)
           Positioned(
             top: 8,
             right: 10,
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3.5),
-              decoration: BoxDecoration(
-                color: Colors.black.withValues(alpha: 0.65),
-                borderRadius: BorderRadius.circular(6),
-                border: Border.all(color: Colors.white.withValues(alpha: 0.15), width: 0.8),
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(Icons.newspaper_rounded, size: 11, color: Colors.white.withValues(alpha: 0.9)),
-                  const SizedBox(width: 4),
-                  Text(
-                    article.source,
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 10,
-                      fontWeight: FontWeight.w600,
+            child: Builder(
+              builder: (context) {
+                final isPowerLine = article.source.toLowerCase().contains('power line');
+                return Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3.5),
+                  decoration: BoxDecoration(
+                    color: isPowerLine
+                        ? const Color(0xFFB45309).withValues(alpha: 0.88)
+                        : Colors.black.withValues(alpha: 0.65),
+                    borderRadius: BorderRadius.circular(6),
+                    border: Border.all(
+                      color: isPowerLine
+                          ? const Color(0xFFFBBF24).withValues(alpha: 0.65)
+                          : Colors.white.withValues(alpha: 0.15),
+                      width: 0.8,
                     ),
                   ),
-                ],
-              ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        isPowerLine ? Icons.verified_rounded : Icons.newspaper_rounded,
+                        size: 11,
+                        color: isPowerLine ? const Color(0xFFFDE68A) : Colors.white.withValues(alpha: 0.9),
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        article.source,
+                        style: TextStyle(
+                          color: isPowerLine ? Colors.white : Colors.white,
+                          fontSize: 10,
+                          fontWeight: isPowerLine ? FontWeight.w700 : FontWeight.w600,
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              },
             ),
           ),
 

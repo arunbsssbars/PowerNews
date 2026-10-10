@@ -276,6 +276,9 @@ function extractWithReadability(html, targetUrl) {
   try {
     const { document } = parseHTML(html);
     const leadImage = extractLeadImage(document, html, targetUrl);
+    if (document && document.querySelectorAll) {
+      document.querySelectorAll('header, nav, footer, aside, .header, .menu, .ads, .advertisement').forEach(el => el.remove());
+    }
     const reader = new Readability(document, { charThreshold: 120 });
     const parsed = reader.parse();
 

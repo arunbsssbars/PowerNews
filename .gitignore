@@ -7,7 +7,11 @@
 *.key
 *.pem
 *.keystore
-!android/app/debug.keystore
+android/app/debug.keystore
+*.env
+*.env.*
+assets/client.env
+public/web/assets/assets/client.env
 *.jks
 *serviceAccountKey*.json
 *service-account*.json

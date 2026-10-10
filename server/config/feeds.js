@@ -1,6 +1,7 @@
 const RSS_FEEDS = [
-  // Premier Dedicated Power Sector Publications (Direct Category Feeds Only)
-  { source: 'Power Line Magazine', url: 'https://news.google.com/rss/search?q=site:powerline.net.in+when:30d&hl=en-IN&gl=IN&ceid=IN:en', isStrictPowerFeed: true },
+  // Premier Dedicated Power Sector Publications (Direct Feeds - Absolute Priority)
+  { source: 'Power Line Magazine', url: 'https://powerline.net.in/rss', isStrictPowerFeed: true },
+  { source: 'Power Line Magazine (Archive)', url: 'https://news.google.com/rss/search?q=site:powerline.net.in+when:30d&hl=en-IN&gl=IN&ceid=IN:en', isStrictPowerFeed: true },
   { source: 'Mercom India Clean Energy', url: 'https://mercomindia.com/feed/', isStrictPowerFeed: true },
   { source: 'ETEnergyWorld Power', url: 'https://energy.economictimes.indiatimes.com/rss/power', isStrictPowerFeed: true },
   { source: 'ETEnergyWorld Renewables', url: 'https://energy.economictimes.indiatimes.com/rss/renewable', isStrictPowerFeed: true },
@@ -8,7 +9,7 @@ const RSS_FEEDS = [
   { source: 'Economic Times Renewables', url: 'https://economictimes.indiatimes.com/industry/renewables/rssfeeds/80517789.cms', isStrictPowerFeed: true },
 
   // Press Information Bureau (PIB) - Subject to Power Sector keyword validation
-  { source: 'Power Line Intelligence', url: 'https://news.google.com/rss/search?q=site:powerline.net.in&hl=en-IN&gl=IN&ceid=IN:en', isStrictPowerFeed: false },
+  { source: 'Power Line Intelligence', url: 'https://news.google.com/rss/search?q=site:powerline.net.in&hl=en-IN&gl=IN&ceid=IN:en', isStrictPowerFeed: true },
   { source: 'PIB Ministry of Power', url: 'https://news.google.com/rss/search?q=site:pib.gov.in+(%22Ministry+of+Power%22+OR+%22Power+Ministry%22+OR+NTPC+OR+PGCIL+OR+REC+OR+PFC)&hl=en-IN&gl=IN&ceid=IN:en', isStrictPowerFeed: false },
   { source: 'PIB Renewable Energy (MNRE)', url: 'https://news.google.com/rss/search?q=site:pib.gov.in+(%22Ministry+of+New+and+Renewable+Energy%22+OR+MNRE+OR+SECI)&hl=en-IN&gl=IN&ceid=IN:en', isStrictPowerFeed: false },
 
@@ -22,7 +23,7 @@ const RSS_FEEDS = [
   // Specialized Grid, SCADA & Industry Feeds
   { source: 'Smart Utilities & SCADA', url: 'https://news.google.com/rss/search?q=SCADA+automation+(UPPCL+OR+UP+OR+India)+power+grid+communication+substation+"IEC+60870"&hl=en-IN&gl=IN&ceid=IN:en', isStrictPowerFeed: false },
   { source: 'Saur Energy & Mercom Grid IT', url: 'https://news.google.com/rss/search?q=(SCADA+OR+"automated+grid"+OR+"Smart+Utilities"+OR+OPGW+OR+PSDF+OR+"IEC+60870"+OR+"IEC+61850")+India+power&hl=en-IN&gl=IN&ceid=IN:en', isStrictPowerFeed: false },
-  { source: 'Power Line Grid Automation', url: 'https://news.google.com/rss/search?q="Power+Line"+(SCADA+OR+automation+OR+IT-OT+OR+RDSS+OR+DMS+OR+OPGW)&hl=en-IN&gl=IN&ceid=IN:en', isStrictPowerFeed: false },
+  { source: 'Power Line Grid Automation', url: 'https://news.google.com/rss/search?q="Power+Line"+(SCADA+OR+automation+OR+IT-OT+OR+RDSS+OR+DMS+OR+OPGW)&hl=en-IN&gl=IN&ceid=IN:en', isStrictPowerFeed: true },
   { source: 'India Power Sector News', url: 'https://news.google.com/rss/search?q=India+power+sector+OR+electricity+grid+OR+substation+OR+DISCOM+OR+CERC&hl=en-IN&gl=IN&ceid=IN:en', isStrictPowerFeed: false },
   { source: 'India Solar & Renewable Grid', url: 'https://news.google.com/rss/search?q=India+solar+power+OR+wind+energy+OR+BESS+OR+SECI+tender&hl=en-IN&gl=IN&ceid=IN:en', isStrictPowerFeed: false },
   { source: 'India DISCOMs & Tariffs', url: 'https://news.google.com/rss/search?q=India+smart+meter+OR+DISCOM+tariff+OR+power+cut+OR+RDSS&hl=en-IN&gl=IN&ceid=IN:en', isStrictPowerFeed: false },

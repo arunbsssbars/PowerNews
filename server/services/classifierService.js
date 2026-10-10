@@ -35,7 +35,7 @@ function cleanHeadline(text) {
     .replace(/\b(target|href|color)=[^ >\s]+/gi, ' ')
     .replace(/<[^>]*>/g, ' ')
     .replace(/\b(_blank|_self|_parent|_top)\b/gi, ' ')
-    .replace(/\s*-\s*[a-zA-Z0-9\.\-\s]+(?:\.com|\.in|\.org|\.net|Times of India|Economic Times|ET EnergyWorld|Mercom India|Power Line Magazine|Power Line|The Hindu|Mint|Business Standard|Financial Express)$/i, '')
+    .replace(/\s*-\s*[a-zA-Z0-9\.\-\s]*(?:\.com|\.in|\.org|\.net|Times of India|Economic Times|ET EnergyWorld|Mercom India|Power\s*line(?:\s*Magazine)?|The Hindu|Mint|Business Standard|Financial Express)$/i, '')
     .replace(/&[a-zA-Z0-9#]+;/g, ' ')
     .replace(/\s+/g, ' ')
     .trim();
@@ -67,7 +67,7 @@ function cleanText(text) {
     .replace(/Listen to this article/gi, '')
     .replace(/Follow us on (Google News|WhatsApp|Twitter|Telegram)/gi, '')
     .replace(/\[\.\.\.\]/g, '')
-    .replace(/\s*-\s*[a-zA-Z0-9\.\-\s]+(?:\.com|\.in|\.org|timesofindia|The Hindu|Economic Times|Mercom India)/gi, '')
+    .replace(/\s*-\s*[a-zA-Z0-9\.\-\s]*(?:\.com|\.in|\.org|timesofindia|The Hindu|Economic Times|Mercom India|Power\s*line)/gi, '')
     .replace(/&[a-zA-Z0-9#]+;/g, ' ')
     .replace(/\s+/g, ' ')
     .trim();
