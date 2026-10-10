@@ -1,17 +1,26 @@
 import 'dart:convert';
-import 'package:http/http.dart' as http;
-import '../config/app_config.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:http/http.dart' as http;
 import 'package:provider/provider.dart';
-import '../services/auth_service.dart';
+import 'package:url_launcher/url_launcher.dart';
+
+import '../config/app_config.dart';
+import '../main.dart';
 import '../providers/news_provider.dart';
+import '../services/auth_service.dart';
+import '../services/database_service.dart';
 import '../widgets/about_sheet.dart';
 import 'admin_dashboard_screen.dart';
 import 'onboarding_screen.dart';
-import '../services/database_service.dart';
-import '../main.dart';
 
+/// Production Executive Profile View.
+/// Complies with AQIL standards:
+/// - Responsive constraint clamped to maxWidth 620 for tablet/desktop
+/// - Safe touch targets (>= 44x44 dp)
+/// - Clean role boundary: strips backend/crawler clutter for regular readers
+/// - Root Admin command center preserved exclusively for [arunbsssbars@gmail.com]
+/// - Google Play compliance: Account deletion & Privacy policy link
 class ProfileView extends StatefulWidget {
   const ProfileView({super.key});
 
@@ -26,6 +35,16 @@ class _ProfileViewState extends State<ProfileView> {
   void dispose() {
     _scrollController.dispose();
     super.dispose();
+  }
+
+  Future<void> _launchPrivacyPolicy() async {
+    const url = 'https://powernews-app-2026.web.app/privacy.html';
+    try {
+      final uri = Uri.parse(url);
+      if (await canLaunchUrl(uri)) {
+        await launchUrl(uri, mode: LaunchMode.externalApplication);
+      }
+    } catch (_) {}
   }
 
   void _showEditProfileDialog(BuildContext context, AuthService auth) {
@@ -162,8 +181,11 @@ class _ProfileViewState extends State<ProfileView> {
       context: context,
       builder: (ctx) {
         return AlertDialog(
-          title: const Text('Delete Account', style: TextStyle(color: Colors.red)),
-          content: const Text('This will permanently purge all your data and session. You cannot undo this action.'),
+          title: const Text('Delete Account', style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold)),
+          content: const Text(
+            'This will permanently delete your account, saved preferences, and stored bookmarks from PowerNews. This action cannot be reversed.',
+            style: TextStyle(fontSize: 14),
+          ),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(ctx),
@@ -180,8 +202,11 @@ class _ProfileViewState extends State<ProfileView> {
                   );
                 }
               },
-              style: ElevatedButton.styleFrom(backgroundColor: Colors.red, foregroundColor: Colors.white),
-              child: const Text('Delete'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFFDC2626),
+                foregroundColor: Colors.white,
+              ),
+              child: const Text('Confirm Delete', style: TextStyle(fontWeight: FontWeight.bold)),
             ),
           ],
         );
@@ -194,15 +219,34 @@ class _ProfileViewState extends State<ProfileView> {
     showDialog(
       context: context,
       builder: (ctx) {
+        final isDark = Theme.of(ctx).brightness == Brightness.dark;
         return AlertDialog(
-          title: const Text('Submit Feedback'),
-          content: TextField(
-            controller: ctrl,
-            maxLines: 4,
-            decoration: const InputDecoration(
-              hintText: 'Share your ideas or issues...',
-              border: OutlineInputBorder(),
-            ),
+          backgroundColor: isDark ? const Color(0xFF161B22) : Colors.white,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          title: const Row(
+            children: [
+              Icon(Icons.feedback_rounded, color: Color(0xFF2563EB), size: 22),
+              SizedBox(width: 8),
+              Text('Submit Feedback', style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold)),
+            ],
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text(
+                'Help us improve PowerNews. Send us feature requests, energy utility updates, or general feedback.',
+                style: TextStyle(fontSize: 13, color: Colors.grey),
+              ),
+              const SizedBox(height: 12),
+              TextField(
+                controller: ctrl,
+                maxLines: 4,
+                decoration: InputDecoration(
+                  hintText: 'Share your suggestion or report...',
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                ),
+              ),
+            ],
           ),
           actions: [
             TextButton(
@@ -211,17 +255,33 @@ class _ProfileViewState extends State<ProfileView> {
             ),
             ElevatedButton(
               onPressed: () async {
-                if (ctrl.text.isNotEmpty) {
+                if (ctrl.text.trim().isNotEmpty) {
                   try {
                     await http.post(
                       Uri.parse('${AppConfig.apiBaseUrl}/feedbacks'),
                       headers: {'Content-Type': 'application/json'},
-                      body: json.encode({'email': user.email, 'message': ctrl.text, 'type': 'suggestion'}),
+                      body: json.encode({
+                        'email': user.email,
+                        'message': ctrl.text.trim(),
+                        'type': 'suggestion',
+                      }),
                     );
                   } catch (_) {}
-                  if (context.mounted) Navigator.pop(ctx);
+                  if (context.mounted) {
+                    Navigator.pop(ctx);
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Thank you! Your feedback has been transmitted to our editorial team.'),
+                        behavior: SnackBarBehavior.floating,
+                      ),
+                    );
+                  }
                 }
               },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF2563EB),
+                foregroundColor: Colors.white,
+              ),
               child: const Text('Submit'),
             ),
           ],
@@ -229,7 +289,6 @@ class _ProfileViewState extends State<ProfileView> {
       },
     );
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -247,185 +306,163 @@ class _ProfileViewState extends State<ProfileView> {
 
     return Scaffold(
       backgroundColor: isDark ? const Color(0xFF0B1120) : const Color(0xFFF8FAFC),
-      body: CustomScrollView(
-        controller: _scrollController,
-        physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
-        slivers: [
-          // 1. Sleek, Executive App Bar
-          SliverAppBar(
-            expandedHeight: 110.0,
-            floating: false,
-            pinned: true,
-            backgroundColor: isDark ? const Color(0xFF0D1322) : Colors.white,
-            surfaceTintColor: Colors.transparent,
-            elevation: 0,
-            flexibleSpace: FlexibleSpaceBar(
-              titlePadding: const EdgeInsets.only(left: 20, bottom: 14),
-              title: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    user != null ? (isAdmin ? 'Admin Profile' : 'Profile') : 'PowerNews Account',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w800,
-                      letterSpacing: -0.3,
-                      color: textPrimary,
-                    ),
+      body: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 620),
+          child: CustomScrollView(
+            controller: _scrollController,
+            physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
+            slivers: [
+              // 1. Sleek, Executive App Bar
+              SliverAppBar(
+                pinned: true,
+                backgroundColor: isDark ? const Color(0xFF0D1322) : Colors.white,
+                surfaceTintColor: Colors.transparent,
+                elevation: 0,
+                title: Text(
+                  user != null ? (isAdmin ? 'Admin Console' : 'Profile & Settings') : 'Account',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: -0.3,
+                    color: textPrimary,
                   ),
-                  if (isAdmin) ...[
-                    const SizedBox(width: 8),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF10B981).withValues(alpha: 0.18),
-                        borderRadius: BorderRadius.circular(6),
-                        border: Border.all(color: const Color(0xFF10B981).withValues(alpha: 0.4), width: 0.8),
+                  overflow: TextOverflow.ellipsis,
+                ),
+                actions: [
+                  if (user != null)
+                    IconButton(
+                      icon: const Icon(Icons.edit_outlined, size: 20),
+                      tooltip: 'Edit Profile Details',
+                      onPressed: () => _showEditProfileDialog(context, auth),
+                    ),
+                  if (user != null)
+                    IconButton(
+                      icon: const Icon(Icons.logout_rounded, size: 20),
+                      tooltip: 'Sign Out',
+                      onPressed: () => _confirmSignOut(context, auth),
+                    ),
+                  const SizedBox(width: 8),
+                ],
+              ),
+
+              // 2. Profile Content Body
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 12, 16, 36),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      // --- A. Identity Card ---
+                      _buildIdentityCard(
+                        context,
+                        user,
+                        isAdmin,
+                        auth,
+                        isDark,
+                        bgCard,
+                        borderColor,
+                        textPrimary,
+                        textSecondary,
                       ),
-                      child: const Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(Icons.shield_rounded, size: 10, color: Color(0xFF10B981)),
-                          SizedBox(width: 3),
-                          Text(
-                            'ROOT ADMIN',
-                            style: TextStyle(
-                              fontSize: 8.5,
-                              fontWeight: FontWeight.w800,
-                              color: Color(0xFF10B981),
-                              letterSpacing: 0.4,
+
+                      // --- B. Admin Quick Command Center (Exclusively for Root Admin) ---
+                      if (isAdmin) ...[
+                        const SizedBox(height: 20),
+                        _buildAdminCommandGrid(
+                          context,
+                          isDark,
+                          bgCard,
+                          borderColor,
+                          textPrimary,
+                          textSecondary,
+                        ),
+                      ],
+
+                      // --- C. Personal Reading Activity (Cleaned of crawler metrics) ---
+                      const SizedBox(height: 20),
+                      _buildReadingActivityCard(
+                        context,
+                        newsProvider,
+                        isDark,
+                        bgCard,
+                        borderColor,
+                        textPrimary,
+                        textSecondary,
+                      ),
+
+                      // --- D. Preferences & Content Controls ---
+                      const SizedBox(height: 20),
+                      _buildPreferencesCard(
+                        context,
+                        newsProvider,
+                        isDark,
+                        bgCard,
+                        borderColor,
+                        textPrimary,
+                        textSecondary,
+                      ),
+
+                      // --- E. Legal & Editorial Support Card ---
+                      const SizedBox(height: 20),
+                      _buildLegalAndSupportCard(
+                        context,
+                        user,
+                        isDark,
+                        bgCard,
+                        borderColor,
+                        textPrimary,
+                        textSecondary,
+                      ),
+
+                      // --- F. Account Actions & Session Control ---
+                      if (user != null) ...[
+                        const SizedBox(height: 24),
+                        OutlinedButton.icon(
+                          onPressed: () => _confirmSignOut(context, auth),
+                          style: OutlinedButton.styleFrom(
+                            foregroundColor: const Color(0xFFEF4444),
+                            side: BorderSide(color: const Color(0xFFEF4444).withValues(alpha: 0.35)),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                            minimumSize: const Size.fromHeight(48),
+                          ),
+                          icon: const Icon(Icons.logout_rounded, size: 18),
+                          label: const Text('Sign Out of Session', style: TextStyle(fontWeight: FontWeight.w700)),
+                        ),
+                        if (!isAdmin) ...[
+                          const SizedBox(height: 10),
+                          TextButton.icon(
+                            onPressed: () => _confirmDeleteAccount(context, auth),
+                            style: TextButton.styleFrom(
+                              foregroundColor: const Color(0xFF94A3B8),
+                              minimumSize: const Size.fromHeight(44),
                             ),
+                            icon: const Icon(Icons.delete_forever_outlined, size: 17),
+                            label: const Text('Delete Account & Data', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 13)),
                           ),
                         ],
+                      ],
+
+                      // App Version Footer
+                      const SizedBox(height: 24),
+                      Center(
+                        child: Text(
+                          'PowerNews v1.0.0 • Build 1 • Enterprise Energy Intelligence',
+                          style: TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w500,
+                            color: textSecondary.withValues(alpha: 0.7),
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
                       ),
-                    ),
-                  ],
-                ],
+                    ],
+                  ),
+                ),
               ),
-            ),
-            actions: [
-              if (user != null)
-                IconButton(
-                  icon: const Icon(Icons.edit_outlined, size: 19),
-                  tooltip: 'Edit Profile Details',
-                  onPressed: () => _showEditProfileDialog(context, auth),
-                ),
-              if (user != null)
-                IconButton(
-                  icon: const Icon(Icons.logout_rounded, size: 19),
-                  tooltip: 'Sign Out',
-                  onPressed: () => _confirmSignOut(context, auth),
-                ),
-              const SizedBox(width: 8),
             ],
           ),
-
-          // 2. Profile Content Body
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(16, 12, 16, 32),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  // --- A. Identity Card ---
-                  _buildIdentityCard(
-                    context,
-                    user,
-                    isAdmin,
-                    auth,
-                    isDark,
-                    bgCard,
-                    borderColor,
-                    textPrimary,
-                    textSecondary,
-                  ),
-
-                  // --- B. Admin Quick Command Center (Clean 2x2 Grid for Admin) ---
-                  if (isAdmin) ...[
-                    const SizedBox(height: 18),
-                    _buildAdminCommandGrid(
-                      context,
-                      isDark,
-                      bgCard,
-                      borderColor,
-                      textPrimary,
-                      textSecondary,
-                    ),
-                  ],
-
-                  // --- C. Platform Analytics & Storage ---
-                  const SizedBox(height: 18),
-                  _buildPlatformAnalyticsCard(
-                    context,
-                    newsProvider,
-                    isDark,
-                    bgCard,
-                    borderColor,
-                    textPrimary,
-                    textSecondary,
-                  ),
-
-                  // --- D. Preferences & Controls ---
-                  const SizedBox(height: 18),
-                  _buildPreferencesCard(
-                    context,
-                    newsProvider,
-                    isDark,
-                    bgCard,
-                    borderColor,
-                    textPrimary,
-                    textSecondary,
-                  ),
-
-
-                  // --- E. Sign Out Action Button (if signed in) ---
-                  if (user != null) ...[
-                    const SizedBox(height: 12),
-                    if (!isAdmin)
-                      ElevatedButton.icon(
-                      onPressed: () {
-                        // Open Feedback modal
-                        _showFeedbackDialog(context, user);
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF2563EB),
-                        foregroundColor: Colors.white,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                        padding: const EdgeInsets.symmetric(vertical: 13),
-                      ),
-                      icon: const Icon(Icons.feedback_rounded, size: 18),
-                      label: const Text('Submit Feedback / Suggestion', style: TextStyle(fontWeight: FontWeight.w700)),
-                    ),
-                    const SizedBox(height: 12),
-                    OutlinedButton.icon(
-                      onPressed: () => _confirmSignOut(context, auth),
-                      style: OutlinedButton.styleFrom(
-                        foregroundColor: const Color(0xFFEF4444),
-                        side: BorderSide(color: const Color(0xFFEF4444).withValues(alpha: 0.35)),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                        padding: const EdgeInsets.symmetric(vertical: 13),
-                      ),
-                      icon: const Icon(Icons.logout_rounded, size: 18),
-                      label: const Text('Sign Out of Session', style: TextStyle(fontWeight: FontWeight.w700)),
-                    ),
-                    const SizedBox(height: 12),
-                    if (!isAdmin)
-                      TextButton.icon(
-                        onPressed: () => _confirmDeleteAccount(context, auth),
-                      style: TextButton.styleFrom(
-                        foregroundColor: const Color(0xFFEF4444),
-                        padding: const EdgeInsets.symmetric(vertical: 13),
-                      ),
-                      icon: const Icon(Icons.delete_forever_rounded, size: 18),
-                      label: const Text('Delete Account Data', style: TextStyle(fontWeight: FontWeight.w700)),
-                    ),
-                  ],
-
-                ],
-              ),
-            ),
-          ),
-        ],
+        ),
       ),
     );
   }
@@ -435,7 +472,7 @@ class _ProfileViewState extends State<ProfileView> {
   // ===========================================================================
   Widget _buildIdentityCard(
     BuildContext context,
-    dynamic user,
+    AppUser? user,
     bool isAdmin,
     AuthService auth,
     bool isDark,
@@ -472,19 +509,19 @@ class _ProfileViewState extends State<ProfileView> {
                 alignment: Alignment.bottomRight,
                 children: [
                   Container(
-                    width: 56,
-                    height: 56,
+                    width: 60,
+                    height: 60,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
                       border: Border.all(
                         color: isAdmin ? const Color(0xFF10B981) : const Color(0xFF2563EB),
-                        width: 2.2,
+                        width: 2.4,
                       ),
                     ),
                     child: ClipRRect(
-                      borderRadius: BorderRadius.circular(28),
+                      borderRadius: BorderRadius.circular(30),
                       child: Builder(builder: (context) {
-                        final String? userPhoto = user?.photoUrl;
+                        final String? userPhoto = user.photoUrl;
                         if (userPhoto != null && userPhoto.isNotEmpty) {
                           return Image.network(
                             userPhoto,
@@ -497,8 +534,8 @@ class _ProfileViewState extends State<ProfileView> {
                     ),
                   ),
                   Container(
-                    width: 15,
-                    height: 15,
+                    width: 16,
+                    height: 16,
                     decoration: BoxDecoration(
                       color: isAdmin ? const Color(0xFF10B981) : const Color(0xFF2563EB),
                       shape: BoxShape.circle,
@@ -506,7 +543,7 @@ class _ProfileViewState extends State<ProfileView> {
                     ),
                     child: Icon(
                       isAdmin ? Icons.star_rounded : Icons.check_rounded,
-                      size: 9,
+                      size: 10,
                       color: Colors.white,
                     ),
                   ),
@@ -521,17 +558,17 @@ class _ProfileViewState extends State<ProfileView> {
                     Text(
                       user.displayName,
                       style: TextStyle(
-                        fontSize: 17.5,
+                        fontSize: 18,
                         fontWeight: FontWeight.w800,
                         color: textPrimary,
-                        letterSpacing: -0.2,
+                        letterSpacing: -0.3,
                       ),
                       overflow: TextOverflow.ellipsis,
                     ),
                     const SizedBox(height: 2),
                     Text(
                       user.email,
-                      style: TextStyle(fontSize: 12.5, color: textSecondary),
+                      style: TextStyle(fontSize: 13, color: textSecondary),
                       overflow: TextOverflow.ellipsis,
                     ),
                     const SizedBox(height: 6),
@@ -547,14 +584,14 @@ class _ProfileViewState extends State<ProfileView> {
                             color: isAdmin
                                 ? const Color(0xFF10B981).withValues(alpha: 0.14)
                                 : const Color(0xFF2563EB).withValues(alpha: 0.12),
-                            borderRadius: BorderRadius.circular(5),
+                            borderRadius: BorderRadius.circular(6),
                             border: Border.all(
                               color: isAdmin ? const Color(0xFF10B981).withValues(alpha: 0.4) : const Color(0xFF2563EB).withValues(alpha: 0.3),
                               width: 0.8,
                             ),
                           ),
                           child: Text(
-                            isAdmin ? 'ADMIN' : 'EXECUTIVE',
+                            isAdmin ? 'ROOT ADMIN' : 'EXECUTIVE READER',
                             style: TextStyle(
                               fontSize: 9.5,
                               fontWeight: FontWeight.w800,
@@ -569,7 +606,7 @@ class _ProfileViewState extends State<ProfileView> {
                             color: user.isEmailVerified
                                 ? const Color(0xFF10B981).withValues(alpha: 0.12)
                                 : const Color(0xFFF59E0B).withValues(alpha: 0.14),
-                            borderRadius: BorderRadius.circular(5),
+                            borderRadius: BorderRadius.circular(6),
                             border: Border.all(
                               color: user.isEmailVerified
                                   ? const Color(0xFF10B981).withValues(alpha: 0.3)
@@ -610,23 +647,14 @@ class _ProfileViewState extends State<ProfileView> {
           Divider(color: borderColor, height: 1),
           const SizedBox(height: 14),
 
-          // Clean 3-Column Identity Meta Strip
+          // Clean Meta Strip
           Row(
             children: [
               Expanded(
                 child: _buildMetaPill(
-                  label: 'ROLE',
-                  value: isAdmin ? 'Root Admin' : 'Reader',
-                  color: isAdmin ? const Color(0xFF10B981) : const Color(0xFF2563EB),
-                  isDark: isDark,
-                ),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: _buildMetaPill(
-                  label: 'SECURITY',
-                  value: user.authProvider.toUpperCase(),
-                  color: const Color(0xFF6366F1),
+                  label: 'PROVIDER',
+                  value: user.authProvider == 'google' ? 'Google Account' : 'Direct Email',
+                  color: const Color(0xFF2563EB),
                   isDark: isDark,
                 ),
               ),
@@ -635,7 +663,7 @@ class _ProfileViewState extends State<ProfileView> {
                 child: _buildMetaPill(
                   label: 'STATUS',
                   value: 'Active Session',
-                  color: const Color(0xFF0284C7),
+                  color: const Color(0xFF10B981),
                   isDark: isDark,
                 ),
               ),
@@ -653,7 +681,7 @@ class _ProfileViewState extends State<ProfileView> {
     required bool isDark,
   }) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
       decoration: BoxDecoration(
         color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF1F5F9),
         borderRadius: BorderRadius.circular(10),
@@ -674,7 +702,7 @@ class _ProfileViewState extends State<ProfileView> {
           Text(
             value,
             style: const TextStyle(
-              fontSize: 11.5,
+              fontSize: 12,
               fontWeight: FontWeight.w700,
             ),
             overflow: TextOverflow.ellipsis,
@@ -685,7 +713,7 @@ class _ProfileViewState extends State<ProfileView> {
   }
 
   // ===========================================================================
-  // ADMIN COMMAND GRID (2x2 Clean Executive Grid)
+  // ADMIN COMMAND GRID (Exclusive for Root Admin)
   // ===========================================================================
   Widget _buildAdminCommandGrid(
     BuildContext context,
@@ -702,16 +730,19 @@ class _ProfileViewState extends State<ProfileView> {
           children: [
             const Icon(Icons.dashboard_customize_rounded, size: 16, color: Color(0xFF10B981)),
             const SizedBox(width: 6),
-            Text(
-              'Admin Command Center',
-              style: TextStyle(
-                fontSize: 13.5,
-                fontWeight: FontWeight.w800,
-                color: textPrimary,
-                letterSpacing: -0.2,
+            Expanded(
+              child: Text(
+                'Admin Command Center',
+                style: TextStyle(
+                  fontSize: 13.5,
+                  fontWeight: FontWeight.w800,
+                  color: textPrimary,
+                  letterSpacing: -0.2,
+                ),
+                overflow: TextOverflow.ellipsis,
               ),
             ),
-            const Spacer(),
+            const SizedBox(width: 8),
             InkWell(
               onTap: () {
                 Navigator.push(
@@ -722,9 +753,9 @@ class _ProfileViewState extends State<ProfileView> {
               child: const Row(
                 children: [
                   Text(
-                    'Full Dashboard',
+                    'Full Console',
                     style: TextStyle(
-                      fontSize: 11.5,
+                      fontSize: 12,
                       fontWeight: FontWeight.w700,
                       color: Color(0xFF10B981),
                     ),
@@ -890,9 +921,9 @@ class _ProfileViewState extends State<ProfileView> {
   }
 
   // ===========================================================================
-  // PLATFORM ANALYTICS & STORAGE CARD
+  // READING ACTIVITY CARD (Clean Reader Metrics Only)
   // ===========================================================================
-  Widget _buildPlatformAnalyticsCard(
+  Widget _buildReadingActivityCard(
     BuildContext context,
     NewsProvider newsProvider,
     bool isDark,
@@ -913,15 +944,18 @@ class _ProfileViewState extends State<ProfileView> {
         children: [
           Row(
             children: [
-              const Icon(Icons.analytics_outlined, size: 16, color: Color(0xFF2563EB)),
-              const SizedBox(width: 6),
-              Text(
-                'Intelligence Storage & Cache',
-                style: TextStyle(
-                  fontSize: 13.5,
-                  fontWeight: FontWeight.w800,
-                  color: textPrimary,
-                  letterSpacing: -0.2,
+              const Icon(Icons.auto_stories_rounded, size: 17, color: Color(0xFF2563EB)),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  'Reading Intelligence & Activity',
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w800,
+                    color: textPrimary,
+                    letterSpacing: -0.2,
+                  ),
+                  overflow: TextOverflow.ellipsis,
                 ),
               ),
             ],
@@ -931,30 +965,20 @@ class _ProfileViewState extends State<ProfileView> {
             children: [
               Expanded(
                 child: _buildMetricTile(
-                  icon: Icons.done_all_rounded,
+                  icon: Icons.check_circle_outline_rounded,
                   color: const Color(0xFF10B981),
-                  label: 'Read Stories',
+                  label: 'Articles Read',
                   value: '${newsProvider.totalReadCount}',
                   isDark: isDark,
                 ),
               ),
-              const SizedBox(width: 10),
+              const SizedBox(width: 12),
               Expanded(
                 child: _buildMetricTile(
                   icon: Icons.bookmark_added_rounded,
-                  color: const Color(0xFFD97706),
-                  label: 'Saved Briefings',
+                  color: const Color(0xFFF59E0B),
+                  label: 'Saved Bookmarks',
                   value: '${newsProvider.bookmarks.length}',
-                  isDark: isDark,
-                ),
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: _buildMetricTile(
-                  icon: Icons.bolt_rounded,
-                  color: const Color(0xFF2563EB),
-                  label: 'Feed Ingested',
-                  value: '${newsProvider.articles.length}',
                   isDark: isDark,
                 ),
               ),
@@ -973,26 +997,33 @@ class _ProfileViewState extends State<ProfileView> {
     required bool isDark,
   }) {
     return Container(
-      padding: const EdgeInsets.all(11),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
       decoration: BoxDecoration(
         color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF1F5F9),
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(14),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(icon, color: color, size: 18),
+          Container(
+            padding: const EdgeInsets.all(7),
+            decoration: BoxDecoration(
+              color: color.withValues(alpha: 0.15),
+              borderRadius: BorderRadius.circular(9),
+            ),
+            child: Icon(icon, color: color, size: 18),
+          ),
           const SizedBox(height: 8),
           Text(
             value,
-            style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w800),
+            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800),
             overflow: TextOverflow.ellipsis,
           ),
           const SizedBox(height: 1),
           Text(
             label,
             style: TextStyle(
-              fontSize: 10,
+              fontSize: 11,
               fontWeight: FontWeight.w600,
               color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
             ),
@@ -1004,7 +1035,7 @@ class _ProfileViewState extends State<ProfileView> {
   }
 
   // ===========================================================================
-  // PREFERENCES & CONTROLS
+  // PREFERENCES & APP EXPERIENCE
   // ===========================================================================
   Widget _buildPreferencesCard(
     BuildContext context,
@@ -1015,34 +1046,35 @@ class _ProfileViewState extends State<ProfileView> {
     Color textPrimary,
     Color textSecondary,
   ) {
-    return Container(
-      decoration: BoxDecoration(
-        color: bgCard,
+    return Material(
+      color: bgCard,
+      shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: borderColor),
+        side: BorderSide(color: borderColor),
       ),
+      clipBehavior: Clip.antiAlias,
       child: Column(
         children: [
           SwitchListTile(
             secondary: Container(
-              padding: const EdgeInsets.all(7),
+              padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
                 color: (isDark ? const Color(0xFFF59E0B) : const Color(0xFF2563EB)).withValues(alpha: 0.12),
-                borderRadius: BorderRadius.circular(9),
+                borderRadius: BorderRadius.circular(10),
               ),
               child: Icon(
                 isDark ? Icons.light_mode_rounded : Icons.dark_mode_rounded,
                 color: isDark ? const Color(0xFFF59E0B) : const Color(0xFF2563EB),
-                size: 18,
+                size: 20,
               ),
             ),
             title: Text(
               'Dark Mode',
-              style: TextStyle(fontSize: 13.5, fontWeight: FontWeight.w700, color: textPrimary),
+              style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: textPrimary),
             ),
             subtitle: Text(
               'High-contrast executive theme',
-              style: TextStyle(fontSize: 11.5, color: textSecondary),
+              style: TextStyle(fontSize: 12, color: textSecondary),
             ),
             value: isDark,
             activeThumbColor: const Color(0xFF2563EB),
@@ -1051,20 +1083,20 @@ class _ProfileViewState extends State<ProfileView> {
           Divider(height: 1, color: borderColor),
           ListTile(
             leading: Container(
-              padding: const EdgeInsets.all(7),
+              padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
                 color: const Color(0xFF0284C7).withValues(alpha: 0.14),
-                borderRadius: BorderRadius.circular(9),
+                borderRadius: BorderRadius.circular(10),
               ),
-              child: const Icon(Icons.explore_rounded, color: Color(0xFF0284C7), size: 18),
+              child: const Icon(Icons.explore_rounded, color: Color(0xFF0284C7), size: 20),
             ),
             title: Text(
               'Tour & Gesture Guide',
-              style: TextStyle(fontSize: 13.5, fontWeight: FontWeight.w700, color: textPrimary),
+              style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: textPrimary),
             ),
             subtitle: Text(
-              'Review swipe gestures, sectors & shortcut features',
-              style: TextStyle(fontSize: 11.5, color: textSecondary),
+              'Review swipe gestures, sectors & utility shortcuts',
+              style: TextStyle(fontSize: 12, color: textSecondary),
             ),
             trailing: const Icon(Icons.chevron_right_rounded, size: 20),
             onTap: () {
@@ -1077,20 +1109,20 @@ class _ProfileViewState extends State<ProfileView> {
           Divider(height: 1, color: borderColor),
           ListTile(
             leading: Container(
-              padding: const EdgeInsets.all(7),
+              padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
                 color: const Color(0xFF10B981).withValues(alpha: 0.14),
-                borderRadius: BorderRadius.circular(9),
+                borderRadius: BorderRadius.circular(10),
               ),
-              child: const Icon(Icons.verified_user_outlined, color: Color(0xFF10B981), size: 18),
+              child: const Icon(Icons.verified_user_outlined, color: Color(0xFF10B981), size: 20),
             ),
             title: Text(
-              'Editorial Standards & Policy',
-              style: TextStyle(fontSize: 13.5, fontWeight: FontWeight.w700, color: textPrimary),
+              'Editorial Standards & Attribution',
+              style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: textPrimary),
             ),
             subtitle: Text(
-              '60-word summarization ethics & source attribution',
-              style: TextStyle(fontSize: 11.5, color: textSecondary),
+              '60-word summarization ethics & source integrity',
+              style: TextStyle(fontSize: 12, color: textSecondary),
             ),
             trailing: const Icon(Icons.chevron_right_rounded, size: 20),
             onTap: () => AboutSheet.show(context),
@@ -1098,24 +1130,23 @@ class _ProfileViewState extends State<ProfileView> {
           Divider(height: 1, color: borderColor),
           ListTile(
             leading: Container(
-              padding: const EdgeInsets.all(7),
+              padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
                 color: const Color(0xFF6366F1).withValues(alpha: 0.14),
-                borderRadius: BorderRadius.circular(9),
+                borderRadius: BorderRadius.circular(10),
               ),
-              child: const Icon(Icons.storage_rounded, color: Color(0xFF6366F1), size: 18),
+              child: const Icon(Icons.offline_pin_rounded, color: Color(0xFF6366F1), size: 20),
             ),
             title: Text(
-              'Offline Briefing Storage',
-              style: TextStyle(fontSize: 13.5, fontWeight: FontWeight.w700, color: textPrimary),
+              'Offline Reading Cache',
+              style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: textPrimary),
             ),
-            subtitle: FutureBuilder<int>(
-              future: DatabaseService().getArticleCount(),
-              builder: (context, snapshot) {
-                final count = snapshot.data ?? 0;
+            subtitle: Consumer<NewsProvider>(
+              builder: (context, news, _) {
+                final count = news.articles.length;
                 return Text(
-                  '$count offline articles stored (30-day rolling cache)',
-                  style: TextStyle(fontSize: 11.5, color: textSecondary),
+                  '$count offline articles cached locally',
+                  style: TextStyle(fontSize: 12, color: textSecondary),
                 );
               },
             ),
@@ -1134,15 +1165,84 @@ class _ProfileViewState extends State<ProfileView> {
                 } catch (e) {
                   scaffold.showSnackBar(
                     SnackBar(
-                      content: Text('Error clearing cache: $e'),
+                      content: Text('Error: $e'),
                       behavior: SnackBarBehavior.floating,
                     ),
                   );
                 }
               },
-              child: const Text('Clear', style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.bold, color: Color(0xFF6366F1))),
+              child: const Text('Optimize', style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.bold, color: Color(0xFF6366F1))),
             ),
           ),
+        ],
+      ),
+    );
+  }
+
+  // ===========================================================================
+  // LEGAL & SUPPORT CARD (Play Store Compliance)
+  // ===========================================================================
+  Widget _buildLegalAndSupportCard(
+    BuildContext context,
+    AppUser? user,
+    bool isDark,
+    Color bgCard,
+    Color borderColor,
+    Color textPrimary,
+    Color textSecondary,
+  ) {
+    return Material(
+      color: bgCard,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(20),
+        side: BorderSide(color: borderColor),
+      ),
+      clipBehavior: Clip.antiAlias,
+      child: Column(
+        children: [
+          ListTile(
+            leading: Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: const Color(0xFF3B82F6).withValues(alpha: 0.12),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: const Icon(Icons.privacy_tip_outlined, color: Color(0xFF3B82F6), size: 20),
+            ),
+            title: Text(
+              'Privacy Policy',
+              style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: textPrimary),
+            ),
+            subtitle: Text(
+              'Review data handling, security & disclosures',
+              style: TextStyle(fontSize: 12, color: textSecondary),
+            ),
+            trailing: const Icon(Icons.open_in_new_rounded, size: 18),
+            onTap: _launchPrivacyPolicy,
+          ),
+          if (user != null) ...[
+            Divider(height: 1, color: borderColor),
+            ListTile(
+              leading: Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF8B5CF6).withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: const Icon(Icons.chat_bubble_outline_rounded, color: Color(0xFF8B5CF6), size: 20),
+              ),
+              title: Text(
+                'Submit Feedback / Bug Report',
+                style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: textPrimary),
+              ),
+              subtitle: Text(
+                'Send thoughts directly to the developer team',
+                style: TextStyle(fontSize: 12, color: textSecondary),
+              ),
+              trailing: const Icon(Icons.chevron_right_rounded, size: 20),
+              onTap: () => _showFeedbackDialog(context, user),
+            ),
+          ],
         ],
       ),
     );

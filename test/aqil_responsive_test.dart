@@ -9,14 +9,16 @@ import 'package:power_news/services/database_service.dart';
 import 'package:power_news/screens/login_signup_screen.dart';
 import 'package:power_news/screens/email_verification_screen.dart';
 import 'package:power_news/screens/home_screen.dart';
+import 'package:power_news/screens/profile_view.dart';
 import 'package:power_news/theme/app_theme.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
-  setUpAll(() {
+  setUpAll(() async {
     sqfliteFfiInit();
     databaseFactory = databaseFactoryFfi;
+    await DatabaseService().database;
   });
 
   tearDownAll(() async {
@@ -115,6 +117,49 @@ void main() {
           await tester.pump(const Duration(milliseconds: 300));
           expect(tester.takeException(), isNull,
               reason: 'Zero overflow on Login screen on $name with scale $scale');
+        }
+      });
+      testWidgets('ProfileView renders cleanly on $name at 1.0x and 1.5x font scale',
+          (WidgetTester tester) async {
+        tester.view.physicalSize = size;
+        tester.view.devicePixelRatio = 1.0;
+        addTearDown(() => tester.view.resetPhysicalSize());
+
+        SharedPreferences.setMockInitialValues({
+          'has_seen_onboarding': true,
+          'auth_user_id': 'aqil_profile_user',
+          'auth_user_email': 'executive@powernews.com',
+          'auth_user_name': 'Power Executive',
+          'auth_user_verified': true,
+        });
+
+        final authService = AuthService();
+        await authService.init();
+
+        for (final scale in [1.0, 1.5]) {
+          await tester.pumpWidget(
+            MultiProvider(
+              providers: [
+                ChangeNotifierProvider(create: (_) => NewsProvider()),
+                ChangeNotifierProvider.value(value: authService),
+              ],
+              child: MaterialApp(
+                theme: AppTheme.lightTheme,
+                darkTheme: AppTheme.darkTheme,
+                home: MediaQuery(
+                  data: MediaQueryData(
+                    size: size,
+                    textScaler: TextScaler.linear(scale),
+                  ),
+                  child: const ProfileView(),
+                ),
+              ),
+            ),
+          );
+
+          await tester.pump(const Duration(milliseconds: 300));
+          expect(tester.takeException(), isNull,
+              reason: 'Zero overflow on ProfileView on $name with scale $scale');
         }
       });
     }
