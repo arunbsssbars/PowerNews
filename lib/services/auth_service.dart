@@ -85,7 +85,7 @@ class AuthService extends ChangeNotifier {
         : (defaultTargetPlatform == TargetPlatform.iOS
             ? AppConfig.googleIosClientId
             : null),
-    serverClientId: kIsWeb ? null : AppConfig.googleWebClientId,
+    serverClientId: null,
     scopes: const ['email'],
   );
 
@@ -178,9 +178,10 @@ class AuthService extends ChangeNotifier {
         account = await _googleSignIn.signIn();
       } catch (primaryErr) {
         final errStr = primaryErr.toString();
+        debugPrint('[AuthService] Primary Google Sign-In encountered: $errStr');
         if (!kIsWeb && defaultTargetPlatform == TargetPlatform.android &&
             (errStr.contains('10') || errStr.contains('DEVELOPER_ERROR') || errStr.contains('BadAuthentication'))) {
-          debugPrint('[AuthService] Code 10 / DEVELOPER_ERROR encountered with serverClientId. Retrying with client-only fallback...');
+          debugPrint('[AuthService] Retrying with clean standalone GoogleSignIn client...');
           final fallbackSignIn = GoogleSignIn(
             scopes: const ['email'],
           );
