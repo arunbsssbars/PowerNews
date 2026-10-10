@@ -22,14 +22,22 @@ jobs:
       - name: Verify Sensitive Files Not Committed
         run: |
           echo "Auditing Git tracked files for sensitive patterns..."
-          SUSPICIOUS=$(git ls-files | grep -E '(\.env$|\.env\.production$|key\.properties$|\.jks$|\.keystore$|serviceAccountKey\.json)' || true)
+          SUSPICIOUS=$(git ls-files | grep -E '(\.env$|\.env\.production$|key\.properties$|\.jks$|\.keystore$|serviceAccountKey\.json|client_secret.*\.json)' || true)
           if [ -n "$SUSPICIOUS" ]; then
             echo "ERROR: Sensitive secrets found tracked in Git!"
             echo "$SUSPICIOUS"
             exit 1
-          else
-            echo "SUCCESS: Zero private keystores, serviceAccountKeys, or server .env tracked in Git."
           fi
+
+          echo "Scanning tracked files for private cryptographic keys..."
+          KEY_LEAKS=$(git grep -EI "BEGIN (RSA |EC |DSA |OPENSSH )?PRIVATE KEY" || true)
+          if [ -n "$KEY_LEAKS" ]; then
+            echo "ERROR: Tracked private key material detected in repository!"
+            echo "$KEY_LEAKS"
+            exit 1
+          fi
+
+          echo "SUCCESS: Zero private keystores, client secrets, serviceAccountKeys, or private keys tracked in Git."
 
       - name: Setup Node.js
         uses: actions/setup-node@v4

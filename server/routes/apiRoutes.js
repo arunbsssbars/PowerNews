@@ -64,9 +64,9 @@ async function requireApiKey(req, res, next) {
     return res.status(401).json({ error: 'Unauthorized access' });
   }
 
-  // 1. Check legacy API Secret (used by the mobile app for now, if necessary)
-  const expectedSecret = process.env.APP_CLIENT_SECRET;
-  if (providedKey === expectedSecret || providedKey === `Bearer ${expectedSecret}`) {
+  // 1. Check client app authorization key (used by mobile/web clients for reading feeds)
+  const expectedKey = process.env.APP_CLIENT_KEY || process.env.APP_CLIENT_SECRET || process.env.API_KEY;
+  if (expectedKey && (providedKey === expectedKey || providedKey === `Bearer ${expectedKey}`)) {
     return next();
   }
 
@@ -125,9 +125,9 @@ async function requireAdminRole(req, res, next) {
     return res.status(401).json({ error: 'Admin authorization required' });
   }
 
-  // Allow secret in local non-production development for test automation
-  const expectedSecret = process.env.APP_CLIENT_SECRET;
-  if (process.env.NODE_ENV !== 'production' && (authHeader === expectedSecret || authHeader === `Bearer ${expectedSecret}`)) {
+  // Allow dev key in local non-production development for test automation
+  const expectedKey = process.env.APP_CLIENT_KEY || process.env.APP_CLIENT_SECRET || process.env.API_KEY;
+  if (process.env.NODE_ENV !== 'production' && expectedKey && (authHeader === expectedKey || authHeader === `Bearer ${expectedKey}`)) {
     return next();
   }
 
