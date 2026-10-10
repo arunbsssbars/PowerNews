@@ -135,6 +135,32 @@ class AuthService extends ChangeNotifier {
         }
       }
 
+      // Listen to external/web authentication events
+      _googleSignIn.onCurrentUserChanged.listen((account) async {
+        if (account != null && _currentUser?.id != account.id) {
+          String? idToken;
+          try {
+            final auth = await account.authentication;
+            idToken = auth.idToken;
+          } catch (_) {}
+          final email = account.email;
+          final user = AppUser(
+            id: account.id,
+            email: email,
+            displayName: account.displayName ?? (email.isNotEmpty ? email.split('@').first : 'Executive'),
+            photoUrl: account.photoUrl,
+            idToken: idToken,
+            isEmailVerified: true,
+            createdAt: _currentUser?.createdAt ?? DateTime.now().toIso8601String(),
+            authProvider: 'google',
+          );
+          _currentUser = user;
+          await _saveUserToPrefs(user);
+          _isLoading = false;
+          notifyListeners();
+        }
+      });
+
       // Silent Google refresh if previously signed in with Google
       if (provider == 'google') {
         _googleSignIn.signInSilently().then((account) async {
@@ -231,12 +257,18 @@ class AuthService extends ChangeNotifier {
         _errorMessage = 'Sign-in was cancelled.';
       } else if (errStr.contains('GIDClientID') || errStr.contains('No active configuration')) {
         _errorMessage = 'Google OAuth configuration missing on iOS. Please verify GIDClientID in Info.plist.';
-      } else if (errStr.contains('10') || errStr.contains('DEVELOPER_ERROR') || errStr.contains('BadAuthentication')) {
-        _errorMessage = 'Google Services OAuth mismatch (Code 10: DEVELOPER_ERROR). Please ensure Support Email & OAuth consent screen are configured, or use Email Sign-In.';
+      } else if (kIsWeb) {
+        if (errStr.contains('origin') || errStr.contains('idpiframe_initialization_failed') || errStr.contains('unregistered_origin')) {
+          _errorMessage = 'Web domain not authorized in Google Cloud Console. Ensure https://powernews-app-2026.firebaseapp.com and https://powernews-app-2026.web.app are added to Authorized JavaScript Origins.';
+        } else if (errStr.contains('popup_blocked')) {
+          _errorMessage = 'Pop-up was blocked by browser. Please allow pop-ups for this site to sign in.';
+        } else {
+          _errorMessage = 'Google Sign-In failed on Web. Ensure both https://powernews-app-2026.web.app and https://powernews-app-2026.firebaseapp.com are in Authorized JavaScript Origins.';
+        }
+      } else if (!kIsWeb && (errStr.contains('ApiException: 10') || errStr.contains('DEVELOPER_ERROR') || errStr.contains('BadAuthentication'))) {
+        _errorMessage = 'Google Services OAuth mismatch on Android (Code 10: DEVELOPER_ERROR). Please ensure keystore and app signature are registered in Firebase.';
       } else if (errStr.contains('network') || errStr.contains('7')) {
         _errorMessage = 'Network connection failed during Google authentication.';
-      } else if (kIsWeb && (errStr.contains('origin') || errStr.contains('idpiframe_initialization_failed'))) {
-        _errorMessage = 'Web domain not authorized in Google Cloud Console. Add https://powernews-app-2026.web.app to Authorized JavaScript Origins.';
       } else {
         _errorMessage = 'Google Sign-In failed: $errStr';
       }

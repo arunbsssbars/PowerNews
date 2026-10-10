@@ -16,6 +16,12 @@
   -->
   <base href="$FLUTTER_BASE_HREF">
 
+  <script>
+    if (window.location.hostname === 'powernews-app-2026.firebaseapp.com') {
+      window.location.replace('https://powernews-app-2026.web.app' + window.location.pathname + window.location.search + window.location.hash);
+    }
+  </script>
+
   <meta charset="UTF-8">
   <meta content="IE=Edge" http-equiv="X-UA-Compatible">
   <meta name="description" content="AI-curated power and energy sector news, capacity briefs, regulatory updates, and utility intelligence for India.">
