@@ -214,6 +214,11 @@ class AuthService extends ChangeNotifier {
       return 'Sign-in was cancelled.';
     }
     if (kIsWeb) {
+      if (errStr.contains('people.googleapis.com') ||
+          errStr.contains('People API') ||
+          (errStr.contains('403') && errStr.contains('SERVICE_DISABLED'))) {
+        return 'Google People API is disabled in project 1022634770385. Please enable it in Google Cloud Console: https://console.developers.google.com/apis/api/people.googleapis.com/overview?project=1022634770385';
+      }
       if (errStr.contains('origin') ||
           errStr.contains('idpiframe_initialization_failed') ||
           errStr.contains('unregistered_origin')) {
@@ -222,7 +227,7 @@ class AuthService extends ChangeNotifier {
       if (errStr.contains('popup_blocked')) {
         return 'Pop-up was blocked by browser. Please allow pop-ups for this site to sign in.';
       }
-      return 'Google Sign-In failed on Web. Ensure Authorized JavaScript Origins are configured.';
+      return 'Google Sign-In failed on Web. Ensure Authorized JavaScript Origins and People API are enabled.';
     }
     if (defaultTargetPlatform == TargetPlatform.iOS) {
       if (errStr.contains('GIDClientID') ||

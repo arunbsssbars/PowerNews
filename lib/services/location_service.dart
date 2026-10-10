@@ -48,6 +48,10 @@ class LocationService {
 
   /// Direct GPS hardware location detection with package:location
   Future<String?> detectLiveGPSLocation() async {
+    if (kIsWeb) {
+      return await _detectViaIP();
+    }
+
     try {
       final location = Location();
 
@@ -121,17 +125,20 @@ class LocationService {
     return await detectLiveGPSLocation();
   }
 
-  /// IP Geolocation fallback
+  /// IP Geolocation fallback (HTTPS)
   Future<String?> _detectViaIP() async {
     try {
       final response = await http
-          .get(Uri.parse('http://ip-api.com/json'))
+          .get(
+            Uri.parse('https://ipwho.is/'),
+            headers: {'User-Agent': 'PowerNews/1.0 (Location Detection)'},
+          )
           .timeout(const Duration(seconds: 4));
 
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
         final rawCity = (data['city'] ?? '').toString().toLowerCase().trim();
-        final rawRegion = (data['regionName'] ?? '').toString().toLowerCase().trim();
+        final rawRegion = (data['region'] ?? '').toString().toLowerCase().trim();
 
         for (final entry in _cityMapping.entries) {
           if (rawCity.contains(entry.key) || rawRegion.contains(entry.key)) {
