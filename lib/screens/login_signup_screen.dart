@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../main.dart';
 import '../services/auth_service.dart';
 
@@ -427,6 +428,99 @@ class _LoginSignUpScreenState extends State<LoginSignUpScreen> with SingleTicker
                         if (auth.errorMessage?.isNotEmpty == true) ...[
                           Builder(builder: (context) {
                             final errText = auth.errorMessage ?? '';
+                            final isPeopleApiError = errText.contains('people.googleapis.com') ||
+                                errText.contains('People API');
+
+                            if (isPeopleApiError) {
+                              return Container(
+                                padding: const EdgeInsets.all(14),
+                                margin: const EdgeInsets.only(bottom: 16),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFFEFF6FF),
+                                  borderRadius: BorderRadius.circular(14),
+                                  border: Border.all(
+                                    color: const Color(0xFF3B82F6).withValues(alpha: 0.4),
+                                  ),
+                                ),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                                  children: [
+                                    const Row(
+                                      children: [
+                                        Icon(
+                                          Icons.info_outline_rounded,
+                                          size: 20,
+                                          color: Color(0xFF2563EB),
+                                        ),
+                                        SizedBox(width: 8),
+                                        Expanded(
+                                          child: Text(
+                                            'Action Required: Enable Google People API',
+                                            style: TextStyle(
+                                              fontSize: 13,
+                                              fontWeight: FontWeight.bold,
+                                              color: Color(0xFF1E40AF),
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                    const SizedBox(height: 8),
+                                    const Text(
+                                      'Google Sign-In on Web requires the Google People API to read your profile name and email securely. It is currently disabled in your Google Cloud Project.',
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        color: Color(0xFF1E3A8A),
+                                        height: 1.35,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 12),
+                                    ElevatedButton.icon(
+                                      onPressed: () async {
+                                        final uri = Uri.parse(
+                                          'https://console.developers.google.com/apis/api/people.googleapis.com/overview?project=1022634770385',
+                                        );
+                                        if (await canLaunchUrl(uri)) {
+                                          await launchUrl(uri, mode: LaunchMode.externalApplication);
+                                        }
+                                      },
+                                      icon: const Icon(Icons.open_in_new_rounded, size: 16, color: Colors.white),
+                                      label: const Text(
+                                        'Open Google Cloud & Click ENABLE (1-Click)',
+                                        style: TextStyle(
+                                          fontSize: 12.5,
+                                          fontWeight: FontWeight.bold,
+                                          color: Colors.white,
+                                        ),
+                                      ),
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor: const Color(0xFF2563EB),
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(10),
+                                        ),
+                                        padding: const EdgeInsets.symmetric(
+                                          vertical: 10,
+                                          horizontal: 12,
+                                        ),
+                                      ),
+                                    ),
+                                    const SizedBox(height: 6),
+                                    const Center(
+                                      child: Text(
+                                        'After clicking ENABLE in Google Cloud, return here and tap Continue with Google.',
+                                        style: TextStyle(
+                                          fontSize: 11,
+                                          color: Color(0xFF64748B),
+                                          fontStyle: FontStyle.italic,
+                                        ),
+                                        textAlign: TextAlign.center,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              );
+                            }
+
                             return Container(
                               padding: const EdgeInsets.all(10),
                               margin: const EdgeInsets.only(bottom: 14),
