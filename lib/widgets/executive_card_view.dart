@@ -230,6 +230,43 @@ class ExecutiveCardView extends StatelessWidget {
             ),
           ),
 
+          // Top Left: Verified AI Executive Summary Badge
+          Positioned(
+            top: 8,
+            left: 10,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3.5),
+              decoration: BoxDecoration(
+                color: const Color(0xFF0F172A).withValues(alpha: 0.78),
+                borderRadius: BorderRadius.circular(6),
+                border: Border.all(
+                  color: const Color(0xFF38BDF8).withValues(alpha: 0.45),
+                  width: 0.8,
+                ),
+              ),
+              child: const Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    Icons.auto_awesome_rounded,
+                    size: 11,
+                    color: Color(0xFF38BDF8),
+                  ),
+                  SizedBox(width: 4),
+                  Text(
+                    'AI Summary',
+                    style: TextStyle(
+                      color: Color(0xFFF1F5F9),
+                      fontSize: 10,
+                      fontWeight: FontWeight.w700,
+                      letterSpacing: 0.2,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+
           // Top Right: Publisher Source Tag (Authoritative Premier Highlights for Power Line)
           Positioned(
             top: 8,

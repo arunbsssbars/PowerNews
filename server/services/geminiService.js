@@ -277,6 +277,9 @@ ${sourceTextForAi.slice(0, 4000)}
             if (articleId) {
               aiSummaryCache[articleId] = aiText;
               if (fullArticle) {
+                fullArticle.summary = aiText;
+                fullArticle.isAiGenerated = true;
+                fullArticle.isAiSummary = true;
                 if (parsed.primary_category && !categoriesList.includes(parsed.primary_category.toLowerCase())) {
                   categoriesList.unshift(parsed.primary_category.toLowerCase());
                 }
@@ -379,10 +382,12 @@ ${sourceTextForAi.slice(0, 4000)}
   }
 
   const result = cleanSummaryOutput(fallbackText);
-  if (articleId && result && result.length >= 30) {
+  if (articleId && result && result.length >= 75 && !result.startsWith('• ') && !result.startsWith('- ')) {
     aiSummaryCache[articleId] = result;
     if (fullArticle) {
       fullArticle.summary = result;
+      fullArticle.isAiGenerated = true;
+      fullArticle.isAiSummary = true;
       if (articleContent) fullArticle.fullText = articleContent;
       if (articleImageUrl && !fullArticle.imageUrl) fullArticle.imageUrl = articleImageUrl;
     }

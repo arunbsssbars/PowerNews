@@ -33,11 +33,8 @@ void main() {
 
     setUp(() async {
       bookmarkService = BookmarkService();
-      await DatabaseService().clearUnbookmarkedCache();
-      final existing = await bookmarkService.isBookmarked('bm-1');
-      if (existing) {
-        await bookmarkService.toggleBookmark(testArticle);
-      }
+      final db = await DatabaseService().database;
+      await db.delete('articles');
     });
 
     test('Toggling adds and removes bookmark', () async {

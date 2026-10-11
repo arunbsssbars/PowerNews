@@ -210,11 +210,18 @@ function getReadableRefreshTime(isoDateString) {
 function getActiveArticles() {
   const cachedArticles = articleStore.getArticles();
   const retained = filterArticlesRetention30Days(cachedArticles);
-  // Serve articles that have a valid summary from Gemini or Exa/publisher fallback
+  // STRICT: Only serve articles that have an authentic AI summary ready in RAM cache
   return retained.filter(a => {
     if (!a || !a.id || a.isRejected) return false;
-    const summaryText = aiSummaryCache[a.id] || a.summary || '';
-    return summaryText.length >= 30;
+    const summaryText = aiSummaryCache[a.id];
+    return Boolean(
+      summaryText &&
+      summaryText.length >= 75 &&
+      !summaryText.startsWith('• ') &&
+      !summaryText.startsWith('- ') &&
+      !summaryText.startsWith('* ') &&
+      summaryText.toLowerCase() !== (a.title || '').trim().toLowerCase()
+    );
   });
 }
 
@@ -487,11 +494,18 @@ router.get('/news', async (req, res) => {
   const startIndex = (p - 1) * l;
   const paginated = deduplicatedList.slice(startIndex, startIndex + l);
 
+  const finalArticles = paginated.map(a => ({
+    ...a,
+    summary: (a.id && aiSummaryCache[a.id]) ? aiSummaryCache[a.id] : a.summary,
+    isAiGenerated: true,
+    isAiSummary: true,
+  }));
+
   res.json({
     total: deduplicatedList.length,
     page: p,
     limit: l,
-    articles: paginated
+    articles: finalArticles
   });
 });
 

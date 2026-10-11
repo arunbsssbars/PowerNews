@@ -1057,6 +1057,9 @@ class NewsProvider extends ChangeNotifier {
         }
       }
       // Strict AI Summary Gate: ONLY genuine narrative AI summaries (non-bullet, >= 75 chars)
+      if (!a.isAiGenerated) {
+        return false;
+      }
       final sum = a.summary.trim();
       if (sum.length < 75 || sum.startsWith('• ') || sum.startsWith('- ') || sum.startsWith('* ')) {
         return false;
@@ -1159,10 +1162,7 @@ class NewsProvider extends ChangeNotifier {
       }).toList();
 
       // Filter out low-grade or non-AI stubs so feed contains 100% verified AI summaries
-      final cleanNews = hydratedNews.where((a) {
-        final s = a.summary.trim();
-        return s.length >= 50 && s.toLowerCase() != a.title.trim().toLowerCase();
-      }).toList();
+      final cleanNews = _applyFiltersTo(hydratedNews);
 
       final sorted = _sortArticles(cleanNews);
 
@@ -1306,8 +1306,7 @@ class NewsProvider extends ChangeNotifier {
       );
 
       _currentPage = nextPage;
-      final cleanMore = moreNews.where((a) => a.summary.trim().length >= 50).toList();
-      final filteredMore = _applyFiltersTo(cleanMore);
+      final filteredMore = _applyFiltersTo(moreNews);
 
       final added = _deduplicateArticles(filteredMore, against: _articles);
 
