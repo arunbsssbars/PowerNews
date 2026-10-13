@@ -32,32 +32,39 @@ jobs:
           mkdir -p build/ios/SourcePackages
           flutter pub get
 
-      - name: Build iOS App with Unsigned Signing Allowed
+      - name: Build iOS App (Unsigned)
         run: |
           if [ -f ios/Podfile ]; then
             cd ios
             pod install || pod install --repo-update
             cd ..
           fi
-          flutter build ios --config-only
-          xcodebuild -workspace ios/Runner.xcworkspace -scheme Runner -configuration Release -destination 'generic/platform=iOS' CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY="" BUILD_DIR=build/ios_derived clean build
+          flutter pub get
+          flutter build ipa --no-codesign
 
-      - name: Bundle Payload into Unsigned IPA
+      - name: Package Unsigned IPA from Archive if Needed
         run: |
-          mkdir -p build/Payload
-          cp -r build/ios_derived/Build/Products/Release-iphoneos/Runner.app build/Payload/ 2>/dev/null || cp -r build/ios/iphoneos/Runner.app build/Payload/ 2>/dev/null || true
-          if [ -d build/Payload/Runner.app ]; then
-            cd build
-            zip -r -q PowerNews-release-unsigned.ipa Payload
-            rm -rf Payload
-          else
-            echo "Notice: Runner.app not built in headless unsigned environment; skipping IPA packaging."
+          mkdir -p build/ios/ipa
+          if [ ! -f build/ios/ipa/*.ipa ]; then
+            if [ -d build/ios/archive/Runner.xcarchive/Products/Applications/Runner.app ]; then
+              mkdir -p build/Payload
+              cp -r build/ios/archive/Runner.xcarchive/Products/Applications/Runner.app build/Payload/
+              cd build
+              zip -r -q ios/ipa/PowerNews-release-unsigned.ipa Payload
+              rm -rf Payload
+            elif [ -d build/ios/iphoneos/Runner.app ]; then
+              mkdir -p build/Payload
+              cp -r build/ios/iphoneos/Runner.app build/Payload/
+              cd build
+              zip -r -q ios/ipa/PowerNews-release-unsigned.ipa Payload
+              rm -rf Payload
+            fi
           fi
 
       - name: Upload IPA Artifact
-        if: hashFiles('build/PowerNews-release-unsigned.ipa') != ''
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: PowerNews-ios-ipa
-          path: build/PowerNews-release-unsigned.ipa
+          path: build/ios/ipa/*.ipa
           retention-days: 7
