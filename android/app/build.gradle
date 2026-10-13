@@ -47,11 +47,13 @@ android {
                 keyPassword keystoreProperties['keyPassword']
                 storeFile file(keystoreProperties['storeFile'])
                 storePassword keystoreProperties['storePassword']
-            } else {
+            } else if (file('debug.keystore').exists()) {
                 storeFile file('debug.keystore')
                 storePassword 'android'
                 keyAlias 'androiddebugkey'
                 keyPassword 'android'
+            } else {
+                signingConfig signingConfigs.debug
             }
         }
     }
