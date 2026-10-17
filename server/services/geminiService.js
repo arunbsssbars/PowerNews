@@ -7,6 +7,7 @@ const {
 const {
   cleanHeadline,
   cleanSummaryOutput,
+  isAuthenticAiSummary,
 } = require('./classifierService');
 const { calculateSimilarity } = require('./clusterService');
 const { scrapeFullArticle } = require('./scraperService');
@@ -43,17 +44,35 @@ setImmediate(async () => {
     const cloudCount = Object.keys(summaryMap).filter(k => k !== 'summaryMap' && k !== 'articles').length;
     if (cloudCount > 0) {
       let merged = 0;
+      let rejected = 0;
       for (const [id, summary] of Object.entries(summaryMap)) {
         if (id !== 'summaryMap' && id !== 'articles' && !aiSummaryCache[id]) {
-          aiSummaryCache[id] = summary;
-          merged++;
+          const matchingArticle = cloudArticles.find(a => a.id === id);
+          const title = matchingArticle ? matchingArticle.title : '';
+          if (isAuthenticAiSummary(title, summary)) {
+            aiSummaryCache[id] = summary;
+            merged++;
+          } else {
+            rejected++;
+          }
         }
       }
       if (merged > 0) {
-        console.log(`[Firestore Sync] Loaded and merged ${merged} active summaries from Cloud Firestore into RAM.`);
+        console.log(`[Firestore Sync] Loaded and merged ${merged} authentic AI summaries from Cloud Firestore into RAM (${rejected} invalid/pseudo-summaries filtered out).`);
       }
     }
     if (cloudArticles.length > 0) {
+      // Also ensure articles loaded from cloud have isAiGenerated set strictly
+      for (const ca of cloudArticles) {
+        if (ca && ca.id) {
+          const hasAuthentic = isAuthenticAiSummary(ca.title, aiSummaryCache[ca.id] || ca.summary);
+          ca.isAiGenerated = hasAuthentic;
+          ca.isAiSummary = hasAuthentic;
+          if (hasAuthentic && aiSummaryCache[ca.id]) {
+            ca.summary = aiSummaryCache[ca.id];
+          }
+        }
+      }
       articleStore.mergeArticles(cloudArticles);
       console.log(`[Firestore Sync] Hydrated articleStore with ${cloudArticles.length} complete articles from Cloud Firestore.`);
     }
@@ -225,8 +244,8 @@ ${sourceTextForAi.slice(0, 4000)}
 
     const envModel = process.env.GEMINI_MODEL ? process.env.GEMINI_MODEL.trim() : null;
     const modelsToTry = envModel
-      ? [envModel, 'gemini-3.5-flash', 'gemini-3.1-flash-lite', 'gemini-2.5-flash', 'gemini-3.8-flash'].filter((v, i, a) => a.indexOf(v) === i)
-      : ['gemini-3.1-flash-lite', 'gemini-3.5-flash', 'gemini-2.5-flash', 'gemini-3.8-flash'];
+      ? [envModel, 'gemini-3.1-flash-lite', 'gemini-2.5-flash', 'gemini-2.0-flash', 'gemini-1.5-flash'].filter((v, i, a) => a.indexOf(v) === i)
+      : ['gemini-3.1-flash-lite', 'gemini-2.5-flash', 'gemini-2.0-flash', 'gemini-1.5-flash'];
 
     for (const model of modelsToTry) {
       try {
@@ -358,7 +377,7 @@ ${sourceTextForAi.slice(0, 4000)}
     geminiCoolingDownUntil = Date.now() + 20000;
   }
 
-  // Step 3: Pure Content-Grounded Heuristic Fallback (Exa / Publisher Grounded)
+  // Step 3: Raw publisher fallback (NOT an authentic AI summary)
   let fallbackText = '';
   if (articleContent && articleContent.length > 80) {
     const sentences = articleContent
@@ -382,17 +401,16 @@ ${sourceTextForAi.slice(0, 4000)}
   }
 
   const result = cleanSummaryOutput(fallbackText);
-  if (articleId && result && result.length >= 75 && !result.startsWith('• ') && !result.startsWith('- ')) {
-    aiSummaryCache[articleId] = result;
-    if (fullArticle) {
-      fullArticle.summary = result;
-      fullArticle.isAiGenerated = true;
-      fullArticle.isAiSummary = true;
-      if (articleContent) fullArticle.fullText = articleContent;
-      if (articleImageUrl && !fullArticle.imageUrl) fullArticle.imageUrl = articleImageUrl;
-    }
+  // STRICT: Do NOT admit raw fallback snippet into aiSummaryCache or mark isAiGenerated = true!
+  // It remains unsummarized so Gemini can synthesize it when quota/model is ready.
+  if (fullArticle) {
+    fullArticle.summary = result;
+    fullArticle.isAiGenerated = false;
+    fullArticle.isAiSummary = false;
+    if (articleContent) fullArticle.fullText = articleContent;
+    if (articleImageUrl && !fullArticle.imageUrl) fullArticle.imageUrl = articleImageUrl;
   }
-  return result;
+  return null;
 }
 
 /**

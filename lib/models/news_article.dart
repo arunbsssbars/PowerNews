@@ -85,6 +85,55 @@ class NewsArticle {
     );
   }
 
+  bool get hasAuthenticAiSummary {
+    if (!isAiGenerated) return false;
+    final s = summary.trim();
+    if (s.length < 90) return false;
+    if (s.startsWith('•') || s.startsWith('-') || s.startsWith('*')) return false;
+
+    final lower = s.toLowerCase();
+    const forbiddenPhrases = [
+      "where clean energy's most influential",
+      "exclusive reporting, market intelligence",
+      "official dispatch from",
+      "all rights reserved",
+      "prohibited content policy",
+      "subscribe to read",
+      "read more at",
+      "sign up for our newsletter",
+    ];
+    for (final phrase in forbiddenPhrases) {
+      if (lower.contains(phrase)) return false;
+    }
+
+    final cleanT = title.trim().toLowerCase().replaceAll(RegExp(r'[^a-z0-9]'), ' ').replaceAll(RegExp(r'\s+'), ' ').trim();
+    final cleanS = lower.replaceAll(RegExp(r'[^a-z0-9]'), ' ').replaceAll(RegExp(r'\s+'), ' ').trim();
+    if (cleanS == cleanT) return false;
+
+    final tWords = cleanT.split(' ').where((w) => w.length > 2).toList();
+    if (tWords.length >= 4) {
+      final matchWords = tWords.where((w) => cleanS.contains(w)).length;
+      final overlapRatio = matchWords / tWords.length;
+      if (s.length < 170 && overlapRatio > 0.80) {
+        return false;
+      }
+    }
+
+    final sentences = s.split(RegExp(r'[.!?]+')).map((st) => st.trim()).where((st) => st.length > 15).toList();
+    if (sentences.length >= 2) {
+      final s0 = sentences[0].toLowerCase().replaceAll(RegExp(r'[^a-z0-9]'), '');
+      final s1 = sentences[1].toLowerCase().replaceAll(RegExp(r'[^a-z0-9]'), '');
+      if (s0 == s1 || (s0.length > 25 && s1.length > 25 && (s0.contains(s1) || s1.contains(s0)))) {
+        return false;
+      }
+    }
+
+    final wordCount = s.split(RegExp(r'\s+')).where((w) => w.isNotEmpty).length;
+    if (wordCount < 16) return false;
+
+    return true;
+  }
+
   static String cleanHtmlAndEntities(String input) {
     if (input.isEmpty) return '';
     String text = input;
@@ -214,7 +263,7 @@ class NewsArticle {
       sourceLinks: srcLinks,
       coverageCount: coverage,
       imageUrl: json['imageUrl']?.toString() ?? json['image_url']?.toString(),
-      isAiGenerated: json['isAiGenerated'] == true || json['isAiSummary'] == true,
+      isAiGenerated: (json['isAiGenerated'] == true || json['isAiSummary'] == true) && json['isAiGenerated'] != false && json['isAiSummary'] != false,
       calculatedScore: (json['_calculatedScore'] as num?)?.toDouble() ?? (json['calculatedScore'] as num?)?.toDouble() ?? 0.0,
     );
   }

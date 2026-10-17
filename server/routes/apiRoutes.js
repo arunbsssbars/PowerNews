@@ -13,6 +13,7 @@ const {
   cleanHeadline,
   cleanText,
   filterArticlesRetention30Days,
+  isAuthenticAiSummary,
 } = require('../services/classifierService');
 const {
   ai,
@@ -214,14 +215,7 @@ function getActiveArticles() {
   return retained.filter(a => {
     if (!a || !a.id || a.isRejected) return false;
     const summaryText = aiSummaryCache[a.id];
-    return Boolean(
-      summaryText &&
-      summaryText.length >= 75 &&
-      !summaryText.startsWith('• ') &&
-      !summaryText.startsWith('- ') &&
-      !summaryText.startsWith('* ') &&
-      summaryText.toLowerCase() !== (a.title || '').trim().toLowerCase()
-    );
+    return isAuthenticAiSummary(a.title, summaryText);
   });
 }
 
@@ -494,12 +488,16 @@ router.get('/news', async (req, res) => {
   const startIndex = (p - 1) * l;
   const paginated = deduplicatedList.slice(startIndex, startIndex + l);
 
-  const finalArticles = paginated.map(a => ({
-    ...a,
-    summary: (a.id && aiSummaryCache[a.id]) ? aiSummaryCache[a.id] : a.summary,
-    isAiGenerated: true,
-    isAiSummary: true,
-  }));
+  const finalArticles = paginated.map(a => {
+    const candidateSummary = (a.id && aiSummaryCache[a.id]) ? aiSummaryCache[a.id] : a.summary;
+    const isAuthentic = isAuthenticAiSummary(a.title, candidateSummary);
+    return {
+      ...a,
+      summary: candidateSummary,
+      isAiGenerated: isAuthentic,
+      isAiSummary: isAuthentic,
+    };
+  });
 
   res.json({
     total: deduplicatedList.length,
@@ -567,15 +565,22 @@ router.get('/article-summary', async (req, res) => {
       id, title, snippet || '', category || 'Power Sector', player, state, discom, url, articleStore.getArticles(), existingArticle
     );
 
-    if (id && summary && !summary.startsWith('• ') && summary.length >= 75 && summary.toLowerCase() !== title.trim().toLowerCase()) {
+    const isAuthentic = isAuthenticAiSummary(title, summary);
+    if (id && summary && isAuthentic) {
       aiSummaryCache[id] = summary;
-      if (existingArticle) existingArticle.summary = summary;
+      if (existingArticle) {
+        existingArticle.summary = summary;
+        existingArticle.isAiGenerated = true;
+        existingArticle.isAiSummary = true;
+      }
     }
 
     return res.json({
       success: true,
       id,
       summary,
+      isAiGenerated: isAuthentic,
+      isAiSummary: isAuthentic,
       cached: wasCached
     });
   } catch (err) {

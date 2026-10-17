@@ -230,10 +230,11 @@ class ExecutiveCardView extends StatelessWidget {
             ),
           ),
 
-          // Top Left: Verified AI Executive Summary Badge
-          Positioned(
-            top: 8,
-            left: 10,
+          // Top Left: Verified AI Executive Summary Badge (Only rendered for authentic AI synthesis)
+          if (article.isAiGenerated && article.hasAuthenticAiSummary)
+            Positioned(
+              top: 8,
+              left: 10,
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3.5),
               decoration: BoxDecoration(

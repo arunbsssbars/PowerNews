@@ -139,6 +139,73 @@ function extractCleanSnippet(title, rawSnippet) {
   return cleanTitleStr;
 }
 
+function isAuthenticAiSummary(title, text) {
+  if (!text || typeof text !== 'string') return false;
+  const s = text.trim();
+
+  // 1. Minimum character length (genuine 40-60 word executive summaries are >= 90 chars)
+  if (s.length < 90) return false;
+
+  // 2. Reject bullet points, lists, or markdown fragments
+  if (s.startsWith('•') || s.startsWith('-') || s.startsWith('*') || /^\d+[\.\)]/.test(s)) return false;
+
+  const lower = s.toLowerCase();
+
+  // 3. Reject marketing boilerplate, subscriptions, and syndication dispatches
+  const forbiddenSnippets = [
+    "where clean energy's most influential",
+    "exclusive reporting, market intelligence",
+    "official dispatch from",
+    "all rights reserved",
+    "prohibited content policy",
+    "subscribe to read",
+    "read more at",
+    "sign up for our newsletter",
+    "follow us on twitter",
+    "follow us on linkedin",
+    "copyright ©",
+    "this article was originally published",
+  ];
+  for (const snippet of forbiddenSnippets) {
+    if (lower.includes(snippet)) return false;
+  }
+
+  // 4. Anti-Mirror & Repetition Checks against Title
+  if (title && typeof title === 'string') {
+    const cleanT = title.trim().toLowerCase().replace(/[^a-z0-9]/g, ' ').replace(/\s+/g, ' ').trim();
+    const cleanS = lower.replace(/[^a-z0-9]/g, ' ').replace(/\s+/g, ' ').trim();
+
+    // Exact match
+    if (cleanS === cleanT) return false;
+
+    // Check if summary is mostly just the title repeated (e.g. Title. Title)
+    const tWords = cleanT.split(' ').filter(w => w.length > 2);
+    if (tWords.length >= 4) {
+      const matchWords = tWords.filter(w => cleanS.includes(w));
+      const overlapRatio = matchWords.length / tWords.length;
+      if (s.length < 170 && overlapRatio > 0.80) {
+        return false;
+      }
+    }
+
+    // Check for doubled sentences or repeated halves (e.g. "Headline. Headline")
+    const sentences = s.split(/[.!?]+/).map(st => st.trim()).filter(st => st.length > 15);
+    if (sentences.length >= 2) {
+      const s0 = sentences[0].toLowerCase().replace(/[^a-z0-9]/g, '');
+      const s1 = sentences[1].toLowerCase().replace(/[^a-z0-9]/g, '');
+      if (s0 === s1 || (s0.length > 25 && s1.length > 25 && (s0.includes(s1) || s1.includes(s0)))) {
+        return false;
+      }
+    }
+  }
+
+  // 5. Must have at least 16 words (executive narrative minimum)
+  const wordCount = s.split(/\s+/).filter(Boolean).length;
+  if (wordCount < 16) return false;
+
+  return true;
+}
+
 function matchesKeyword(text, kw) {
   if (!text || !kw) return false;
   if (kw.length <= 4) {
@@ -245,6 +312,7 @@ module.exports = {
   filterArticlesRetention30Days,
   cleanSummaryOutput,
   extractCleanSnippet,
+  isAuthenticAiSummary,
   matchesKeyword,
   isPowerSectorNews,
   extractCategories,

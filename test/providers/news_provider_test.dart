@@ -177,5 +177,52 @@ void main() {
       // 6. Genuine Secure Meters article must NOT match Premier Energies
       expect(NewsProvider.matchesPlayer(secureMetersArticle, 'Premier Energies'), isFalse);
     });
+
+    test('Strict AI summary gate rejects pseudo-summaries, repeated titles, and marketing blurbs', () {
+      final fakeVikram = NewsArticle(
+        id: 'vik-1',
+        title: 'India’s Vikram Solar secures 187 MW module supply order - Evertiq',
+        summary: 'India’s Vikram Solar secures 187 MW module supply order - Evertiq. India’s Vikram Solar secures 187 MW module supply order Evertiq',
+        url: 'https://example.com/vikram',
+        source: 'Evertiq',
+        publishedAt: DateTime.now(),
+        categories: ['renewables'],
+        isAiGenerated: true,
+        state: 'National / Pan-India',
+      );
+
+      final fakeMarketing = NewsArticle(
+        id: 'sw-1',
+        title: 'Sterling and Wilson’s Q2 Revenue Down 12.6% Due to Weak EPC Project Execution',
+        summary: 'The company reported a PAT of ₹170 million. Where clean energy\'s most influential leaders get their intelligence Exclusive reporting, market intelligence, and insider access that shapes billion-dollar decisions in renewable energy.',
+        url: 'https://example.com/sw',
+        source: 'Mercom India',
+        publishedAt: DateTime.now(),
+        categories: ['renewables'],
+        isAiGenerated: true,
+        state: 'National / Pan-India',
+      );
+
+      final genuineAiArticle = NewsArticle(
+        id: 'gen-1',
+        title: 'Data centre growth could pose new power grid challenges, warns GRID',
+        summary: 'The rapid expansion of data centers across India presents significant emerging challenges for national power grid stability and distribution infrastructure. As high-density power consumers, these facilities necessitate immediate grid reinforcement and strategic policy interventions to manage load fluctuations.',
+        url: 'https://example.com/grid',
+        source: 'ET EnergyWorld',
+        publishedAt: DateTime.now(),
+        categories: ['transmission'],
+        isAiGenerated: true,
+        state: 'National / Pan-India',
+      );
+
+      // Vikram Solar doubled-title pseudo-summary must be rejected
+      expect(fakeVikram.hasAuthenticAiSummary, isFalse);
+
+      // Marketing boilerplate blurb must be rejected
+      expect(fakeMarketing.hasAuthenticAiSummary, isFalse);
+
+      // Genuine narrative executive summary must pass
+      expect(genuineAiArticle.hasAuthenticAiSummary, isTrue);
+    });
   });
 }

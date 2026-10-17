@@ -1056,20 +1056,8 @@ class NewsProvider extends ChangeNotifier {
           return false;
         }
       }
-      // Strict AI Summary Gate: ONLY genuine narrative AI summaries (non-bullet, >= 75 chars)
-      if (!a.isAiGenerated) {
-        return false;
-      }
-      final sum = a.summary.trim();
-      if (sum.length < 75 || sum.startsWith('• ') || sum.startsWith('- ') || sum.startsWith('* ')) {
-        return false;
-      }
-      if (sum.toLowerCase() == a.title.trim().toLowerCase()) {
-        return false;
-      }
-      if (sum.contains('prohibited content policy') ||
-          sum.contains('all rights reserved') ||
-          sum.startsWith('• A global renewable energy power plant step')) {
+      // Strict AI Summary Gate: ONLY genuine narrative AI summaries (non-bullet, >= 90 chars, anti-mirror, anti-boilerplate)
+      if (!a.isAiGenerated || !a.hasAuthenticAiSummary) {
         return false;
       }
       return true;
