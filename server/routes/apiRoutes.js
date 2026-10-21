@@ -34,6 +34,7 @@ const {
 } = require('../services/scraperService');
 const { DEFAULT_PAGE_SIZE } = require('../config/constants');
 const { getSystemLifecycle } = require('../services/systemStateService');
+const { heavyRouteLimiter, getBudgetStats } = require('../middleware/budgetGuard');
 
 const router = express.Router();
 const rateLimit = require('express-rate-limit');
@@ -236,6 +237,10 @@ router.get('/health', (req, res) => {
     },
     timestamp: new Date().toISOString()
   });
+});
+
+router.get('/budget-status', (req, res) => {
+  res.json(getBudgetStats());
 });
 
 router.get('/memory', (req, res) => {
@@ -499,6 +504,7 @@ router.get('/news', async (req, res) => {
     };
   });
 
+  res.set('Cache-Control', 'public, max-age=60, s-maxage=300, stale-while-revalidate=600');
   res.json({
     total: deduplicatedList.length,
     page: p,
@@ -510,7 +516,7 @@ router.get('/news', async (req, res) => {
 // ----------------------------------------------------------------------------
 // Scraped Full Article Content (Reader Mode)
 // ----------------------------------------------------------------------------
-router.get('/article-content', async (req, res) => {
+router.get('/article-content', heavyRouteLimiter, async (req, res) => {
   const { url, id } = req.query;
   if (!url || !url.startsWith('http')) {
     return res.status(400).json({ success: false, message: 'Valid url query parameter required' });
@@ -551,7 +557,7 @@ router.get('/article-content', async (req, res) => {
 // ----------------------------------------------------------------------------
 // On-Demand AI Summary
 // ----------------------------------------------------------------------------
-router.get('/article-summary', async (req, res) => {
+router.get('/article-summary', heavyRouteLimiter, async (req, res) => {
   const { id, title, snippet, category, player, state, discom, url } = req.query;
   if (!title) {
     return res.status(400).json({ success: false, message: 'Title is required' });

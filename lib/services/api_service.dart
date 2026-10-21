@@ -12,6 +12,7 @@ class ApiService {
     'x-api-key': AppConfig.apiKey,
   };
 
+  static const String firebaseCloudHost = 'https://powernews-app-2026.web.app';
   static const String renderCloudHost = 'https://powernewsapp-backend.onrender.com';
 
   static List<String> get candidateHosts {
@@ -20,6 +21,7 @@ class ApiService {
       if (AppConfig.apiBaseUrl.startsWith('https://')) {
         hosts.add(AppConfig.apiBaseUrl);
       }
+      hosts.add(firebaseCloudHost);
       hosts.add(renderCloudHost);
       return hosts.toList();
     }
@@ -27,7 +29,9 @@ class ApiService {
       AppConfig.apiBaseUrl,
       'http://172.20.10.11:3000',
       'http://127.0.0.1:3000',
-      // 1. Production Render Cloud URL (Primary)
+      // 1. Production Firebase Blaze Serverless URL (Primary)
+      firebaseCloudHost,
+      // 2. Render Cloud URL (Fallback)
       renderCloudHost,
       // 2. Localhost fallback (only when user manually runs node server in terminal)
       'http://localhost:3000',

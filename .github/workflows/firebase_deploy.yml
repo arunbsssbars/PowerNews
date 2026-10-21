@@ -64,12 +64,12 @@ jobs:
         run: |
           if [ -n "${{ secrets.FIREBASE_TOKEN }}" ]; then
             echo "Deploying to Firebase Hosting via FIREBASE_TOKEN..."
-            firebase deploy --only hosting --token "${{ secrets.FIREBASE_TOKEN }}" --non-interactive
+            firebase deploy --only hosting,functions --token "${{ secrets.FIREBASE_TOKEN }}" --non-interactive
           elif [ -n "${{ secrets.FIREBASE_SERVICE_ACCOUNT }}" ]; then
             echo "Deploying to Firebase Hosting via Service Account..."
             echo "${{ secrets.FIREBASE_SERVICE_ACCOUNT }}" > gcp-key.json
             export GOOGLE_APPLICATION_CREDENTIALS=gcp-key.json
-            firebase deploy --only hosting --non-interactive
+            firebase deploy --only hosting,functions --non-interactive
             rm -f gcp-key.json
           else
             echo "NOTICE: FIREBASE_TOKEN or FIREBASE_SERVICE_ACCOUNT secret is not configured in GitHub Secrets."

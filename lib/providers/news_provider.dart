@@ -1004,18 +1004,20 @@ class NewsProvider extends ChangeNotifier {
   List<NewsArticle> _sortArticles(List<NewsArticle> list) {
     final copy = List<NewsArticle>.from(list);
     copy.sort((a, b) {
-      if (_selectedPersona != GridPersona.all) {
+      if (_sortOrder == FeedSortOrder.earliestFirst) {
+        return a.publishedAt.compareTo(b.publishedAt);
+      }
+
+      // Latest first: If articles differ by more than 6 hours, newer article ALWAYS ranks on top
+      final diffHours = (b.publishedAt.difference(a.publishedAt)).inHours.abs();
+      if (_selectedPersona != GridPersona.all && diffHours <= 6) {
         final relB = _selectedPersona.calculateRelevance(b.title, b.summary, b.primaryCategory, b.player);
         final relA = _selectedPersona.calculateRelevance(a.title, a.summary, a.primaryCategory, a.player);
         if ((relB - relA).abs() >= 15.0) {
           return relB.compareTo(relA);
         }
       }
-      if (_sortOrder == FeedSortOrder.earliestFirst) {
-        return a.publishedAt.compareTo(b.publishedAt);
-      } else {
-        return b.publishedAt.compareTo(a.publishedAt);
-      }
+      return b.publishedAt.compareTo(a.publishedAt);
     });
     return copy;
   }
@@ -1172,11 +1174,8 @@ class NewsProvider extends ChangeNotifier {
           return !title.contains('wrap-up') && !title.contains('wrap up') && !title.contains('daily power executive');
         }).toList();
 
-        if (isRefresh) {
-          _articles = _deduplicateArticles(filteredList);
-        } else {
-          _articles.addAll(_deduplicateArticles(filteredList, against: _articles));
-        }
+        _currentPage = 1;
+        _articles = _deduplicateArticles(filteredList);
         _hasMore = news.length == _pageSize;
         // Strictly persist ONLY verified AI-summarized articles into local cache
         await _cacheService.cacheArticles(cleanNews);

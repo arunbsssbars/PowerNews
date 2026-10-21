@@ -5,6 +5,10 @@ const express = require('express');
 const cors = require('cors');
 const cron = require('node-cron');
 const helmet = require('helmet');
+const compression = require('compression');
+const { budgetGuardMiddleware } = require('./middleware/budgetGuard');
+const { onRequest } = require('firebase-functions/v2/https');
+const { onSchedule } = require('firebase-functions/v2/scheduler');
 const { PORT } = require('./config/constants');
 const apiRoutes = require('./routes/apiRoutes');
 const articleStore = require('./services/articleStore');
@@ -13,6 +17,8 @@ const { syncFeeds } = require('./services/rssService');
 const app = express();
 // Trust Render's reverse proxy for correct rate-limiting IP addresses
 app.set('trust proxy', 1);
+app.use(compression()); // Compress all responses (>80% egress reduction)
+app.use(budgetGuardMiddleware); // Anti-EDoS & Free-Tier Budget Sentry
 app.use(express.json()); // Need JSON parsing for POST/PUT requests
 app.get(['/admin', '/admin/', '/admin/index.html'], (req, res) => {
   res.set('Cache-Control', 'no-store, no-cache, must-revalidate, private');
@@ -443,3 +449,34 @@ module.exports = {
   app,
   startServer,
 };
+
+// ============================================================================
+// Firebase Cloud Functions (2nd Gen) Serverless Handlers
+// ============================================================================
+
+// 1. HTTP Cloud Function for all /api/** traffic with Hard Scaling Cap (maxInstances: 2)
+exports.api = onRequest({
+  cors: true,
+  timeoutSeconds: 120,
+  memory: '512MiB',
+  maxInstances: 2, // Hard ceiling prevents auto-scaling denial-of-wallet
+  concurrency: 80, // Single instance handles 80 concurrent users
+}, app);
+
+// 2. Scheduled Cron Function (15-min RSS Ingestion, 1 job stays 100% within free quota)
+exports.syncFeedsScheduled = onSchedule({
+  schedule: '*/15 * * * *',
+  timeZone: 'Asia/Kolkata',
+  timeoutSeconds: 300,
+  memory: '512MiB',
+  maxInstances: 1,
+}, async (event) => {
+  console.log('[Cloud Scheduler] 🕒 Starting scheduled feed synchronization...');
+  try {
+    const updated = await syncFeeds(articleStore.getArticles(), articleStore);
+    articleStore.setArticles(updated);
+    console.log(`[Cloud Scheduler] ✅ Sync complete: ${updated.length} articles active.`);
+  } catch (err) {
+    console.error('[Cloud Scheduler] ❌ Scheduled feed sync error:', err.message);
+  }
+});

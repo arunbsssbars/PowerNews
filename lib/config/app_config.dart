@@ -11,7 +11,7 @@ class AppConfig {
   static String get apiKey => _get('APP_CLIENT_KEY', _get('APP_CLIENT_SECRET', _get('API_KEY', 'pwn_5a9b8c7d6e5f4g3h2i1j0')));
   static String get clientSecret => apiKey;
   static String get clientKey => apiKey;
-  static String get apiBaseUrl => _get('API_BASE_URL', 'https://powernewsapp-backend.onrender.com');
+  static String get apiBaseUrl => _get('API_BASE_URL', 'https://powernews-app-2026.web.app');
   static String get googleWebClientId => _get('GOOGLE_WEB_CLIENT_ID', '1022634770385-2birvt9ha9edjm5ujncjeaddk9minlou.apps.googleusercontent.com');
   static String get googleIosClientId => _get('GOOGLE_IOS_CLIENT_ID', '1022634770385-gdna1qf5pob71v1261l2cubqhlrphj29.apps.googleusercontent.com');
   static String get firebaseApiKey => _get('FIREBASE_API_KEY', 'AIzaSyDmaWHLVYGzfTlFaPmFPsoT5zyojmon60g');
