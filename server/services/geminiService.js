@@ -243,9 +243,10 @@ ${sourceTextForAi.slice(0, 4000)}
 """`;
 
     const envModel = process.env.GEMINI_MODEL ? process.env.GEMINI_MODEL.trim() : null;
+    const defaultModels = ['gemini-flash-lite-latest', 'gemini-2.5-flash-lite', 'gemini-3.5-flash', 'gemini-flash-latest'];
     const modelsToTry = envModel
-      ? [envModel, 'gemini-3.1-flash-lite', 'gemini-2.5-flash', 'gemini-2.0-flash', 'gemini-1.5-flash'].filter((v, i, a) => a.indexOf(v) === i)
-      : ['gemini-3.1-flash-lite', 'gemini-2.5-flash', 'gemini-2.0-flash', 'gemini-1.5-flash'];
+      ? [envModel, ...defaultModels].filter((v, i, a) => a.indexOf(v) === i)
+      : defaultModels;
 
     for (const model of modelsToTry) {
       try {
@@ -692,7 +693,7 @@ INSTRUCTIONS:
 
   if (ai && Date.now() > geminiCoolingDownUntil) {
     const envModel = process.env.GEMINI_MODEL ? process.env.GEMINI_MODEL.trim() : null;
-    const modelsToTry = envModel ? [envModel] : ['gemini-3.8-flash', 'gemini-3.7-flash', 'gemini-3.6-flash'];
+    const modelsToTry = envModel ? [envModel, 'gemini-flash-lite-latest', 'gemini-2.5-flash-lite'] : ['gemini-flash-lite-latest', 'gemini-2.5-flash-lite', 'gemini-3.5-flash'];
 
     for (const model of modelsToTry) {
       try {
@@ -763,7 +764,7 @@ ${recentContent.substring(0, 40000)} // Ensure we don't blow up token limits
 `;
 
   try {
-    const model = process.env.GEMINI_MODEL ? process.env.GEMINI_MODEL.trim() : 'gemini-3.8-flash';
+    const model = process.env.GEMINI_MODEL ? process.env.GEMINI_MODEL.trim() : 'gemini-flash-lite-latest';
     const response = await ai.models.generateContent({
       model: model,
       contents: prompt,

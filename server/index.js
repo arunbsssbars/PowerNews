@@ -28,7 +28,7 @@ app.use('/admin', express.static(path.join(__dirname, '..', 'public', 'admin')))
 
 app.get('/verify-email', (req, res) => {
   const oobCode = req.query.oobCode || req.query.code || '';
-  const apiKey = req.query.apiKey || process.env.FIREBASE_API_KEY || 'AIzaSyDmaWHLVYGzfTlFaPmFPsoT5zyojmon60g';
+  const apiKey = req.query.apiKey || process.env.WEB_FIREBASE_API_KEY || process.env.FIREBASE_API_KEY || 'AIzaSyDmaWHLVYGzfTlFaPmFPsoT5zyojmon60g';
   res.send(`<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -445,17 +445,12 @@ if (require.main === module || (require.main && require.main.filename && require
   startServer();
 }
 
-module.exports = {
-  app,
-  startServer,
-};
-
 // ============================================================================
 // Firebase Cloud Functions (2nd Gen) Serverless Handlers
 // ============================================================================
 
 // 1. HTTP Cloud Function for all /api/** traffic with Hard Scaling Cap (maxInstances: 2)
-exports.api = onRequest({
+const api = onRequest({
   cors: true,
   timeoutSeconds: 120,
   memory: '512MiB',
@@ -464,7 +459,7 @@ exports.api = onRequest({
 }, app);
 
 // 2. Scheduled Cron Function (15-min RSS Ingestion, 1 job stays 100% within free quota)
-exports.syncFeedsScheduled = onSchedule({
+const syncFeedsScheduled = onSchedule({
   schedule: '*/15 * * * *',
   timeZone: 'Asia/Kolkata',
   timeoutSeconds: 300,
@@ -480,3 +475,10 @@ exports.syncFeedsScheduled = onSchedule({
     console.error('[Cloud Scheduler] ❌ Scheduled feed sync error:', err.message);
   }
 });
+
+module.exports = {
+  app,
+  startServer,
+  api,
+  syncFeedsScheduled,
+};
