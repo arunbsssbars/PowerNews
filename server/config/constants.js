@@ -1,6 +1,6 @@
 const path = require('path');
 
-// Server Port (Dynamic in production, e.g. Render sets PORT=10000)
+// Server Port (Default 3000 for local dev or process.env.PORT in Google Cloud Run)
 const PORT = process.env.PORT || 3000;
 
 // Article Retention Window: 30 days in milliseconds

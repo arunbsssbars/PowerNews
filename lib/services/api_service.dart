@@ -13,7 +13,6 @@ class ApiService {
   };
 
   static const String firebaseCloudHost = 'https://powernews-app-2026.web.app';
-  static const String renderCloudHost = firebaseCloudHost;
   static List<String> get candidateHosts {
     if (kIsWeb) {
       final hosts = <String>{};

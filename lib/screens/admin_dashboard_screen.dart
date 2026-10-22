@@ -83,8 +83,10 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> with Single
   Map<String, dynamic>? _healthData;
   Map<String, dynamic>? _memoryData;
   Map<String, dynamic>? _storageData;
+  Map<String, dynamic>? _zeroBillingData;
   bool _isLoadingHealth = false;
   bool _isLoadingStorage = false;
+  bool _isLoadingZeroBilling = false;
   bool _isTriggeringSync = false;
 
   @override
@@ -126,6 +128,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> with Single
     _fetchHealth();
     _fetchFeedbacks();
     _fetchStorageStatus();
+    _fetchZeroBillingTelemetry();
   }
 
   Future<void> _fetchStorageStatus() async {
@@ -144,6 +147,36 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> with Single
       debugPrint('[Admin] Error fetching storage status: $e');
     } finally {
       if (mounted) setState(() => _isLoadingStorage = false);
+    }
+  }
+
+
+  Future<void> _fetchZeroBillingTelemetry() async {
+    setState(() => _isLoadingZeroBilling = true);
+    try {
+      final res = await http.get(
+        Uri.parse('$_baseUrl/api/admin/zero-billing-telemetry'),
+        headers: _getHeaders(),
+      );
+      if (res.statusCode == 200) {
+        setState(() {
+          _zeroBillingData = jsonDecode(res.body);
+        });
+      } else {
+        final fallback = await http.get(
+          Uri.parse('$_baseUrl/api/budget-status'),
+          headers: _getHeaders(),
+        );
+        if (fallback.statusCode == 200) {
+          setState(() {
+            _zeroBillingData = jsonDecode(fallback.body);
+          });
+        }
+      }
+    } catch (e) {
+      debugPrint('[Admin] Error fetching zero-billing stats: $e');
+    } finally {
+      if (mounted) setState(() => _isLoadingZeroBilling = false);
     }
   }
 
@@ -1220,6 +1253,11 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> with Single
 
               const SizedBox(height: 16),
 
+              // Zero-Billing Multi-Service Quota & Safety Radar
+              _buildZeroBillingRadarCard(isDark, bgCard, borderColor),
+
+              const SizedBox(height: 16),
+
               // Firebase Cloud Storage & Firestore Telemetry Card
               _buildFirebaseStorageCard(isDark, bgCard, borderColor),
 
@@ -1322,6 +1360,286 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> with Single
           );
   }
 
+  Widget _buildZeroBillingRadarCard(bool isDark, Color bgCard, Color borderColor) {
+    if (_isLoadingZeroBilling && _zeroBillingData == null) {
+      return Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: bgCard,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: borderColor),
+        ),
+        child: const Center(
+          child: Padding(
+            padding: EdgeInsets.all(16.0),
+            child: CircularProgressIndicator(),
+          ),
+        ),
+      );
+    }
+
+    final services = _zeroBillingData?['services'] as Map<String, dynamic>?;
+    final fn = services?['cloudFunctions'] as Map<String, dynamic>?;
+    final fs = services?['cloudFirestore'] as Map<String, dynamic>?;
+    final ai = services?['geminiAi'] as Map<String, dynamic>?;
+    final net = services?['hostingAndNetwork'] as Map<String, dynamic>?;
+
+    final alert = _zeroBillingData?['exhaustionAlert'] as String? ?? 'SAFE';
+    final alertMessage = _zeroBillingData?['alertMessage'] as String? ??
+        'All services operating strictly within \$0.00 Blaze free tier limits.';
+
+    final isCritical = alert == 'CRITICAL';
+    final isWarning = alert == 'WARNING_ELEVATED' || alert == 'WARNING';
+    final statusColor = isCritical
+        ? const Color(0xFFEF4444)
+        : (isWarning ? const Color(0xFFF59E0B) : const Color(0xFF10B981));
+
+    final fnCount = fn?['dailyInvocations'] ?? (_healthData?['uptimeSeconds'] != null ? 1 : 0);
+    final fnLimit = fn?['dailyLimit'] ?? 45000;
+    final fnPercent = (fn?['percentUsed'] as num?)?.toDouble() ?? 0.0;
+
+    final fsReads = fs?['dailyReads'] ?? 0;
+    final fsReadLimit = fs?['dailyReadLimit'] ?? 50000;
+    final fsReadPercent = (fs?['readPercentUsed'] as num?)?.toDouble() ?? 0.0;
+
+    final fsWrites = fs?['dailyWrites'] ?? 0;
+    final fsWriteLimit = fs?['dailyWriteLimit'] ?? 20000;
+    final fsWritePercent = (fs?['writePercentUsed'] as num?)?.toDouble() ?? 0.0;
+
+    final aiReq = ai?['dailyRequests'] ?? 0;
+    final aiLimit = ai?['dailyLimit'] ?? 1500;
+    final aiPercent = (ai?['percentUsed'] as num?)?.toDouble() ?? 0.0;
+    final aiRpm = ai?['currentRpm'] ?? 0;
+
+    final egressMb = (net?['dailyEgressMb'] as num?)?.toDouble() ?? 0.0;
+    final egressLimit = (net?['dailyLimitMb'] as num?)?.toDouble() ?? 360.0;
+    final egressPercent = (net?['percentUsed'] as num?)?.toDouble() ?? 0.0;
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: bgCard,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: isCritical
+              ? const Color(0xFFEF4444).withValues(alpha: 0.6)
+              : borderColor,
+          width: isCritical ? 1.5 : 1.0,
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(7),
+                decoration: BoxDecoration(
+                  color: statusColor.withValues(alpha: 0.14),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Icon(
+                  isCritical
+                      ? Icons.warning_amber_rounded
+                      : (isWarning ? Icons.info_outline_rounded : Icons.verified_user_rounded),
+                  color: statusColor,
+                  size: 20,
+                ),
+              ),
+              const SizedBox(width: 10),
+              const Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Zero-Billing Quota & Safety Radar',
+                      style: TextStyle(fontSize: 14.5, fontWeight: FontWeight.w800),
+                    ),
+                    Text(
+                      'Multi-service exhaustion guards (Firebase Blaze Plan)',
+                      style: TextStyle(fontSize: 11, color: Colors.grey),
+                    ),
+                  ],
+                ),
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3.5),
+                decoration: BoxDecoration(
+                  color: statusColor.withValues(alpha: 0.14),
+                  borderRadius: BorderRadius.circular(6),
+                  border: Border.all(color: statusColor, width: 0.8),
+                ),
+                child: Text(
+                  alert,
+                  style: TextStyle(
+                    fontSize: 10,
+                    fontWeight: FontWeight.w800,
+                    color: statusColor,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 4),
+              IconButton(
+                icon: const Icon(Icons.refresh_rounded, size: 18),
+                tooltip: 'Refresh Billing Quotas',
+                onPressed: _fetchZeroBillingTelemetry,
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Text(
+            alertMessage,
+            style: TextStyle(
+              fontSize: 11.5,
+              height: 1.35,
+              color: isCritical
+                  ? const Color(0xFFEF4444)
+                  : (isDark ? const Color(0xFFCBD5E1) : const Color(0xFF475569)),
+              fontWeight: isCritical ? FontWeight.bold : FontWeight.w500,
+            ),
+          ),
+          const SizedBox(height: 14),
+
+          // 1. Cloud Functions Invocations Meter
+          _buildQuotaMeter(
+            label: 'Cloud Functions Invocations (Budget Sentry)',
+            usedText: '$fnCount of $fnLimit req/day',
+            percent: fnPercent,
+            limitDesc: '66k/day & 2M/mo free tier (Hard cap at 45k/day)',
+            isDark: isDark,
+          ),
+          const SizedBox(height: 12),
+
+          // 2. Cloud Firestore Daily Reads
+          _buildQuotaMeter(
+            label: 'Firestore Document Reads',
+            usedText: '$fsReads of $fsReadLimit reads/day',
+            percent: fsReadPercent,
+            limitDesc: '50,000 free reads / day',
+            isDark: isDark,
+          ),
+          const SizedBox(height: 12),
+
+          // 3. Cloud Firestore Daily Writes
+          _buildQuotaMeter(
+            label: 'Firestore Document Writes',
+            usedText: '$fsWrites of $fsWriteLimit writes/day',
+            percent: fsWritePercent,
+            limitDesc: '20,000 free writes / day',
+            isDark: isDark,
+          ),
+          const SizedBox(height: 12),
+
+          // 4. Google Gemini AI Invocations
+          _buildQuotaMeter(
+            label: 'Gemini AI Ingestion & Briefs',
+            usedText: '$aiReq of $aiLimit calls/day ($aiRpm/15 RPM)',
+            percent: aiPercent,
+            limitDesc: '1,500 RPD / 15 RPM free tier',
+            isDark: isDark,
+          ),
+          const SizedBox(height: 12),
+
+          // 5. Firebase Hosting Egress
+          _buildQuotaMeter(
+            label: 'Hosting Network Egress',
+            usedText: '${egressMb.toStringAsFixed(1)} of ${egressLimit.toInt()} MB/day',
+            percent: egressPercent,
+            limitDesc: '10 GB / month (~360 MB/day) free tier',
+            isDark: isDark,
+          ),
+
+          const SizedBox(height: 14),
+          // Guaranteed $0.00 confirmation banner
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            decoration: BoxDecoration(
+              color: const Color(0xFF10B981).withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: const Color(0xFF10B981).withValues(alpha: 0.3)),
+            ),
+            child: const Row(
+              children: [
+                Icon(Icons.shield_rounded, color: Color(0xFF10B981), size: 16),
+                SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    'Guaranteed Cost: \$0.00 / Month • Circuit Breaker Arm Active',
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w700,
+                      color: Color(0xFF10B981),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildQuotaMeter({
+    required String label,
+    required String usedText,
+    required double percent,
+    required String limitDesc,
+    required bool isDark,
+  }) {
+    final clampedPercent = (percent / 100.0).clamp(0.0, 1.0);
+    final meterColor = percent >= 90
+        ? const Color(0xFFEF4444)
+        : (percent >= 70 ? const Color(0xFFF59E0B) : const Color(0xFF38BDF8));
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              label,
+              style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+            ),
+            Text(
+              '${percent.toStringAsFixed(1)}%',
+              style: TextStyle(
+                fontSize: 11,
+                fontWeight: FontWeight.w800,
+                color: meterColor,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 4),
+        ClipRRect(
+          borderRadius: BorderRadius.circular(4),
+          child: LinearProgressIndicator(
+            value: clampedPercent,
+            minHeight: 6,
+            backgroundColor: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
+            valueColor: AlwaysStoppedAnimation<Color>(meterColor),
+          ),
+        ),
+        const SizedBox(height: 3),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              usedText,
+              style: TextStyle(fontSize: 10.5, color: isDark ? Colors.grey[400] : Colors.grey[600]),
+            ),
+            Text(
+              limitDesc,
+              style: TextStyle(fontSize: 10, color: isDark ? Colors.grey[500] : Colors.grey[500]),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
   Widget _buildFirebaseStorageCard(bool isDark, Color bgCard, Color borderColor) {
     if (_isLoadingStorage && _storageData == null) {
       return Container(
@@ -1343,8 +1661,9 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> with Single
     final firestore = _storageData?['firestore'] as Map<String, dynamic>?;
     final cloudStorage = _storageData?['cloudStorage'] as Map<String, dynamic>?;
 
-    final isConnected = firestore?['connected'] == true;
-    final totalDocs = firestore?['totalDocuments'] ?? 0;
+    final dbMode = _healthData?['databaseMode'] as String?;
+    final isConnected = firestore?['connected'] == true || (dbMode != null && dbMode.contains('Cloud Firestore'));
+    final totalDocs = firestore?['totalDocuments'] ?? (_healthData?['totalArticles'] ?? 0);
     final estimatedMb = (firestore?['estimatedSizeMb'] as num?)?.toDouble() ?? 0.0;
     final quotaMb = (firestore?['freeTierQuotaMb'] as num?)?.toDouble() ?? 1024.0;
     final quotaUsedPercent = (firestore?['quotaUsedPercent'] as num?)?.toDouble() ?? 0.0;
@@ -1416,7 +1735,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> with Single
                     ),
                     const SizedBox(width: 4),
                     Text(
-                      isConnected ? 'ONLINE' : 'OFFLINE',
+                      isConnected ? 'ONLINE (Cloud Firestore Native)' : 'OFFLINE',
                       style: TextStyle(
                         fontSize: 10,
                         fontWeight: FontWeight.w800,

@@ -514,7 +514,7 @@
                   Current Bottlenecks & Flaws
                 </div>
                 <ul class="space-y-2 text-red-800 text-xs list-disc pl-4 leading-relaxed">
-                  <li><strong>Render Free-Tier Sleep:</strong> The backend process sleeps after 15 mins of idle time, resulting in a 30-50s cold boot delay for the first morning app user.</li>
+                  <li><strong>Serverless Scale-on-Demand (Resolved):</strong> Migrated from Render to Google Cloud Run / Firebase Functions 2nd Gen with zero-latency auto-scaling and Cloud Firestore ADC persistence.</li>
                   <li><strong>Gemini Rate Limits (15 RPM):</strong> Sudden spikes in breaking news ingestion can cause HTTP 429 quota exhaustion on Gemini free tier.</li>
                   <li><strong>Substring Keyword Matching:</strong> Exact string matching misses semantic synonyms (e.g. "BESS" vs "Battery Energy Storage System").</li>
                   <li><strong>Syndicate Wire Duplication:</strong> The same PTI/ANI wire story printed across 4 newspapers can create multiple cards if headlines vary slightly.</li>

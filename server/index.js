@@ -15,7 +15,7 @@ const articleStore = require('./services/articleStore');
 const { syncFeeds } = require('./services/rssService');
 
 const app = express();
-// Trust Render's reverse proxy for correct rate-limiting IP addresses
+// Trust Google Cloud Run / Firebase Hosting reverse proxy for correct rate-limiting IP addresses
 app.set('trust proxy', 1);
 app.use(compression()); // Compress all responses (>80% egress reduction)
 app.use(budgetGuardMiddleware); // Anti-EDoS & Free-Tier Budget Sentry
@@ -126,7 +126,6 @@ const allowedOrigins = process.env.ALLOWED_ORIGINS
 const defaultAllowedOrigins = [
   'https://powernews-app-2026.web.app',
   'https://powernews-app-2026.firebaseapp.com',
-  'https://powernewsapp-backend.onrender.com',
 ];
 
 const corsOptions = {
@@ -141,7 +140,7 @@ const corsOptions = {
       return callback(null, true);
     }
 
-    // 3. Allow verified PowerNews hosting & Render domains
+    // 3. Allow verified PowerNews Firebase hosting domains
     if (defaultAllowedOrigins.includes(lowerOrigin)) {
       return callback(null, true);
     }
@@ -164,7 +163,7 @@ const corsOptions = {
 app.use(cors(corsOptions));
 app.use(express.json());
 
-// Direct Health check for Docker / Render / AWS ALBs
+// Direct Health check for Google Cloud Run / Container Orchestrators
 app.get('/health', (req, res) => res.status(200).json({ status: 'healthy', timestamp: new Date().toISOString() }));
 
 // Mount API router

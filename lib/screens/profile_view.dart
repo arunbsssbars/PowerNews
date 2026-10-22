@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
 import 'package:provider/provider.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 import '../config/app_config.dart';
 import '../main.dart';
@@ -13,6 +12,7 @@ import '../services/database_service.dart';
 import '../widgets/about_sheet.dart';
 import 'admin_dashboard_screen.dart';
 import 'onboarding_screen.dart';
+import 'privacy_policy_screen.dart';
 
 /// Production Executive Profile View.
 /// Complies with AQIL standards:
@@ -37,14 +37,10 @@ class _ProfileViewState extends State<ProfileView> {
     super.dispose();
   }
 
-  Future<void> _launchPrivacyPolicy() async {
-    const url = 'https://powernews-app-2026.web.app/privacy.html';
-    try {
-      final uri = Uri.parse(url);
-      if (await canLaunchUrl(uri)) {
-        await launchUrl(uri, mode: LaunchMode.externalApplication);
-      }
-    } catch (_) {}
+  void _launchPrivacyPolicy() {
+    Navigator.of(context).push(
+      MaterialPageRoute(builder: (_) => const PrivacyPolicyScreen()),
+    );
   }
 
   void _showEditProfileDialog(BuildContext context, AuthService auth) {
@@ -1217,7 +1213,7 @@ class _ProfileViewState extends State<ProfileView> {
               'Review data handling, security & disclosures',
               style: TextStyle(fontSize: 12, color: textSecondary),
             ),
-            trailing: const Icon(Icons.open_in_new_rounded, size: 18),
+            trailing: const Icon(Icons.chevron_right_rounded, size: 20),
             onTap: _launchPrivacyPolicy,
           ),
           if (user != null) ...[

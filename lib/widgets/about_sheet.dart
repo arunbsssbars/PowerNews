@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
+import '../screens/privacy_policy_screen.dart';
 
 class AboutSheet extends StatelessWidget {
   const AboutSheet({super.key});
@@ -243,7 +244,12 @@ class AboutSheet extends StatelessWidget {
                     Row(
                       children: [
                         InkWell(
-                          onTap: () => _launchUrl('https://powernewsapp-backend.onrender.com/privacy'),
+                          onTap: () {
+                            Navigator.of(context).pop();
+                            Navigator.of(context).push(
+                              MaterialPageRoute(builder: (_) => const PrivacyPolicyScreen()),
+                            );
+                          },
                           child: const Text(
                             'Privacy Policy',
                             style: TextStyle(
