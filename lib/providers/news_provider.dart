@@ -31,7 +31,7 @@ class NewsProvider extends ChangeNotifier with WidgetsBindingObserver {
   static const String _prefSeenArticlesKey = 'powernews_seen_article_ids_v2';
   static const String _prefReadArticlesKey = 'powernews_read_article_ids_v2';
   static const String _prefNewArticlesKey = 'powernews_new_article_ids_v2';
-  static const int _pageSize = 15;
+  static const int _pageSize = 30;
 
   List<NewsArticle> _articles = [];
   List<NewsArticle> _cachedFullList = [];
@@ -1033,12 +1033,16 @@ class NewsProvider extends ChangeNotifier with WidgetsBindingObserver {
   }
 
   List<NewsArticle> _applyFiltersTo(List<NewsArticle> list) {
-    final cutoff = DateTime.now().subtract(const Duration(days: 7));
+    // 14-day standard industry retention window (falls back to 30 days if few items)
+    final recentCount = list.where((a) => a.publishedAt.isAfter(DateTime.now().subtract(const Duration(days: 14)))).length;
+    final cutoffDays = recentCount >= 10 ? 14 : 30;
+    final cutoff = DateTime.now().subtract(Duration(days: cutoffDays));
+
     final filtered = list.where((a) {
       if (!a.isStrictlyPowerSector) {
         return false;
       }
-      // Enforce 7-day (1 week only) retention cutoff
+      // Enforce balanced retention cutoff
       if (a.publishedAt.isBefore(cutoff)) {
         return false;
       }
@@ -1189,6 +1193,30 @@ class NewsProvider extends ChangeNotifier with WidgetsBindingObserver {
         _hasMore = news.length == _pageSize;
         // Strictly persist ONLY verified AI-summarized articles into local cache
         await _cacheService.cacheArticles(cleanNews);
+
+        // Auto-prefetch next page if filtered articles are fewer than 10 to ensure a scrollable feed
+        if (_articles.length < 10 && _hasMore) {
+          try {
+            final page2News = await _apiService.getNews(
+              category: _selectedCategory == 'All' ? null : _selectedCategory,
+              player: (_selectedPlayer == 'All' || _selectedPlayer == 'All Players') ? null : _selectedPlayer,
+              state: _selectedState == 'All States' ? null : _selectedState,
+              city: _selectedCity == 'All Cities' ? null : _selectedCity,
+              discom: _selectedDiscom == 'All DISCOMs' ? null : _selectedDiscom,
+              search: _searchQuery.isEmpty ? null : _searchQuery,
+              sort: _sortOrder == FeedSortOrder.earliestFirst ? 'earliest' : 'latest',
+              page: 2,
+              limit: _pageSize,
+            );
+            if (page2News.isNotEmpty) {
+              _currentPage = 2;
+              final cleanPage2 = _applyFiltersTo(page2News);
+              _articles = _deduplicateArticles([..._articles, ...cleanPage2]);
+              _hasMore = page2News.length == _pageSize;
+              await _cacheService.cacheArticles(cleanPage2);
+            }
+          } catch (_) {}
+        }
       }
 
       // Mark all articles fetched directly into the feed as seen

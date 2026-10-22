@@ -1505,7 +1505,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> with Single
             label: 'Cloud Functions Invocations (Budget Sentry)',
             usedText: '$fnCount of $fnLimit req/day',
             percent: fnPercent,
-            limitDesc: '66k/day & 2M/mo free tier (Hard cap at 45k/day)',
+            limitDesc: 'Hard cap: 45k/day (2M/mo)',
             isDark: isDark,
           ),
           const SizedBox(height: 12),
@@ -1515,7 +1515,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> with Single
             label: 'Firestore Document Reads',
             usedText: '$fsReads of $fsReadLimit reads/day',
             percent: fsReadPercent,
-            limitDesc: '50,000 free reads / day',
+            limitDesc: 'Limit: 50k reads/day',
             isDark: isDark,
           ),
           const SizedBox(height: 12),
@@ -1525,7 +1525,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> with Single
             label: 'Firestore Document Writes',
             usedText: '$fsWrites of $fsWriteLimit writes/day',
             percent: fsWritePercent,
-            limitDesc: '20,000 free writes / day',
+            limitDesc: 'Limit: 20k writes/day',
             isDark: isDark,
           ),
           const SizedBox(height: 12),
@@ -1535,7 +1535,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> with Single
             label: 'Gemini AI Ingestion & Briefs',
             usedText: '$aiReq of $aiLimit calls/day ($aiRpm/15 RPM)',
             percent: aiPercent,
-            limitDesc: '1,500 RPD / 15 RPM free tier',
+            limitDesc: 'Limit: 1.5k/day (15 RPM)',
             isDark: isDark,
           ),
           const SizedBox(height: 12),
@@ -1545,7 +1545,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> with Single
             label: 'Hosting Network Egress',
             usedText: '${egressMb.toStringAsFixed(1)} of ${egressLimit.toInt()} MB/day',
             percent: egressPercent,
-            limitDesc: '10 GB / month (~360 MB/day) free tier',
+            limitDesc: 'Limit: 360 MB/day (10 GB/mo)',
             isDark: isDark,
           ),
 
@@ -1596,12 +1596,15 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> with Single
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text(
-              label,
-              style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+            Expanded(
+              child: Text(
+                label,
+                style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+                overflow: TextOverflow.ellipsis,
+              ),
             ),
+            const SizedBox(width: 8),
             Text(
               '${percent.toStringAsFixed(1)}%',
               style: TextStyle(
@@ -1624,15 +1627,23 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> with Single
         ),
         const SizedBox(height: 3),
         Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text(
               usedText,
-              style: TextStyle(fontSize: 10.5, color: isDark ? Colors.grey[400] : Colors.grey[600]),
+              style: TextStyle(
+                fontSize: 10.5,
+                fontWeight: FontWeight.w600,
+                color: isDark ? Colors.grey[400] : Colors.grey[600],
+              ),
             ),
-            Text(
-              limitDesc,
-              style: TextStyle(fontSize: 10, color: isDark ? Colors.grey[500] : Colors.grey[500]),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                limitDesc,
+                textAlign: TextAlign.end,
+                style: TextStyle(fontSize: 10, color: isDark ? Colors.grey[500] : Colors.grey[500]),
+                overflow: TextOverflow.ellipsis,
+              ),
             ),
           ],
         ),
@@ -1703,7 +1714,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> with Single
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Firestore & Firebase Storage',
+                      'Cloud Firestore Native',
                       style: TextStyle(fontSize: 14.5, fontWeight: FontWeight.w800),
                     ),
                     Text(
@@ -1735,7 +1746,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> with Single
                     ),
                     const SizedBox(width: 4),
                     Text(
-                      isConnected ? 'ONLINE (Cloud Firestore Native)' : 'OFFLINE',
+                      isConnected ? 'ONLINE' : 'OFFLINE',
                       style: TextStyle(
                         fontSize: 10,
                         fontWeight: FontWeight.w800,
