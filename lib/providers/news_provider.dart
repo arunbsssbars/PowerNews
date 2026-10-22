@@ -16,7 +16,7 @@ enum FeedSortOrder {
   latestFirst,
 }
 
-class NewsProvider extends ChangeNotifier {
+class NewsProvider extends ChangeNotifier with WidgetsBindingObserver {
   final ApiService _apiService = ApiService();
   final BookmarkService _bookmarkService = BookmarkService();
   final CacheService _cacheService = CacheService();
@@ -227,6 +227,7 @@ class NewsProvider extends ChangeNotifier {
       _personaOnlyFilter;
 
   NewsProvider() {
+    WidgetsBinding.instance.addObserver(this);
     init();
   }
 
@@ -358,10 +359,18 @@ class NewsProvider extends ChangeNotifier {
     });
   }
 
+    @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.paused || state == AppLifecycleState.inactive || state == AppLifecycleState.hidden) {
+      _autoRefreshTimer?.cancel();
+    } else if (state == AppLifecycleState.resumed) {
+      _startAutoRefreshPolling();
+    }
+  }
   void _startAutoRefreshPolling() {
     _autoRefreshTimer?.cancel();
     // Background polling every 90 seconds while user is actively reading or using the app
-    _autoRefreshTimer = Timer.periodic(const Duration(seconds: 90), (timer) async {
+    _autoRefreshTimer = Timer.periodic(const Duration(minutes: 5), (timer) async {
       if (_isOffline || _isRefreshing || _isLoading) return;
       try {
         // Fetch unfiltered national grid stream to discover freshly scraped & AI-summarized articles
@@ -469,6 +478,7 @@ class NewsProvider extends ChangeNotifier {
   void dispose() {
     _warmupTimer?.cancel();
     _autoRefreshTimer?.cancel();
+    WidgetsBinding.instance.removeObserver(this);
     super.dispose();
   }
 
@@ -1324,10 +1334,21 @@ class NewsProvider extends ChangeNotifier {
     }
   }
 
+  DateTime? _lastManualRefreshTime;
+
   Future<void> triggerFullRefresh() async {
+    final now = DateTime.now();
+    if (_lastManualRefreshTime != null && now.difference(_lastManualRefreshTime!) < const Duration(seconds: 30)) {
+      debugPrint("[NewsProvider] Rapid refresh throttled (30s cooldown). Reloading cached view.");
+      await fetchNews(isRefresh: true);
+      return;
+    }
+    _lastManualRefreshTime = now;
     _isRefreshing = true;
     notifyListeners();
-    await _apiService.refreshBackend();
+    try {
+      await _apiService.refreshBackend();
+    } catch (_) {}
     await fetchMetadata();
     await fetchNews(isRefresh: true);
   }

@@ -13,8 +13,7 @@ class ApiService {
   };
 
   static const String firebaseCloudHost = 'https://powernews-app-2026.web.app';
-  static const String renderCloudHost = 'https://powernewsapp-backend.onrender.com';
-
+  static const String renderCloudHost = firebaseCloudHost;
   static List<String> get candidateHosts {
     if (kIsWeb) {
       final hosts = <String>{};
@@ -22,7 +21,6 @@ class ApiService {
         hosts.add(AppConfig.apiBaseUrl);
       }
       hosts.add(firebaseCloudHost);
-      hosts.add(renderCloudHost);
       return hosts.toList();
     }
     return {
@@ -31,8 +29,6 @@ class ApiService {
       'http://127.0.0.1:3000',
       // 1. Production Firebase Blaze Serverless URL (Primary)
       firebaseCloudHost,
-      // 2. Render Cloud URL (Fallback)
-      renderCloudHost,
       // 2. Localhost fallback (only when user manually runs node server in terminal)
       'http://localhost:3000',
       'http://10.0.2.2:3000',
@@ -55,7 +51,7 @@ class ApiService {
     final List<Future<String?>> probes = candidateHosts.map((host) async {
       try {
         final uri = Uri.parse('$host${ApiConstants.healthEndpoint}');
-        final timeoutSec = host.contains('onrender') ? 45 : (kIsWeb ? 15 : 3);
+        final timeoutSec = kIsWeb ? 10 : 4;
         final res = await http.get(uri, headers: _headers).timeout(Duration(seconds: timeoutSec));
         if (res.statusCode == 200) {
           try {
@@ -122,7 +118,7 @@ class ApiService {
     for (final host in hostsToTry) {
       try {
         final uri = Uri.parse('$host${ApiConstants.newsEndpoint}').replace(queryParameters: queryParams);
-        final timeoutSec = host.contains('onrender') ? 45 : (kIsWeb ? 15 : 3);
+        final timeoutSec = kIsWeb ? 10 : 4;
         final response = await http.get(uri, headers: _headers).timeout(Duration(seconds: timeoutSec));
 
         if (response.statusCode == 200) {

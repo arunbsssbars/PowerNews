@@ -117,7 +117,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> with Single
     return headers;
   }
 
-  String get _baseUrl => ApiService.renderCloudHost;
+  String get _baseUrl => ApiService.firebaseCloudHost;
 
   Future<void> _loadAllTabs() async {
     _fetchFlutterFeed();
