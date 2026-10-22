@@ -51,8 +51,8 @@ class ApiService {
     final List<Future<String?>> probes = candidateHosts.map((host) async {
       try {
         final uri = Uri.parse('$host${ApiConstants.healthEndpoint}');
-        final timeoutSec = kIsWeb ? 10 : 4;
-        final res = await http.get(uri, headers: _headers).timeout(Duration(seconds: timeoutSec));
+        const timeoutSec = kIsWeb ? 10 : 4;
+        final res = await http.get(uri, headers: _headers).timeout(const Duration(seconds: timeoutSec));
         if (res.statusCode == 200) {
           try {
             final hData = json.decode(utf8.decode(res.bodyBytes));
@@ -118,8 +118,8 @@ class ApiService {
     for (final host in hostsToTry) {
       try {
         final uri = Uri.parse('$host${ApiConstants.newsEndpoint}').replace(queryParameters: queryParams);
-        final timeoutSec = kIsWeb ? 10 : 4;
-        final response = await http.get(uri, headers: _headers).timeout(Duration(seconds: timeoutSec));
+        const timeoutSec = kIsWeb ? 10 : 4;
+        final response = await http.get(uri, headers: _headers).timeout(const Duration(seconds: timeoutSec));
 
         if (response.statusCode == 200) {
           _activeHost = host;
