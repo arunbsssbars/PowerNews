@@ -49,6 +49,13 @@ function initFirestore() {
     }
 
     if (!serviceAccount) {
+      if (process.env.K_SERVICE || process.env.FUNCTION_TARGET || process.env.GOOGLE_CLOUD_PROJECT || process.env.FIREBASE_CONFIG) {
+        let app = getApps().length === 0 ? initializeApp() : getApps()[0];
+        db = getFirestore(app);
+        isInitialized = true;
+        console.log('[Firestore] Connected successfully via Google Application Default Credentials.');
+        return db;
+      }
       console.log('[Firestore] No service account configured. Operating in local cache fallback mode.');
       return null;
     }
