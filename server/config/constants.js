@@ -13,8 +13,8 @@ const DEFAULT_PAGE_SIZE = 15;
 const MAX_CACHED_SUMMARIES = 2000;
 
 // Gemini Rate Limit & Batching Constants (tuned for free-tier 15 RPM safety)
-const GEMINI_BATCH_SIZE = 1;
-const GEMINI_WAVE_DELAY_MS = 5000;
+const GEMINI_BATCH_SIZE = 2;
+const GEMINI_WAVE_DELAY_MS = 4000;
 
 // Scraper Constants
 const SCRAPER_USER_AGENTS = [

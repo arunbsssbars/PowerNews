@@ -246,6 +246,10 @@ router.get('/memory', (req, res) => {
 });
 
 router.get('/refresh', async (req, res) => {
+  if (isSyncInProgress && (Date.now() - lastFeedSyncTime > 90000)) {
+    console.warn('[Sync Guard] Resetting stale isSyncInProgress lock after 90s');
+    isSyncInProgress = false;
+  }
   if (isSyncInProgress) {
     return res.status(429).json({
       success: false,
