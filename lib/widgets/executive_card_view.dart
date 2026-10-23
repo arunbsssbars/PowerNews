@@ -26,9 +26,10 @@ class ExecutiveCardView extends StatelessWidget {
   String _formatRelativeTime(DateTime dt) {
     final now = DateTime.now();
     final diff = now.difference(dt);
-    if (diff.inMinutes < 60) {
-      final mins = diff.inMinutes.clamp(1, 59);
-      return '${mins}m ago';
+    if (diff.isNegative || diff.inMinutes < 1) {
+      return 'Just now';
+    } else if (diff.inMinutes < 60) {
+      return '${diff.inMinutes}m ago';
     } else if (diff.inHours < 24) {
       return '${diff.inHours}h ago';
     } else if (diff.inDays < 7) {

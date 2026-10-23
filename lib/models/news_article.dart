@@ -198,6 +198,9 @@ class NewsArticle {
     } catch (_) {
       parsedDate = DateTime.now();
     }
+      if (parsedDate.isAfter(DateTime.now())) {
+        parsedDate = DateTime.now();
+      }
 
     String rawTitle = cleanHtmlAndEntities((json['title'] ?? '').toString().trim());
     // Strip trailing source name from title if present (e.g. " - Times of India")
@@ -366,7 +369,7 @@ class NewsArticle {
     if (difference.isNegative || difference.inMinutes < 1) {
       return 'Just now';
     } else if (difference.inMinutes < 60) {
-      return '${difference.inMinutes}m';
+      return '${difference.inMinutes}m ago';
     } else if (difference.inHours < 24) {
       return '${difference.inHours}h';
     } else if (difference.inDays < 7) {

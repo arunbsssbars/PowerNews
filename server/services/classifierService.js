@@ -78,8 +78,9 @@ function parsePublisherDate(rawDate, fallbackDate) {
     try {
       const d = new Date(rawDate);
       const time = d.getTime();
-      if (!isNaN(time) && time <= Date.now() + 24 * 60 * 60 * 1000) {
-        return d.toISOString();
+      if (!isNaN(time)) {
+        const safeTime = Math.min(time, Date.now());
+        return new Date(safeTime).toISOString();
       }
     } catch (_) { }
   }
