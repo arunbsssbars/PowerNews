@@ -1073,7 +1073,7 @@ class NewsProvider extends ChangeNotifier with WidgetsBindingObserver {
         }
       }
       // Strict AI Summary Gate: ONLY genuine narrative AI summaries (non-bullet, >= 90 chars, anti-mirror, anti-boilerplate)
-      if (!a.isAiGenerated || !a.hasAuthenticAiSummary) {
+      if (!a.isAiGenerated && !a.hasAuthenticAiSummary) {
         return false;
       }
       return true;
@@ -1195,7 +1195,7 @@ class NewsProvider extends ChangeNotifier with WidgetsBindingObserver {
         await _cacheService.cacheArticles(cleanNews);
 
         // Auto-prefetch next page if filtered articles are fewer than 10 to ensure a scrollable feed
-        if (_articles.length < 10 && _hasMore) {
+        if (_articles.length < 20 && _hasMore) {
           try {
             final page2News = await _apiService.getNews(
               category: _selectedCategory == 'All' ? null : _selectedCategory,

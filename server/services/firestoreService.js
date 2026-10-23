@@ -114,7 +114,7 @@ async function loadAllSummariesFromFirestore(forceRefresh = false) {
       // Initial Boot: Cap fetch to most recent 100 articles to eliminate runaway read costs
       snapshot = await database.collection('ai_summaries')
         .orderBy('updatedAt', 'desc')
-        .limit(100)
+        .limit(300)
         .get();
       console.log(`[Firestore Initial] Loaded ${snapshot.size} latest documents from cloud.`);
     }

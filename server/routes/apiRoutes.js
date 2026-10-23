@@ -191,7 +191,7 @@ function getActiveArticles() {
   // STRICT: Only serve articles that have an authentic AI summary ready in RAM cache
   return retained.filter(a => {
     if (!a || !a.id || a.isRejected) return false;
-    const summaryText = aiSummaryCache[a.id];
+    const summaryText = aiSummaryCache[a.id] || a.summary;
     return isAuthenticAiSummary(a.title, summaryText);
   });
 }

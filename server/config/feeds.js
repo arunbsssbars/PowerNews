@@ -9,42 +9,42 @@ const RSS_FEEDS = [
   { source: 'Economic Times Renewables', url: 'https://economictimes.indiatimes.com/industry/renewables/rssfeeds/80517789.cms', isStrictPowerFeed: true },
 
   // Press Information Bureau (PIB) - Subject to Power Sector keyword validation
-  { source: 'Power Line Intelligence', url: 'https://news.google.com/rss/search?q=site:powerline.net.in&hl=en-IN&gl=IN&ceid=IN:en', isStrictPowerFeed: true },
-  { source: 'PIB Ministry of Power', url: 'https://news.google.com/rss/search?q=site:pib.gov.in+(%22Ministry+of+Power%22+OR+%22Power+Ministry%22+OR+NTPC+OR+PGCIL+OR+REC+OR+PFC)&hl=en-IN&gl=IN&ceid=IN:en', isStrictPowerFeed: false },
-  { source: 'PIB Renewable Energy (MNRE)', url: 'https://news.google.com/rss/search?q=site:pib.gov.in+(%22Ministry+of+New+and+Renewable+Energy%22+OR+MNRE+OR+SECI)&hl=en-IN&gl=IN&ceid=IN:en', isStrictPowerFeed: false },
+  { source: 'Power Line Intelligence', url: 'https://news.google.com/rss/search?q=site:powerline.net.in&when:7d&hl=en-IN&gl=IN&ceid=IN:en', isStrictPowerFeed: true },
+  { source: 'PIB Ministry of Power', url: 'https://news.google.com/rss/search?q=site:pib.gov.in+(%22Ministry+of+Power%22+OR+%22Power+Ministry%22+OR+NTPC+OR+PGCIL+OR+REC+OR+PFC)&when:7d&hl=en-IN&gl=IN&ceid=IN:en', isStrictPowerFeed: false },
+  { source: 'PIB Renewable Energy (MNRE)', url: 'https://news.google.com/rss/search?q=site:pib.gov.in+(%22Ministry+of+New+and+Renewable+Energy%22+OR+MNRE+OR+SECI)&when:7d&hl=en-IN&gl=IN&ceid=IN:en', isStrictPowerFeed: false },
 
   // Established National & Financial Newspapers (Google News Search Feeds)
-  { source: 'The Hindu Business & Energy', url: 'https://news.google.com/rss/search?q=site:thehindu.com+(electricity+OR+"power+grid"+OR+DISCOM+OR+UPPCL+OR+"solar+power"+OR+substation)&hl=en-IN&gl=IN&ceid=IN:en', isStrictPowerFeed: false },
-  { source: 'Business Standard Energy', url: 'https://news.google.com/rss/search?q=site:business-standard.com+("power+sector"+OR+electricity+OR+substation+OR+DISCOM+OR+CERC+OR+NTPC)&hl=en-IN&gl=IN&ceid=IN:en', isStrictPowerFeed: false },
-  { source: 'Times of India Power', url: 'https://news.google.com/rss/search?q=site:timesofindia.indiatimes.com+("power+tariff"+OR+DISCOM+OR+"power+cut"+OR+"smart+meter"+OR+UPPCL+OR+BESCOM)&hl=en-IN&gl=IN&ceid=IN:en', isStrictPowerFeed: false },
-  { source: 'Financial Express Energy', url: 'https://news.google.com/rss/search?q=site:financialexpress.com+("power+sector"+OR+electricity+OR+"transmission+line"+OR+solar+OR+BESS)&hl=en-IN&gl=IN&ceid=IN:en', isStrictPowerFeed: false },
-  { source: 'LiveMint Power & Utilities', url: 'https://news.google.com/rss/search?q=site:livemint.com+("power+sector"+OR+"electricity+grid"+OR+DISCOM+OR+"renewable+energy")&hl=en-IN&gl=IN&ceid=IN:en', isStrictPowerFeed: false },
+  { source: 'The Hindu Business & Energy', url: 'https://news.google.com/rss/search?q=site:thehindu.com+(electricity+OR+"power+grid"+OR+DISCOM+OR+UPPCL+OR+"solar+power"+OR+substation)&when:7d&hl=en-IN&gl=IN&ceid=IN:en', isStrictPowerFeed: false },
+  { source: 'Business Standard Energy', url: 'https://news.google.com/rss/search?q=site:business-standard.com+("power+sector"+OR+electricity+OR+substation+OR+DISCOM+OR+CERC+OR+NTPC)&when:7d&hl=en-IN&gl=IN&ceid=IN:en', isStrictPowerFeed: false },
+  { source: 'Times of India Power', url: 'https://news.google.com/rss/search?q=site:timesofindia.indiatimes.com+("power+tariff"+OR+DISCOM+OR+"power+cut"+OR+"smart+meter"+OR+UPPCL+OR+BESCOM)&when:7d&hl=en-IN&gl=IN&ceid=IN:en', isStrictPowerFeed: false },
+  { source: 'Financial Express Energy', url: 'https://news.google.com/rss/search?q=site:financialexpress.com+("power+sector"+OR+electricity+OR+"transmission+line"+OR+solar+OR+BESS)&when:7d&hl=en-IN&gl=IN&ceid=IN:en', isStrictPowerFeed: false },
+  { source: 'LiveMint Power & Utilities', url: 'https://news.google.com/rss/search?q=site:livemint.com+("power+sector"+OR+"electricity+grid"+OR+DISCOM+OR+"renewable+energy")&when:7d&hl=en-IN&gl=IN&ceid=IN:en', isStrictPowerFeed: false },
 
   // Specialized Grid, SCADA & Industry Feeds
-  { source: 'Smart Utilities & SCADA', url: 'https://news.google.com/rss/search?q=SCADA+automation+(UPPCL+OR+UP+OR+India)+power+grid+communication+substation+"IEC+60870"&hl=en-IN&gl=IN&ceid=IN:en', isStrictPowerFeed: false },
-  { source: 'Saur Energy & Mercom Grid IT', url: 'https://news.google.com/rss/search?q=(SCADA+OR+"automated+grid"+OR+"Smart+Utilities"+OR+OPGW+OR+PSDF+OR+"IEC+60870"+OR+"IEC+61850")+India+power&hl=en-IN&gl=IN&ceid=IN:en', isStrictPowerFeed: false },
-  { source: 'Power Line Grid Automation', url: 'https://news.google.com/rss/search?q="Power+Line"+(SCADA+OR+automation+OR+IT-OT+OR+RDSS+OR+DMS+OR+OPGW)&hl=en-IN&gl=IN&ceid=IN:en', isStrictPowerFeed: true },
-  { source: 'India Power Sector News', url: 'https://news.google.com/rss/search?q=India+power+sector+OR+electricity+grid+OR+substation+OR+DISCOM+OR+CERC&hl=en-IN&gl=IN&ceid=IN:en', isStrictPowerFeed: false },
-  { source: 'India Solar & Renewable Grid', url: 'https://news.google.com/rss/search?q=India+solar+power+OR+wind+energy+OR+BESS+OR+SECI+tender&hl=en-IN&gl=IN&ceid=IN:en', isStrictPowerFeed: false },
-  { source: 'India DISCOMs & Tariffs', url: 'https://news.google.com/rss/search?q=India+smart+meter+OR+DISCOM+tariff+OR+power+cut+OR+RDSS&hl=en-IN&gl=IN&ceid=IN:en', isStrictPowerFeed: false },
+  { source: 'Smart Utilities & SCADA', url: 'https://news.google.com/rss/search?q=SCADA+automation+(UPPCL+OR+UP+OR+India)+power+grid+communication+substation+"IEC+60870"&when:7d&hl=en-IN&gl=IN&ceid=IN:en', isStrictPowerFeed: false },
+  { source: 'Saur Energy & Mercom Grid IT', url: 'https://news.google.com/rss/search?q=(SCADA+OR+"automated+grid"+OR+"Smart+Utilities"+OR+OPGW+OR+PSDF+OR+"IEC+60870"+OR+"IEC+61850")+India+power&when:7d&hl=en-IN&gl=IN&ceid=IN:en', isStrictPowerFeed: false },
+  { source: 'Power Line Grid Automation', url: 'https://news.google.com/rss/search?q="Power+Line"+(SCADA+OR+automation+OR+IT-OT+OR+RDSS+OR+DMS+OR+OPGW)&when:7d&hl=en-IN&gl=IN&ceid=IN:en', isStrictPowerFeed: true },
+  { source: 'India Power Sector News', url: 'https://news.google.com/rss/search?q=India+power+sector+OR+electricity+grid+OR+substation+OR+DISCOM+OR+CERC&when:7d&hl=en-IN&gl=IN&ceid=IN:en', isStrictPowerFeed: false },
+  { source: 'India Solar & Renewable Grid', url: 'https://news.google.com/rss/search?q=India+solar+power+OR+wind+energy+OR+BESS+OR+SECI+tender&when:7d&hl=en-IN&gl=IN&ceid=IN:en', isStrictPowerFeed: false },
+  { source: 'India DISCOMs & Tariffs', url: 'https://news.google.com/rss/search?q=India+smart+meter+OR+DISCOM+tariff+OR+power+cut+OR+RDSS&when:7d&hl=en-IN&gl=IN&ceid=IN:en', isStrictPowerFeed: false },
 
   // Big Player & OEM Feeds (Siemens, ABB, Schneider, BHEL, L&T, Hitachi, etc.)
-  { source: 'Power Engineering & OEMs', url: 'https://news.google.com/rss/search?q=Siemens+Energy+India+OR+ABB+India+power+OR+Schneider+Electric+India+grid+OR+Hitachi+Energy+India&hl=en-IN&gl=IN&ceid=IN:en', isStrictPowerFeed: false },
-  { source: 'BHEL & L&T Power Grid', url: 'https://news.google.com/rss/search?q=BHEL+power+plant+OR+LT+transmission+substation+OR+GE+Vernova+India+grid&hl=en-IN&gl=IN&ceid=IN:en', isStrictPowerFeed: false },
-  { source: 'Smart Metering & Telemetry OEMs', url: 'https://news.google.com/rss/search?q=("Secure+Meters"+OR+"Genus+Power"+OR+"smart+meter"+OR+"HPL+Electric")+India+power&hl=en-IN&gl=IN&ceid=IN:en', isStrictPowerFeed: false },
-  { source: 'Uttar Pradesh Power & UPPCL', url: 'https://news.google.com/rss/search?q=Uttar+Pradesh+UPPCL+OR+Lucknow+power+cut+OR+electricity+tariff+OR+smart+meter+OR+UPERC&hl=en-IN&gl=IN&ceid=IN:en', isStrictPowerFeed: false },
-  { source: 'POWERGRID News', url: 'https://news.google.com/rss/search?q=POWERGRID+OR+PGCIL+transmission+substation+India&hl=en-IN&gl=IN&ceid=IN:en', isStrictPowerFeed: false },
-  { source: 'NTPC & Gencos', url: 'https://news.google.com/rss/search?q=NTPC+power+plant+OR+NTPC+Green+Energy+OR+thermal+hydro&hl=en-IN&gl=IN&ceid=IN:en', isStrictPowerFeed: false },
-  { source: 'SECI & Tenders', url: 'https://news.google.com/rss/search?q=SECI+solar+tender+OR+ISTS+bidding+OR+NHPC+renewable&hl=en-IN&gl=IN&ceid=IN:en', isStrictPowerFeed: false },
+  { source: 'Power Engineering & OEMs', url: 'https://news.google.com/rss/search?q=Siemens+Energy+India+OR+ABB+India+power+OR+Schneider+Electric+India+grid+OR+Hitachi+Energy+India&when:7d&hl=en-IN&gl=IN&ceid=IN:en', isStrictPowerFeed: false },
+  { source: 'BHEL & L&T Power Grid', url: 'https://news.google.com/rss/search?q=BHEL+power+plant+OR+LT+transmission+substation+OR+GE+Vernova+India+grid&when:7d&hl=en-IN&gl=IN&ceid=IN:en', isStrictPowerFeed: false },
+  { source: 'Smart Metering & Telemetry OEMs', url: 'https://news.google.com/rss/search?q=("Secure+Meters"+OR+"Genus+Power"+OR+"smart+meter"+OR+"HPL+Electric")+India+power&when:7d&hl=en-IN&gl=IN&ceid=IN:en', isStrictPowerFeed: false },
+  { source: 'Uttar Pradesh Power & UPPCL', url: 'https://news.google.com/rss/search?q=Uttar+Pradesh+UPPCL+OR+Lucknow+power+cut+OR+electricity+tariff+OR+smart+meter+OR+UPERC&when:7d&hl=en-IN&gl=IN&ceid=IN:en', isStrictPowerFeed: false },
+  { source: 'POWERGRID News', url: 'https://news.google.com/rss/search?q=POWERGRID+OR+PGCIL+transmission+substation+India&when:7d&hl=en-IN&gl=IN&ceid=IN:en', isStrictPowerFeed: false },
+  { source: 'NTPC & Gencos', url: 'https://news.google.com/rss/search?q=NTPC+power+plant+OR+NTPC+Green+Energy+OR+thermal+hydro&when:7d&hl=en-IN&gl=IN&ceid=IN:en', isStrictPowerFeed: false },
+  { source: 'SECI & Tenders', url: 'https://news.google.com/rss/search?q=SECI+solar+tender+OR+ISTS+bidding+OR+NHPC+renewable&when:7d&hl=en-IN&gl=IN&ceid=IN:en', isStrictPowerFeed: false },
 
   // City-Specific Outlets
-  { source: 'Delhi & NCR Power Feed', url: 'https://news.google.com/rss/search?q=Delhi+power+tariff+OR+BSES+OR+TPDDL+OR+power+cut&hl=en-IN&gl=IN&ceid=IN:en', isStrictPowerFeed: false },
-  { source: 'Maharashtra & Mumbai Power', url: 'https://news.google.com/rss/search?q=Maharashtra+MSEDCL+OR+Mumbai+electricity+tariff+OR+Adani+Electricity+OR+Mahagenco&hl=en-IN&gl=IN&ceid=IN:en', isStrictPowerFeed: false },
-  { source: 'Karnataka & Bengaluru Power', url: 'https://news.google.com/rss/search?q=Bengaluru+BESCOM+OR+Karnataka+electricity+tariff+OR+power+cut+OR+KPTCL&hl=en-IN&gl=IN&ceid=IN:en', isStrictPowerFeed: false },
-  { source: 'Telangana & Hyderabad Power', url: 'https://news.google.com/rss/search?q=Hyderabad+TSSPDCL+OR+Telangana+power+tariff+OR+TSTRANSCO&hl=en-IN&gl=IN&ceid=IN:en', isStrictPowerFeed: false },
-  { source: 'Tamil Nadu & Chennai Power', url: 'https://news.google.com/rss/search?q=Chennai+TANGEDCO+OR+Tamil+Nadu+power+cut+OR+electricity+tariff&hl=en-IN&gl=IN&ceid=IN:en', isStrictPowerFeed: false },
-  { source: 'Rajasthan & Jaipur Power', url: 'https://news.google.com/rss/search?q=Rajasthan+solar+park+OR+JVVNL+OR+Jaipur+electricity+tariff&hl=en-IN&gl=IN&ceid=IN:en', isStrictPowerFeed: false },
-  { source: 'Gujarat Power & GUVNL', url: 'https://news.google.com/rss/search?q=Gujarat+GUVNL+OR+Torrent+Power+Ahmedabad+OR+solar+park&hl=en-IN&gl=IN&ceid=IN:en', isStrictPowerFeed: false },
+  { source: 'Delhi & NCR Power Feed', url: 'https://news.google.com/rss/search?q=Delhi+power+tariff+OR+BSES+OR+TPDDL+OR+power+cut&when:7d&hl=en-IN&gl=IN&ceid=IN:en', isStrictPowerFeed: false },
+  { source: 'Maharashtra & Mumbai Power', url: 'https://news.google.com/rss/search?q=Maharashtra+MSEDCL+OR+Mumbai+electricity+tariff+OR+Adani+Electricity+OR+Mahagenco&when:7d&hl=en-IN&gl=IN&ceid=IN:en', isStrictPowerFeed: false },
+  { source: 'Karnataka & Bengaluru Power', url: 'https://news.google.com/rss/search?q=Bengaluru+BESCOM+OR+Karnataka+electricity+tariff+OR+power+cut+OR+KPTCL&when:7d&hl=en-IN&gl=IN&ceid=IN:en', isStrictPowerFeed: false },
+  { source: 'Telangana & Hyderabad Power', url: 'https://news.google.com/rss/search?q=Hyderabad+TSSPDCL+OR+Telangana+power+tariff+OR+TSTRANSCO&when:7d&hl=en-IN&gl=IN&ceid=IN:en', isStrictPowerFeed: false },
+  { source: 'Tamil Nadu & Chennai Power', url: 'https://news.google.com/rss/search?q=Chennai+TANGEDCO+OR+Tamil+Nadu+power+cut+OR+electricity+tariff&when:7d&hl=en-IN&gl=IN&ceid=IN:en', isStrictPowerFeed: false },
+  { source: 'Rajasthan & Jaipur Power', url: 'https://news.google.com/rss/search?q=Rajasthan+solar+park+OR+JVVNL+OR+Jaipur+electricity+tariff&when:7d&hl=en-IN&gl=IN&ceid=IN:en', isStrictPowerFeed: false },
+  { source: 'Gujarat Power & GUVNL', url: 'https://news.google.com/rss/search?q=Gujarat+GUVNL+OR+Torrent+Power+Ahmedabad+OR+solar+park&when:7d&hl=en-IN&gl=IN&ceid=IN:en', isStrictPowerFeed: false },
 ];
 
 const ALL_PREWARM_QUERIES = [
