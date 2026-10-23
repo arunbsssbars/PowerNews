@@ -65,7 +65,7 @@ class CrawlerScanReport {
 
 /// AQIL v9 Frontier 1: Zero-Config Project Crawler & Auto-Suite Generator.
 ///
-/// Discovers all Widget classes across any project (`myBiometric`, `PowerNewsApp`, etc.)
+/// Discovers all Widget classes across any project (`myBiometric`, `PowerNews`, etc.)
 /// and autonomously generates complete multi-viewport AQIL test suites.
 abstract final class AqilProjectCrawler {
   /// Scans a Dart source code string and extracts discovered Flutter `Widget` classes.

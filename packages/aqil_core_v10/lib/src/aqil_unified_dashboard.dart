@@ -134,7 +134,7 @@ abstract final class AqilUnifiedDashboard {
           primaryDomain: 'Biometric Kiosk & Enterprise HRMS',
         ),
         ProjectQualitySummary(
-          projectName: 'PowerNewsApp',
+          projectName: 'PowerNews',
           complianceScore: 94.5,
           totalTests: 42,
           passRate: 0.98,
