@@ -110,6 +110,8 @@ function truncateArticleBody(text, limit = 4500) {
 
 function isBoilerplate(txt) {
   if (!txt) return true;
+  // If text is an entire article body, it is not a boilerplate stub
+  if (txt.length > 250) return false;
   const lower = txt.toLowerCase();
   return (
     lower.startsWith('by commenting') ||

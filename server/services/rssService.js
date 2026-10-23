@@ -334,14 +334,16 @@ async function syncFeeds(currentCachedArticles = [], articleStore = null) {
       console.log(`[PowerNews] Indexed ${clusteredArticles.length} clean power sector articles (strictly within 30-day retention, newest first). AI Cache: ${Object.keys(aiSummaryCache).length} active summaries.`);
 
 
-      if (ai) {
-        const unsumCount = clusteredArticles.filter(a => a.id && !aiSummaryCache[a.id]).length;
-        if (unsumCount > 0) {
-          console.log(`[Gemini AI] Auto-queuing background summarization for ${unsumCount} new/unsummarized articles...`);
-          setImmediate(() => runGeminiBatchSummarization(clusteredArticles));
-        } else {
-          console.log('[Gemini AI] All articles already summarized — skipping background batch.');
+      const unsumCount = clusteredArticles.filter(a => a.id && !aiSummaryCache[a.id]).length;
+      if (unsumCount > 0) {
+        console.log(`[Batch Summarization] Awaiting summarization for ${unsumCount} new articles to ensure persistence before function completion...`);
+        try {
+          await runGeminiBatchSummarization(clusteredArticles);
+        } catch (sumErr) {
+          console.warn('[Batch Summarization] Non-fatal batch summarization error:', sumErr.message);
         }
+      } else {
+        console.log('[Batch Summarization] All articles already summarized — skipping batch.');
       }
 
       // Kick off topic prewarm in the background — does NOT block return

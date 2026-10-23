@@ -1,3 +1,5 @@
+const path = require('path');
+require('dotenv').config({ path: path.join(__dirname, '..', '..', '.env') });
 const { GoogleGenAI } = require('@google/genai');
 const {
   GEMINI_BATCH_SIZE,
@@ -450,7 +452,7 @@ ${sourceTextForAi.slice(0, 4000)}
  * Batched background summarization queue
  */
 async function runGeminiBatchSummarization(articles = []) {
-  if (!ai || !articles || articles.length === 0) return;
+  if (!articles || articles.length === 0) return;
 
   // Filter unsummarized and exclude articles that have failed repeatedly (>= 2 times) to prevent head-of-line blocking
   const candidates = articles.filter(a => a.id && !aiSummaryCache[a.id] && (failedSummarizationAttempts.get(a.id) || 0) < 2);
@@ -462,13 +464,13 @@ async function runGeminiBatchSummarization(articles = []) {
   // Sort candidates strictly NEWEST FIRST so fresh breaking news from today is prioritized and summarized immediately
   candidates.sort((a, b) => new Date(b.publishedAt || 0) - new Date(a.publishedAt || 0));
 
-  const unsummarized = candidates.slice(0, 30);
+  const unsummarized = candidates.slice(0, 20);
 
   console.log(`[Gemini AI] Starting recency-first batch summarization: ${unsummarized.length} articles (newest: "${unsummarized[0]?.title?.slice(0, 40)}")...`);
   let processed = 0;
 
   for (let i = 0; i < unsummarized.length; i += GEMINI_BATCH_SIZE) {
-    if (Date.now() < geminiCoolingDownUntil) {
+    if (ai && Date.now() < geminiCoolingDownUntil) {
       const waitMs = geminiCoolingDownUntil - Date.now() + 1500;
       console.log(`[Gemini AI] Quota cooling down. Waiting ${Math.ceil(waitMs / 1000)}s before resuming batch (${processed}/${unsummarized.length} done so far)...`);
       await new Promise(r => setTimeout(r, waitMs));
@@ -500,7 +502,8 @@ async function runGeminiBatchSummarization(articles = []) {
     );
 
     if (i + GEMINI_BATCH_SIZE < unsummarized.length) {
-      await new Promise(r => setTimeout(r, GEMINI_WAVE_DELAY_MS));
+      const waveDelay = (ai && Date.now() > geminiCoolingDownUntil) ? GEMINI_WAVE_DELAY_MS : 50;
+      await new Promise(r => setTimeout(r, waveDelay));
     }
   }
 
