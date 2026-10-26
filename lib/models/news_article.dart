@@ -394,7 +394,9 @@ class NewsArticle {
       'cricket', 'football', 'ipl', 'actor', 'actress', 'movie', 'cinema',
       'celebrity', 'power play', 'powerlifting', 'horsepower', 'box office',
       'star power', 'murder', 'robbery', 'gold price', 'silver price',
-      'mutual fund', 'sensex', 'nifty', 'share price'
+      'mutual fund', 'sensex', 'nifty', 'share price',
+      'found dead', 'dead on road', 'suspicious death', 'suicide', 'road accident',
+      'traffic accident', 'hit and run', 'foul play', 'body found', 'dowry', 'domestic violence'
     ];
 
     for (final neg in negativeTerms) {

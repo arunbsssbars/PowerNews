@@ -229,10 +229,15 @@ Return a strictly valid JSON object with the following schema:
   "executive_brief": string (strictly under 60 words — crisp 40 to 55 words single fluid narrative paragraph, dense with facts, zero fluff, no bullets)
 }
 
-STRICT CONSTRAINTS:
+STRICT DOMAIN BOUNDARIES:
+1. "is_power_sector" MUST be set to FALSE for personal tragedies, crimes, vehicular road accidents, murders, suicides, body discoveries, or domestic incidents involving individual utility staff. Only systemic occupational/industrial grid events (e.g. substation explosions, fatal electrocution while repairing live high-voltage feeders leading to regulatory safety inquiry) qualify as power sector news.
+2. "is_power_sector" MUST be set to FALSE if the article lacks any industrial, regulatory, technological, or systemic utility relevance.
+
+STRICT WRITING CONSTRAINTS:
 1. The executive_brief MUST be strictly UNDER 60 words (target 40-55 words).
-2. Pack in quantitative data (MW, GW, kV, Rs Crore, tariffs) and strategic grid impact.
+2. Pack in quantitative data (MW, GW, kV, Rs Crore, tariffs) and strategic grid impact if present in the text.
 3. Write a single fluid paragraph with no bullet points, no introductory pleasantries, and no trailing boilerplate.
+4. ABSOLUTE PROHIBITION ON META-COMMENTARY: NEVER write excuses or disclaimers about missing metrics or the briefing itself (e.g., do NOT write "While involving a utility stakeholder, the incident lacks direct operational or financial metrics", or "No financial details were disclosed", or "The article does not provide quantitative data"). Strictly narrate real-world facts with dignity, objectivity, and professional journalistic tone.
 
 ARTICLE METADATA:
 Headline: ${cleanTitle}

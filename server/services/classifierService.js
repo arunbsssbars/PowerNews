@@ -106,9 +106,20 @@ function filterArticlesRetention30Days(articles) {
   });
 }
 
-function cleanSummaryOutput(text) {
+function stripRoboticDisclaimers(text) {
   if (!text) return '';
   return text
+    .replace(/(?:while\s+involving\s+[^.]+?,\s*)?the\s+incident\s+(?:currently\s+)?lacks\s+(?:direct\s+)?(?:operational|financial|tariff|grid)[^.]*\.?/gi, '')
+    .replace(/(?:this\s+article|the\s+report)\s+(?:does\s+not|lacks|fails\s+to)\s+(?:mention|provide|disclose|have)[^.]*\.?/gi, '')
+    .replace(/no\s+(?:specific\s+)?(?:financial|operational|tariff|quantitative)\s+(?:metrics|details|data|settlements)\s+(?:were|are)\s+(?:disclosed|provided|available)[^.]*\.?/gi, '')
+    .replace(/\s{2,}/g, ' ')
+    .trim();
+}
+
+function cleanSummaryOutput(text) {
+  if (!text) return '';
+  const stripped = stripRoboticDisclaimers(text);
+  return stripped
     .split('\n')
     .map(line => line.trim())
     .filter(line => line.length > 0)
@@ -158,6 +169,10 @@ function isAuthenticAiSummary(title, text) {
     "exclusive reporting, market intelligence",
     "official dispatch from",
     "all rights reserved",
+    "lacks direct operational",
+    "lacks direct financial",
+    "discom utility stakeholder, the incident currently lacks",
+    "utility stakeholder, the incident currently lacks",
     "prohibited content policy",
     "subscribe to read",
     "read more at",
