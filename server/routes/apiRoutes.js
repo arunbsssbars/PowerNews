@@ -188,9 +188,11 @@ function getReadableRefreshTime(isoDateString) {
 function getActiveArticles() {
   const cachedArticles = articleStore.getArticles();
   const retained = filterArticlesRetention30Days(cachedArticles);
-  // STRICT: Only serve articles that have an authentic AI summary ready in RAM cache
+  const { isPowerSectorNews } = require('../services/classifierService');
+  // STRICT: Only serve articles that have an authentic AI summary ready in RAM cache and pass power sector boundaries
   return retained.filter(a => {
     if (!a || !a.id || a.isRejected) return false;
+    if (!isPowerSectorNews(a.title, a.summary || '', false)) return false;
     const summaryText = aiSummaryCache[a.id] || a.summary;
     return isAuthenticAiSummary(a.title, summaryText);
   });
@@ -738,6 +740,17 @@ router.delete('/admin/keywords/:keyword', async (req, res) => {
   const { keyword } = req.params;
   const removed = await keywordService.removeKeyword(keyword);
   res.json({ success: removed, activeKeywords: keywordService.getActiveKeywords() });
+});
+
+router.delete('/admin/articles/:id', requireAdminRole, async (req, res) => {
+  const { id } = req.params;
+  articleStore.removeArticle(id);
+  delete aiSummaryCache[id];
+  try {
+    const { getFirestore } = require('firebase-admin/firestore');
+    await getFirestore().collection('ai_summaries').doc(id).delete();
+  } catch (_) {}
+  res.json({ success: true, message: `Article ${id} successfully evicted from RAM and Cloud Firestore` });
 });
 
 // Admin live view of articles currently eligible and served to the Flutter App
