@@ -341,14 +341,15 @@ class NewsProvider extends ChangeNotifier with WidgetsBindingObserver {
 
   void _warmupBackgroundServices() {
     _warmupTimer?.cancel();
-    _warmupTimer = Timer(const Duration(milliseconds: 700), () async {
+    _warmupTimer = Timer(const Duration(milliseconds: 200), () async {
       try {
         _cacheService.pruneExpiredCache();
-        autoDetectLocation();
         await _apiService.checkAndSelectHost();
+        // Fetch fresh breaking news FIRST so UI immediately updates with today's articles
+        await fetchNews(isRefresh: _articles.isNotEmpty);
+        autoDetectLocation();
         await fetchMetadata();
         await fetchMorningDigest();
-        await fetchNews(isRefresh: _articles.isNotEmpty);
       } catch (e) {
         debugPrint('[NewsProvider] Background network warmup completed: $e');
         if (_articles.isEmpty) {

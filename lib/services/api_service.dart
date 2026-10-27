@@ -14,28 +14,21 @@ class ApiService {
 
   static const String firebaseCloudHost = 'https://powernews-app-2026.web.app';
   static List<String> get candidateHosts {
-    if (kIsWeb) {
-      final hosts = <String>{};
-      if (AppConfig.apiBaseUrl.startsWith('https://')) {
-        hosts.add(AppConfig.apiBaseUrl);
-      }
-      hosts.add(firebaseCloudHost);
-      return hosts.toList();
+    final hosts = <String>{firebaseCloudHost};
+    if (AppConfig.apiBaseUrl.startsWith('https://') && !AppConfig.apiBaseUrl.contains('onrender.com')) {
+      hosts.add(AppConfig.apiBaseUrl);
     }
-    return {
-      AppConfig.apiBaseUrl,
-      'http://172.20.10.11:3000',
-      'http://127.0.0.1:3000',
-      // 1. Production Firebase Blaze Serverless URL (Primary)
-      firebaseCloudHost,
-      // 2. Localhost fallback (only when user manually runs node server in terminal)
-      'http://localhost:3000',
-      'http://10.0.2.2:3000',
-      'http://100.98.130.99:3000',
-    }.toList(); // Deduplicate in case .env matches one of the hardcoded ones
+    if (kDebugMode && !kIsWeb) {
+      hosts.addAll([
+        'http://localhost:3000',
+        'http://10.0.2.2:3000',
+        'http://127.0.0.1:3000',
+      ]);
+    }
+    return hosts.toList();
   }
 
-  String _activeHost = AppConfig.apiBaseUrl;
+  String _activeHost = firebaseCloudHost;
   int _lastTotalCount = 0;
 
   String get activeHost => _activeHost;
@@ -50,7 +43,7 @@ class ApiService {
     final List<Future<String?>> probes = candidateHosts.map((host) async {
       try {
         final uri = Uri.parse('$host${ApiConstants.healthEndpoint}');
-        const timeoutSec = kIsWeb ? 10 : 4;
+        const timeoutSec = 10;
         final res = await http.get(uri, headers: _headers).timeout(const Duration(seconds: timeoutSec));
         if (res.statusCode == 200) {
           try {
@@ -117,7 +110,7 @@ class ApiService {
     for (final host in hostsToTry) {
       try {
         final uri = Uri.parse('$host${ApiConstants.newsEndpoint}').replace(queryParameters: queryParams);
-        const timeoutSec = kIsWeb ? 10 : 4;
+        const timeoutSec = 12;
         final response = await http.get(uri, headers: _headers).timeout(const Duration(seconds: timeoutSec));
 
         if (response.statusCode == 200) {
