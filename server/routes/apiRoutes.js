@@ -188,13 +188,25 @@ function getReadableRefreshTime(isoDateString) {
 function getActiveArticles() {
   const cachedArticles = articleStore.getArticles();
   const retained = filterArticlesRetention30Days(cachedArticles);
-  const { isPowerSectorNews } = require('../services/classifierService');
-  // STRICT: Only serve articles that have an authentic AI summary ready in RAM cache and pass power sector boundaries
+  const { isPowerSectorNews, extractCleanSnippet } = require('../services/classifierService');
+  // HYBRID SENTRY: Serve verified Gemini AI summaries OR fresh breaking publisher dispatches
   return retained.filter(a => {
     if (!a || !a.id || a.isRejected) return false;
     if (!isPowerSectorNews(a.title, a.summary || '', false)) return false;
+
+    // Tier 1: Authentic Gemini narrative AI summary
     const summaryText = aiSummaryCache[a.id] || a.summary;
-    return isAuthenticAiSummary(a.title, summaryText);
+    if (isAuthenticAiSummary(a.title, summaryText)) {
+      return true;
+    }
+
+    // Tier 2: Breaking / Fresh Publisher Dispatch (Hybrid Zero-Cost Mode)
+    const cleanSnippet = extractCleanSnippet(a.title, a.summary);
+    if (cleanSnippet && cleanSnippet.length >= 45 && cleanSnippet.trim().toLowerCase() !== (a.title || '').trim().toLowerCase()) {
+      return true;
+    }
+
+    return false;
   });
 }
 
@@ -492,9 +504,11 @@ router.get('/news', async (req, res) => {
   const finalArticles = paginated.map(a => {
     const candidateSummary = (a.id && aiSummaryCache[a.id]) ? aiSummaryCache[a.id] : a.summary;
     const isAuthentic = isAuthenticAiSummary(a.title, candidateSummary);
+    const { extractCleanSnippet } = require('../services/classifierService');
+    const cleanSummary = isAuthentic ? candidateSummary : extractCleanSnippet(a.title, candidateSummary);
     return {
       ...a,
-      summary: candidateSummary,
+      summary: cleanSummary,
       isAiGenerated: isAuthentic,
       isAiSummary: isAuthentic,
     };

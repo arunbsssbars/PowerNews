@@ -291,10 +291,87 @@ async function prewarmTopicFeeds(articleStore) {
  * Executes a full feed sync cycle. Returns the new list of cached articles.
  * Pre-warming of topic feeds is kicked off in the background after articles are returned.
  */
+let lastExaSearchTime = 0;
+const EXA_SEARCH_COOLDOWN_MS = 3 * 60 * 60 * 1000; // 3 hours cooldown (~8 calls/day = ~$1.20/month of $10 free credit)
+
+async function fetchExaNewsArticles() {
+  const apiKey = process.env.EXA_API_KEY;
+  if (!apiKey) return [];
+  if (Date.now() - lastExaSearchTime < EXA_SEARCH_COOLDOWN_MS) {
+    return [];
+  }
+
+  try {
+    const Exa = require('exa-js').default || require('exa-js');
+    const exa = new Exa(apiKey);
+    lastExaSearchTime = Date.now();
+
+    const res = await exa.searchAndContents('India electricity transmission solar grid power news', {
+      category: 'news',
+      numResults: 15,
+      text: true,
+    });
+
+    const results = [];
+    for (const item of res.results || []) {
+      const rawTitle = cleanText(item.title);
+      const rawSummary = cleanText(item.text ? item.text.slice(0, 500) : '');
+      if (!rawTitle) continue;
+      if (!isPowerSectorNews(rawTitle, rawSummary, false)) continue;
+
+      let categories = extractCategories(`${rawTitle} ${rawSummary}`);
+      if (categories.length === 0) categories = ['generation'];
+
+      const player = extractPlayer(`${rawTitle} ${rawSummary}`);
+      const { city, state, discom } = extractCityStateAndDiscom(`${rawTitle} ${rawSummary}`);
+      const title = cleanHeadline(rawTitle);
+      const articleId = generateArticleId({ link: item.url, guid: item.id }, rawTitle);
+      const summary = aiSummaryCache[articleId] || extractCleanSnippet(rawTitle, rawSummary);
+
+      let source = 'Exa News Intelligence';
+      try {
+        const hostname = new URL(item.url).hostname.replace(/^www\./, '');
+        if (hostname.includes('economictimes')) source = 'Economic Times Energy';
+        else if (hostname.includes('livemint')) source = 'LiveMint Energy';
+        else if (hostname.includes('mercom')) source = 'Mercom India';
+        else if (hostname.includes('business-standard')) source = 'Business Standard Energy';
+        else if (hostname.includes('thehindu')) source = 'The Hindu Energy';
+        else source = hostname;
+      } catch (_) {}
+
+      results.push({
+        id: articleId,
+        title,
+        summary,
+        url: item.url || '',
+        source,
+        publishedAt: parsePublisherDate(item.publishedDate),
+        categories,
+        player,
+        city,
+        state,
+        discom,
+        imageUrl: item.image || null,
+        isAiGenerated: Boolean(aiSummaryCache[articleId]),
+        isAiSummary: Boolean(aiSummaryCache[articleId]),
+      });
+    }
+
+    if (results.length > 0) {
+      console.log(`[Exa News] Discovered ${results.length} fresh neural power articles from web.`);
+    }
+    return results;
+  } catch (err) {
+    console.warn('[Exa News] Non-fatal search warning:', err.message);
+    return [];
+  }
+}
+
 async function syncFeeds(currentCachedArticles = [], articleStore = null) {
   console.log(`[${new Date().toISOString()}] Refreshing PowerNews feeds...`);
   try {
     const rawArticles = await fetchRSSArticles();
+    const exaArticles = await fetchExaNewsArticles();
 
     // Deduplicate identical raw titles and preserve original publisher dates
     const previousDateMap = new Map();
@@ -307,7 +384,7 @@ async function syncFeeds(currentCachedArticles = [], articleStore = null) {
     }
 
     const seenMap = new Map();
-    const candidateArticles = [...rawArticles, ...currentCachedArticles];
+    const candidateArticles = [...rawArticles, ...exaArticles, ...currentCachedArticles];
     for (const article of candidateArticles) {
       if (!article || !article.title) continue;
       const key = article.title.toLowerCase().replace(/[^a-z0-9]/g, '');
@@ -370,4 +447,5 @@ module.exports = {
   fetchRSSArticles,
   searchLiveTopicRSS,
   syncFeeds,
+  fetchExaNewsArticles,
 };

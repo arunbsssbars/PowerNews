@@ -1072,8 +1072,8 @@ class NewsProvider extends ChangeNotifier with WidgetsBindingObserver {
           return false;
         }
       }
-      // Strict AI Summary Gate: ONLY genuine narrative AI summaries (non-bullet, >= 90 chars, anti-mirror, anti-boilerplate)
-      if (!a.isAiGenerated && !a.hasAuthenticAiSummary) {
+      // Hybrid Feed Gate: Allow both verified Gemini narrative summaries and clean publisher breaking dispatches
+      if (a.summary.trim().isEmpty || a.summary.trim().length < 25) {
         return false;
       }
       return true;
