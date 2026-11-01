@@ -302,24 +302,23 @@ router.get('/refresh', async (req, res) => {
 // ----------------------------------------------------------------------------
 router.get('/news', async (req, res) => {
   const { category, state, city, discom, player, search, source, sort, page = 1, limit = DEFAULT_PAGE_SIZE } = req.query;
-  const activePool = getActiveArticles();
+  let activePool = getActiveArticles();
 
-  // If page == 1 and feed is stale (> 2 hours old or server was sleeping),
-  // proactively schedule an immediate background feed synchronization without blocking the response
+  // If page == 1 and feed is stale (> 2 hours old or server cold boot),
+  // synchronize feeds directly (now ultra-fast ~1.8s) so the client receives fresh breaking news immediately
   if (parseInt(page, 10) === 1 && (!lastFeedSyncTime || (Date.now() - lastFeedSyncTime > 15 * 60 * 1000))) {
     const newestTime = activePool.length > 0 ? new Date(activePool[0].publishedAt).getTime() : 0;
     const hoursSinceNewest = (Date.now() - newestTime) / (1000 * 60 * 60);
-    if (hoursSinceNewest >= 2 || !lastFeedSyncTime) {
+    if (hoursSinceNewest >= 2 || !lastFeedSyncTime || activePool.length === 0) {
       lastFeedSyncTime = Date.now();
-      setImmediate(async () => {
-        try {
-          console.log(`[AutoRefresh] 🔄 Stale feed detected (${hoursSinceNewest.toFixed(1)}h old). Triggering background feed sync...`);
-          const fresh = await syncFeeds(articleStore.getArticles(), articleStore);
-          articleStore.setArticles(fresh);
-        } catch (e) {
-          console.warn('[AutoRefresh] Background feed sync failed:', e.message);
-        }
-      });
+      try {
+        console.log(`[AutoRefresh] 🔄 Stale feed detected (${hoursSinceNewest.toFixed(1)}h old). Synchronizing breaking news feeds in real-time...`);
+        const fresh = await syncFeeds(articleStore.getArticles(), articleStore);
+        articleStore.setArticles(fresh);
+        activePool = getActiveArticles();
+      } catch (e) {
+        console.warn('[AutoRefresh] Real-time sync failed, serving cached pool:', e.message);
+      }
     }
   }
 

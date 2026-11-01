@@ -27,7 +27,7 @@ const {
 } = require('./scraperService');
 
 const parser = new Parser({
-  timeout: 20000,
+  timeout: 7000,
   headers: {
     'User-Agent': 'PowerNewsEngine/3.0 (India Power Sector Intelligence)'
   },
@@ -43,10 +43,10 @@ const parser = new Parser({
 });
 
 async function fetchRSSArticles() {
-  const results = [];
-  for (const feed of RSS_FEEDS) {
+  const feedPromises = RSS_FEEDS.map(async (feed) => {
     try {
       const parsed = await parser.parseURL(feed.url);
+      const feedResults = [];
       for (const item of parsed.items || []) {
         const rawTitle = cleanText(item.title);
         const rawSummary = cleanText(item.contentSnippet || item.content || item.summary || item.rawDescription || '');
@@ -116,7 +116,7 @@ async function fetchRSSArticles() {
         }
 
         const rawPubDate = item.pubDate || item.isoDate || item.date || item.published || item['dc:date'];
-        results.push({
+        feedResults.push({
           id: articleId,
           title,
           summary,
@@ -128,12 +128,21 @@ async function fetchRSSArticles() {
           city,
           state,
           discom,
-          // fullText omitted from RAM caching to prevent OOM limit breaches
           imageUrl: rssImageUrl || null,
         });
       }
+      return feedResults;
     } catch (e) {
       console.warn(`[Aggregator] Feed fetch error (${feed.source}): ${e.message}`);
+      return [];
+    }
+  });
+
+  const settled = await Promise.allSettled(feedPromises);
+  const results = [];
+  for (const r of settled) {
+    if (r.status === 'fulfilled' && Array.isArray(r.value)) {
+      results.push(...r.value);
     }
   }
   return results;
@@ -306,8 +315,10 @@ async function fetchExaNewsArticles() {
     const exa = new Exa(apiKey);
     lastExaSearchTime = Date.now();
 
+    const twoDaysAgo = new Date(Date.now() - 48 * 3600 * 1000).toISOString();
     const res = await exa.searchAndContents('India electricity transmission solar grid power news', {
       category: 'news',
+      startPublishedDate: twoDaysAgo,
       numResults: 15,
       text: true,
     });

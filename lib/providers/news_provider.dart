@@ -1106,7 +1106,9 @@ class NewsProvider extends ChangeNotifier with WidgetsBindingObserver {
       _isRefreshing = true;
       notifyListeners();
       // Proactively poke the aggregator to sync and ingest breaking news from the past few hours
-      _apiService.refreshFeeds().catchError((_) => false);
+      try {
+        await _apiService.refreshFeeds().timeout(const Duration(seconds: 6));
+      } catch (_) {}
     } else {
       _isLoading = _articles.isEmpty;
       _currentPage = 1;
