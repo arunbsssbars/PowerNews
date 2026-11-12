@@ -594,7 +594,63 @@ async function getFeedbacks() {
   return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 }
 
+
+/**
+ * Persists an array of fresh articles to Cloud Firestore using an atomic batch.
+ * Capped to max 20 documents per cycle to stay well within free tier (20k daily writes).
+ */
+async function saveArticlesBatchToFirestore(articles = []) {
+  const database = initFirestore();
+  if (!database || !Array.isArray(articles) || articles.length === 0) return 0;
+
+  try {
+    const batch = database.batch();
+    let count = 0;
+    for (const a of articles) {
+      if (!a || !a.id || !a.title || a.isRejected) continue;
+      const summaryText = (a.summary || '').trim();
+      if (summaryText.length < 45 || summaryText.startsWith('• ')) continue;
+
+      const docRef = database.collection('ai_summaries').doc(a.id);
+      batch.set(docRef, {
+        id: a.id,
+        title: a.title,
+        summary: summaryText,
+        url: a.url || '',
+        source: a.source || 'PowerNews',
+        publishedAt: a.publishedAt || new Date().toISOString(),
+        categories: a.categories || ['generation'],
+        player: a.player || null,
+        city: a.city || null,
+        state: a.state || 'National / Pan-India',
+        discom: a.discom || null,
+        sources: a.sources || [a.source || 'PowerNews'],
+        sourceLinks: a.sourceLinks || (a.url ? [{ source: a.source || 'PowerNews', url: a.url }] : []),
+        coverageCount: a.coverageCount || 1,
+        imageUrl: a.imageUrl || null,
+        isAiGenerated: Boolean(a.isAiGenerated),
+        isAiSummary: Boolean(a.isAiSummary),
+        updatedAt: new Date().toISOString(),
+      }, { merge: true });
+
+      cachedSummaryMap[a.id] = summaryText;
+      count++;
+      if (count >= 20) break;
+    }
+
+    if (count > 0) {
+      await batch.commit();
+      console.log(`[Firestore Batch] Successfully updated ${count} fresh power articles in Cloud Firestore.`);
+    }
+    return count;
+  } catch (err) {
+    console.warn('[Firestore Batch] Non-fatal batch update warning:', err.message);
+    return 0;
+  }
+}
+
 module.exports = {
+  saveArticlesBatchToFirestore,
   saveFeedback,
   getFeedbacks,
 

@@ -13,6 +13,7 @@ const {
   filterArticlesRetention30Days,
 } = require('./classifierService');
 const { clusterArticles } = require('./clusterService');
+const { saveArticlesBatchToFirestore } = require('./firestoreService');
 const {
   ai,
   aiSummaryCache,
@@ -415,6 +416,10 @@ async function syncFeeds(currentCachedArticles = [], articleStore = null) {
     const clusteredArticles = clusterArticles(thirtyDayArticles, aiSummaryCache);
 
     if (clusteredArticles.length > 0) {
+      // Persist top fresh articles into Cloud Firestore immediately
+      try {
+        await saveArticlesBatchToFirestore(clusteredArticles.slice(0, 20));
+      } catch (_) {}
       clusteredArticles.sort((a, b) => new Date(b.publishedAt) - new Date(a.publishedAt));
 
       pruneAiSummaryCache(clusteredArticles);

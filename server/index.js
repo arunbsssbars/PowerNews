@@ -445,7 +445,7 @@ const api = onRequest({
 
 // 2. Scheduled Cron Function (Zero-Billing: 5 business-hour runs/day, 256MiB, 60s cap = <2% of Free Tier)
 const syncFeedsScheduled = onSchedule({
-  schedule: '0 8,11,14,17,20 * * *',
+  schedule: '0 * * * *', // Hourly sync (24 runs/day = ~6% of Cloud Run Free Tier)
   timeZone: 'Asia/Kolkata',
   timeoutSeconds: 60,
   memory: '256MiB',
