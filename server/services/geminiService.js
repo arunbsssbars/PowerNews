@@ -469,7 +469,7 @@ async function runGeminiBatchSummarization(articles = []) {
   // Sort candidates strictly NEWEST FIRST so fresh breaking news from today is prioritized and summarized immediately
   candidates.sort((a, b) => new Date(b.publishedAt || 0) - new Date(a.publishedAt || 0));
 
-  const unsummarized = candidates.slice(0, 10);
+  const unsummarized = candidates.slice(0, 4); // Capped to 4 per wave to guarantee <15s compute duration
 
   console.log(`[Gemini AI] Starting recency-first batch summarization: ${unsummarized.length} articles (newest: "${unsummarized[0]?.title?.slice(0, 40)}")...`);
   let processed = 0;

@@ -364,47 +364,33 @@ app.get('/editorial', (req, res) => {
 });
 
 // Periodic sync cron (every 15 mins: at :00, :15, :30, :45 of each hour)
-cron.schedule('*/15 * * * *', async () => {
-  console.log(`[Cron] ========================================================`);
-  console.log(`[Cron] 🔄 Periodic 15-minute feed refresh started at ${new Date().toISOString()}`);
-  console.log(`[Cron] ========================================================`);
-  try {
-    const updated = await syncFeeds(articleStore.getArticles(), articleStore);
-    articleStore.setArticles(updated);
-    console.log(`[Cron] ✅ Periodic feed refresh complete at ${new Date().toISOString()} (${updated.length} active articles)`);
-  } catch (err) {
-    console.error(`[Cron] ❌ Periodic feed refresh encountered an error:`, err.message);
-  }
-});
-
-// Daily Firestore storage self-regulation cron (Runs every day at 03:30 AM)
-cron.schedule('30 3 * * *', async () => {
-  console.log(`[Cron] Running daily Firestore storage check (850 MB high-watermark check)...`);
-  try {
-    const { purgeOldestIfNearLimit } = require('./services/firestoreService');
-    await purgeOldestIfNearLimit();
-  } catch (err) {
-    console.warn(`[Cron] Firestore storage check failed:`, err.message);
-  }
-});
-
-// Automated missing keyword discovery (Runs at 04:00 AM & 04:00 PM IST)
-cron.schedule('0 4,16 * * *', async () => {
-  console.log(`[Cron] 🔍 Running scheduled automated missing keyword discovery (04:00 AM / 04:00 PM IST)...`);
-  try {
-    const keywordService = require('./services/keywordService');
-    const res = await keywordService.autoDiscoverAndAddKeywords(articleStore.getArticles());
-    if (res.newlyAdded && res.newlyAdded.length > 0) {
-      console.log(`[Cron] 🎯 Auto-discovered and added ${res.newlyAdded.length} new keywords: ${res.newlyAdded.join(', ')}`);
-    } else {
-      console.log(`[Cron] Keyword discovery complete. No new missing entities found.`);
+// Run in-memory node-cron ONLY for standalone desktop/local servers, NEVER in Cloud Run functions
+if (!process.env.K_SERVICE && !process.env.FUNCTION_TARGET) {
+  cron.schedule('0 8,11,14,17,20 * * *', async () => {
+    try {
+      const updated = await syncFeeds(articleStore.getArticles(), articleStore);
+      articleStore.setArticles(updated);
+    } catch (err) {
+      console.error('[Cron] Feed refresh error:', err.message);
     }
-  } catch (err) {
-    console.warn(`[Cron] Automated keyword discovery failed:`, err.message);
-  }
-}, {
-  timezone: 'Asia/Kolkata'
-});
+  }, { timezone: 'Asia/Kolkata' });
+
+  cron.schedule('30 3 * * *', async () => {
+    try {
+      const { purgeOldestIfNearLimit } = require('./services/firestoreService');
+      await purgeOldestIfNearLimit();
+    } catch (err) {
+      console.warn('[Cron] Firestore storage check failed:', err.message);
+    }
+  });
+
+  cron.schedule('0 4,16 * * *', async () => {
+    try {
+      const keywordService = require('./services/keywordService');
+      await keywordService.autoDiscoverAndAddKeywords(articleStore.getArticles());
+    } catch (_) {}
+  }, { timezone: 'Asia/Kolkata' });
+}
 
 // Server bootstrap
 let server = null;
@@ -457,12 +443,12 @@ const api = onRequest({
   concurrency: 80, // Single instance handles 80 concurrent users
 }, app);
 
-// 2. Scheduled Cron Function (15-min RSS Ingestion, 1 job stays 100% within free quota)
+// 2. Scheduled Cron Function (Zero-Billing: 5 business-hour runs/day, 256MiB, 60s cap = <2% of Free Tier)
 const syncFeedsScheduled = onSchedule({
-  schedule: '*/15 * * * *',
+  schedule: '0 8,11,14,17,20 * * *',
   timeZone: 'Asia/Kolkata',
-  timeoutSeconds: 300,
-  memory: '512MiB',
+  timeoutSeconds: 60,
+  memory: '256MiB',
   maxInstances: 1,
 }, async (event) => {
   console.log('[Cloud Scheduler] 🕒 Starting scheduled feed synchronization...');
